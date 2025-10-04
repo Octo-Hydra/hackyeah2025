@@ -8,6 +8,8 @@ import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
 // Validation schema for credentials
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -89,6 +91,11 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
+    redirect({ url }) {
+      if (url.startsWith("/")) return `${BASE_URL}${url}`;
+      else if (new URL(url).origin === BASE_URL) return url;
+      return BASE_URL;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
