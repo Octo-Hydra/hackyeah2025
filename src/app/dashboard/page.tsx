@@ -37,7 +37,7 @@ export default async function DashboardPage() {
         </header>
 
         {/* Mobile Header */}
-        <header className="border-b bg-white dark:bg-gray-950 md:hidden">
+        {/* <header className="border-b bg-white dark:bg-gray-950 md:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <Image
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
               <h1 className="text-lg font-bold">Panel</h1>
             </div>
           </div>
-        </header>
+        </header> */}
 
         {/* Main Content */}
         <main className="overflow-y-auto max-h-[calc(100vh-2rem)] container mx-auto px-4 py-6 pb-24 md:pb-6">
