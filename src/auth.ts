@@ -87,6 +87,7 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     redirect({ url, baseUrl }) {
       const actualBaseUrl = baseUrl || BASE_URL;
+      console.log("Redirecting to:", url, "from baseUrl:", actualBaseUrl);
       if (url.startsWith("/")) {
         return `${actualBaseUrl}${url}`;
       }
