@@ -1077,7 +1077,7 @@ incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transport
 	segmentType?:boolean | `@${string}`,
 	from?:ValueTypes["SegmentLocation"],
 	to?:ValueTypes["SegmentLocation"],
-	lineId?:ValueTypes["id"],
+	lineId?:boolean | `@${string}`,
 	lineName?:boolean | `@${string}`,
 	transportType?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
@@ -1106,12 +1106,23 @@ incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transport
 	maxWalkingDistance?: number | undefined | null | Variable<any, string>
 };
 	["Subscription"]: AliasType<{
-notificationReported?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
-notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
-	notificationOfficial?:ValueTypes["OfficialNotification"],
-reputationUpdated?: [{	userId: string | Variable<any, string>},ValueTypes["ReputationUpdate"]],
+incidentCreated?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
+incidentUpdated?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
+incidentResolved?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
+lineIncidentUpdates?: [{	lineId: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
+myLinesIncidents?: [{	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>},ValueTypes["Incident"]],
+pathAffectedByIncident?: [{	startCoordinates: ValueTypes["CoordinatesInput"] | Variable<any, string>,	endCoordinates: ValueTypes["CoordinatesInput"] | Variable<any, string>},ValueTypes["PathAffectedPayload"]],
 		__typename?: boolean | `@${string}`,
 	['...on Subscription']?: Omit<ValueTypes["Subscription"], "...on Subscription">
+}>;
+	["PathAffectedPayload"]: AliasType<{
+	incident?:ValueTypes["Incident"],
+	affectedLines?:ValueTypes["Line"],
+	message?:boolean | `@${string}`,
+	originalPath?:ValueTypes["JourneyPath"],
+	alternativePath?:ValueTypes["JourneyPath"],
+		__typename?: boolean | `@${string}`,
+	['...on PathAffectedPayload']?: Omit<ValueTypes["PathAffectedPayload"], "...on PathAffectedPayload">
 }>;
 	["ID"]:unknown
   }
@@ -1270,7 +1281,7 @@ incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverI
 	segmentType?:boolean | `@${string}`,
 	from?:ResolverInputTypes["SegmentLocation"],
 	to?:ResolverInputTypes["SegmentLocation"],
-	lineId?:ResolverInputTypes["id"],
+	lineId?:boolean | `@${string}`,
 	lineName?:boolean | `@${string}`,
 	transportType?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
@@ -1297,10 +1308,20 @@ incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverI
 	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: AliasType<{
-notificationReported?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
-notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
-	notificationOfficial?:ResolverInputTypes["OfficialNotification"],
-reputationUpdated?: [{	userId: string},ResolverInputTypes["ReputationUpdate"]],
+incidentCreated?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
+incidentUpdated?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
+incidentResolved?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
+lineIncidentUpdates?: [{	lineId: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+myLinesIncidents?: [{	lineIds: Array<ResolverInputTypes["ID"]>},ResolverInputTypes["Incident"]],
+pathAffectedByIncident?: [{	startCoordinates: ResolverInputTypes["CoordinatesInput"],	endCoordinates: ResolverInputTypes["CoordinatesInput"]},ResolverInputTypes["PathAffectedPayload"]],
+		__typename?: boolean | `@${string}`
+}>;
+	["PathAffectedPayload"]: AliasType<{
+	incident?:ResolverInputTypes["Incident"],
+	affectedLines?:ResolverInputTypes["Line"],
+	message?:boolean | `@${string}`,
+	originalPath?:ResolverInputTypes["JourneyPath"],
+	alternativePath?:ResolverInputTypes["JourneyPath"],
 		__typename?: boolean | `@${string}`
 }>;
 	["schema"]: AliasType<{
@@ -1448,7 +1469,7 @@ export type ModelTypes = {
 		segmentType: ModelTypes["SegmentType"],
 	from: ModelTypes["SegmentLocation"],
 	to: ModelTypes["SegmentLocation"],
-	lineId?: ModelTypes["id"] | undefined | null,
+	lineId: ModelTypes["ID"],
 	lineName?: string | undefined | null,
 	transportType?: ModelTypes["TransportType"] | undefined | null,
 	departureTime?: string | undefined | null,
@@ -1473,10 +1494,19 @@ export type ModelTypes = {
 	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: {
-		notificationReported: ModelTypes["NotificationReport"],
-	notificationConfirmed: ModelTypes["NotificationReport"],
-	notificationOfficial: ModelTypes["OfficialNotification"],
-	reputationUpdated: ModelTypes["ReputationUpdate"]
+		incidentCreated: ModelTypes["Incident"],
+	incidentUpdated: ModelTypes["Incident"],
+	incidentResolved: ModelTypes["Incident"],
+	lineIncidentUpdates: ModelTypes["Incident"],
+	myLinesIncidents: ModelTypes["Incident"],
+	pathAffectedByIncident: ModelTypes["PathAffectedPayload"]
+};
+	["PathAffectedPayload"]: {
+		incident: ModelTypes["Incident"],
+	affectedLines: Array<ModelTypes["Line"]>,
+	message: string,
+	originalPath?: ModelTypes["JourneyPath"] | undefined | null,
+	alternativePath?: ModelTypes["JourneyPath"] | undefined | null
 };
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
@@ -1487,20 +1517,18 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Geographic coordinates
-;
-	// Stop/Station with location
-;
-	// Path segment type
-;
-	// Location info for segment endpoints
-;
-	// Single segment of a journey
-;
-	// Complete journey path
-;
-	// Input for finding a path
-;
+    // Geographic coordinates;
+	// Stop/Station with location;
+	// Path segment type;
+	// Location info for segment endpoints;
+	// Single segment of a journey;
+	// Complete journey path;
+	// Input for finding a path;
+	// Real-time incident updates;
+	// Line-specific incident updates;
+	// All incidents for specific lines (user subscribes to favorite lines);
+	// Journey path updates (when incidents affect the route);
+	// Payload when a journey path is affected by an incident;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
@@ -1673,7 +1701,7 @@ export type GraphQLTypes = {
 	segmentType: GraphQLTypes["SegmentType"],
 	from: GraphQLTypes["SegmentLocation"],
 	to: GraphQLTypes["SegmentLocation"],
-	lineId?: GraphQLTypes["id"] | undefined | null,
+	lineId: GraphQLTypes["ID"],
 	lineName?: string | undefined | null,
 	transportType?: GraphQLTypes["TransportType"] | undefined | null,
 	departureTime?: string | undefined | null,
@@ -1702,11 +1730,22 @@ export type GraphQLTypes = {
 };
 	["Subscription"]: {
 	__typename: "Subscription",
-	notificationReported: GraphQLTypes["NotificationReport"],
-	notificationConfirmed: GraphQLTypes["NotificationReport"],
-	notificationOfficial: GraphQLTypes["OfficialNotification"],
-	reputationUpdated: GraphQLTypes["ReputationUpdate"],
+	incidentCreated: GraphQLTypes["Incident"],
+	incidentUpdated: GraphQLTypes["Incident"],
+	incidentResolved: GraphQLTypes["Incident"],
+	lineIncidentUpdates: GraphQLTypes["Incident"],
+	myLinesIncidents: GraphQLTypes["Incident"],
+	pathAffectedByIncident: GraphQLTypes["PathAffectedPayload"],
 	['...on Subscription']: Omit<GraphQLTypes["Subscription"], "...on Subscription">
+};
+	["PathAffectedPayload"]: {
+	__typename: "PathAffectedPayload",
+	incident: GraphQLTypes["Incident"],
+	affectedLines: Array<GraphQLTypes["Line"]>,
+	message: string,
+	originalPath?: GraphQLTypes["JourneyPath"] | undefined | null,
+	alternativePath?: GraphQLTypes["JourneyPath"] | undefined | null,
+	['...on PathAffectedPayload']: Omit<GraphQLTypes["PathAffectedPayload"], "...on PathAffectedPayload">
 };
 	["ID"]: "scalar" & { name: "ID" }
     }

@@ -6,6 +6,7 @@ import type {
   IncidentClass,
   ReportStatus,
 } from "../db/collections";
+import { pubsub, CHANNELS } from "./subscriptions.js";
 
 interface CreateReportInput {
   title: string;
@@ -44,6 +45,12 @@ function mapStoredDoc(doc: IncidentModel, id: ObjectId | string) {
     kind: doc.kind,
     incidentClass: doc.incidentClass,
     status: doc.status,
+    lineIds: Array.isArray(doc.lineIds)
+      ? doc.lineIds.map((x: ObjectId | string | null) => {
+          if (!x) return null;
+          return typeof x === "string" ? x : x.toString();
+        })
+      : null,
     vehicleIds: Array.isArray(doc.vehicleIds)
       ? doc.vehicleIds.map((x: ObjectId | string | null) => {
           if (!x) return null;
@@ -79,7 +86,22 @@ export const carrierMutation = {
       updatedAt: now,
     };
     const res = await db.collection<IncidentModel>("Incidents").insertOne(doc);
-    return mapStoredDoc(doc, res.insertedId);
+    const incident = mapStoredDoc(doc, res.insertedId);
+
+    // Publish real-time event for subscribers
+    pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
+    if (incident.lineIds && incident.lineIds.length > 0) {
+      incident.lineIds.forEach((lineId: string | null) => {
+        if (lineId) {
+          pubsub.publish(
+            `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
+            incident
+          );
+        }
+      });
+    }
+
+    return incident;
   },
 
   async saveDraft(
@@ -104,7 +126,10 @@ export const carrierMutation = {
       updatedAt: now,
     };
     const res = await db.collection<IncidentModel>("Incidents").insertOne(doc);
-    return mapStoredDoc(doc, res.insertedId);
+    const incident = mapStoredDoc(doc, res.insertedId);
+
+    // Note: Drafts don't publish events until they're published
+    return incident;
   },
 
   async updateReport(
@@ -137,7 +162,28 @@ export const carrierMutation = {
         { returnDocument: "after" }
       );
     if (!res) throw new Error("Report not found");
-    return mapStoredDoc(res, res._id!);
+    const incident = mapStoredDoc(res, res._id!);
+
+    // Publish appropriate event based on status change
+    if (incident.status === "RESOLVED") {
+      pubsub.publish(CHANNELS.INCIDENT_RESOLVED, incident);
+    } else {
+      pubsub.publish(CHANNELS.INCIDENT_UPDATED, incident);
+    }
+
+    // Also publish to line-specific channels
+    if (incident.lineIds && incident.lineIds.length > 0) {
+      incident.lineIds.forEach((lineId: string | null) => {
+        if (lineId) {
+          pubsub.publish(
+            `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
+            incident
+          );
+        }
+      });
+    }
+
+    return incident;
   },
 
   async deleteReport(_: unknown, { id }: { id: string }, ctx: GraphQLContext) {
@@ -162,7 +208,22 @@ export const carrierMutation = {
         { returnDocument: "after" }
       );
     if (!res) throw new Error("Report not found");
-    return mapStoredDoc(res, res._id!);
+    const incident = mapStoredDoc(res, res._id!);
+
+    // Publish as CREATED event when draft becomes public
+    pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
+    if (incident.lineIds && incident.lineIds.length > 0) {
+      incident.lineIds.forEach((lineId: string | null) => {
+        if (lineId) {
+          pubsub.publish(
+            `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
+            incident
+          );
+        }
+      });
+    }
+
+    return incident;
   },
 };
 

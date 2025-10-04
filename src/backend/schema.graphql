@@ -190,7 +190,7 @@ type PathSegment {
   segmentType: SegmentType!
   from: SegmentLocation!
   to: SegmentLocation!
-  lineId: id
+  lineId: ID!
   lineName: String
   transportType: TransportType
   departureTime: String
@@ -220,8 +220,29 @@ input FindPathInput {
 }
 
 type Subscription {
-  notificationReported(lineIds: [String!]): NotificationReport!
-  notificationConfirmed(lineIds: [String!]): NotificationReport!
-  notificationOfficial: OfficialNotification!
-  reputationUpdated(userId: String!): ReputationUpdate!
+  # Real-time incident updates
+  incidentCreated(transportType: TransportType): Incident!
+  incidentUpdated(transportType: TransportType): Incident!
+  incidentResolved(transportType: TransportType): Incident!
+
+  # Line-specific incident updates
+  lineIncidentUpdates(lineId: ID!): Incident!
+
+  # All incidents for specific lines (user subscribes to favorite lines)
+  myLinesIncidents(lineIds: [ID!]!): Incident!
+
+  # Journey path updates (when incidents affect the route)
+  pathAffectedByIncident(
+    startCoordinates: CoordinatesInput!
+    endCoordinates: CoordinatesInput!
+  ): PathAffectedPayload!
+}
+
+# Payload when a journey path is affected by an incident
+type PathAffectedPayload {
+  incident: Incident!
+  affectedLines: [Line!]!
+  message: String!
+  originalPath: JourneyPath
+  alternativePath: JourneyPath
 }

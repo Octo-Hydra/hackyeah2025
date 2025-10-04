@@ -80,6 +80,27 @@ export const AllTypesProps: Record<string,any> = {
 		startCoordinates:"CoordinatesInput",
 		endCoordinates:"CoordinatesInput"
 	},
+	Subscription:{
+		incidentCreated:{
+			transportType:"TransportType"
+		},
+		incidentUpdated:{
+			transportType:"TransportType"
+		},
+		incidentResolved:{
+			transportType:"TransportType"
+		},
+		lineIncidentUpdates:{
+
+		},
+		myLinesIncidents:{
+
+		},
+		pathAffectedByIncident:{
+			startCoordinates:"CoordinatesInput",
+			endCoordinates:"CoordinatesInput"
+		}
+	},
 	ID: `scalar.ID` as const
 }
 
@@ -190,7 +211,7 @@ export const ReturnTypes: Record<string,any> = {
 		segmentType:"SegmentType",
 		from:"SegmentLocation",
 		to:"SegmentLocation",
-		lineId:"id",
+		lineId:"ID",
 		lineName:"String",
 		transportType:"TransportType",
 		departureTime:"String",
@@ -209,10 +230,19 @@ export const ReturnTypes: Record<string,any> = {
 		warnings:"String"
 	},
 	Subscription:{
-		notificationReported:"NotificationReport",
-		notificationConfirmed:"NotificationReport",
-		notificationOfficial:"OfficialNotification",
-		reputationUpdated:"ReputationUpdate"
+		incidentCreated:"Incident",
+		incidentUpdated:"Incident",
+		incidentResolved:"Incident",
+		lineIncidentUpdates:"Incident",
+		myLinesIncidents:"Incident",
+		pathAffectedByIncident:"PathAffectedPayload"
+	},
+	PathAffectedPayload:{
+		incident:"Incident",
+		affectedLines:"Line",
+		message:"String",
+		originalPath:"JourneyPath",
+		alternativePath:"JourneyPath"
 	},
 	ID: `scalar.ID` as const
 }
