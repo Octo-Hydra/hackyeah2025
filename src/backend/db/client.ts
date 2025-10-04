@@ -20,7 +20,6 @@ export async function getMongoClient(): Promise<MongoClient> {
 
 export async function DB(dbName?: string): Promise<Db> {
   const c = await getMongoClient();
-  console.log(c);
   if (dbName) return c.db(dbName);
   return c.db();
 }

@@ -37,19 +37,66 @@ function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
 async function findNearestStop(
   db: Db,
   coordinates: Coordinates,
-  maxDistance: number = 500
+  maxDistance: number = 50000 // Default 50km
 ): Promise<StopModel | null> {
   const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
   let nearest: StopModel | null = null;
-  let minDistance = maxDistance;
+  let minDistance = Infinity;
+  const candidates: Array<{ stop: StopModel; distance: number }> = [];
+
+  console.log(
+    `🔍 Finding nearest stop to (${coordinates.latitude}, ${coordinates.longitude})`
+  );
+  console.log(
+    `   Max distance: ${maxDistance}m (${(maxDistance / 1000).toFixed(1)}km)`
+  );
+  console.log(`   Total stops in database: ${stops.length}`);
 
   for (const stop of stops) {
     const distance = calculateDistance(coordinates, stop.coordinates);
+
+    // Keep track of top 5 closest stops for debugging
+    if (
+      candidates.length < 5 ||
+      distance < candidates[candidates.length - 1].distance
+    ) {
+      candidates.push({ stop, distance });
+      candidates.sort((a, b) => a.distance - b.distance);
+      if (candidates.length > 5) candidates.pop();
+    }
+
     if (distance < minDistance) {
       minDistance = distance;
       nearest = stop;
     }
+  }
+
+  // Log top 5 candidates
+  console.log(`   📍 Top 5 nearest stops:`);
+  candidates.forEach((c, i) => {
+    console.log(
+      `      ${i + 1}. "${c.stop.name}" - ${(c.distance / 1000).toFixed(2)}km`
+    );
+  });
+
+  // Check if nearest stop is within maxDistance
+  if (nearest && minDistance > maxDistance) {
+    console.log(
+      `   ❌ Nearest stop "${nearest.name}" is ${(minDistance / 1000).toFixed(2)}km away (exceeds max ${(maxDistance / 1000).toFixed(1)}km)`
+    );
+    return null;
+  }
+
+  if (nearest) {
+    console.log(
+      `   ✅ SELECTED: "${nearest.name}" at ${(minDistance / 1000).toFixed(2)}km`
+    );
+    console.log(
+      `      Coordinates: (${nearest.coordinates.latitude}, ${nearest.coordinates.longitude})`
+    );
+  } else {
+    console.log(`   ❌ No stops found in database`);
   }
 
   return nearest;
@@ -151,12 +198,24 @@ export const pathResolvers = {
       maxWalkingDistance = 50000, // 50km - znajdź dowolny przystanek
     } = input;
 
+    console.log("\n" + "=".repeat(80));
+    console.log("🚀 FINDPATH RESOLVER CALLED");
+    console.log("=".repeat(80));
+    console.log(`📍 START coordinates: ${JSON.stringify(startCoordinates)}`);
+    console.log(`📍 END coordinates: ${JSON.stringify(endCoordinates)}`);
+    console.log(`⏰ Departure time: ${departureTime}`);
+    console.log(`🚶 Max walking distance: ${maxWalkingDistance}m (${(maxWalkingDistance / 1000).toFixed(1)}km)`);
+    console.log("=".repeat(80) + "\n");
+
     // Find nearest stops
+    console.log("🔍 STEP 1: Finding START stop...");
     const startStop = await findNearestStop(
       db,
       startCoordinates,
       maxWalkingDistance
     );
+    
+    console.log("\n🔍 STEP 2: Finding END stop...");
     const endStop = await findNearestStop(
       db,
       endCoordinates,

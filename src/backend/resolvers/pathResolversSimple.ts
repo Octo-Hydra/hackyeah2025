@@ -37,18 +37,43 @@ async function findNearestStop(
 ): Promise<StopModel | null> {
   const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
+  console.log(`🔍 Finding nearest stop to (${coordinates.latitude}, ${coordinates.longitude})`);
+  console.log(`   Checking ${stops.length} stops, max distance: ${(maxDistance / 1000).toFixed(1)}km`);
+
   let nearest: StopModel | null = null;
-  let minDistance = maxDistance;
+  let minDistance = Infinity;
+  const candidates: Array<{ stop: StopModel; distance: number }> = [];
 
   for (const stop of stops) {
     const distance = calculateDistance(coordinates, stop.coordinates);
+    
+    // Keep track of top 5 closest for debugging
+    if (candidates.length < 5 || distance < candidates[candidates.length - 1].distance) {
+      candidates.push({ stop, distance });
+      candidates.sort((a, b) => a.distance - b.distance);
+      if (candidates.length > 5) candidates.pop();
+    }
+    
     if (distance < minDistance) {
       minDistance = distance;
       nearest = stop;
     }
   }
 
-  return nearest;
+  // Show top 5 candidates
+  console.log(`   📍 Top 5 nearest stops:`);
+  candidates.forEach((c, i) => {
+    console.log(`      ${i + 1}. "${c.stop.name}" - ${(c.distance / 1000).toFixed(2)}km`);
+  });
+
+  // Check if within maxDistance
+  if (nearest && minDistance <= maxDistance) {
+    console.log(`   ✅ SELECTED: "${nearest.name}" at ${(minDistance / 1000).toFixed(2)}km`);
+    return nearest;
+  }
+
+  console.log(`   ❌ No stop within ${(maxDistance / 1000).toFixed(1)}km (nearest: ${(minDistance / 1000).toFixed(2)}km)`);
+  return null;
 }
 
 function getCurrentTime(): string {
@@ -80,6 +105,22 @@ export const pathResolvers = {
         departureTime,
         arrivalTime: departureTime,
         warnings: ["❌ No stops found in database"],
+      };
+    }
+
+    // Check if start and end are the same
+    if (startStop._id?.toString() === endStop._id?.toString()) {
+      console.log(`⚠️  WARNING: Start and end are the same stop: ${startStop.name}`);
+      return {
+        segments: [],
+        totalDuration: 0,
+        totalTransfers: 0,
+        departureTime,
+        arrivalTime: departureTime,
+        warnings: [
+          `⚠️  Start and end points are at the same stop: "${startStop.name}"`,
+          `This likely means your coordinates are very close together or there aren't enough stops in the database.`,
+        ],
       };
     }
 
