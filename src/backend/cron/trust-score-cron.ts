@@ -1,16 +1,10 @@
 import { updateAllUserTrustScores } from "../../lib/trust-score-calculator.js";
-import clientPromise from "../../lib/mongodb.js";
 import { DB } from "../db/client.js";
 
 let isRunning = false;
 let cronInterval: NodeJS.Timeout | null = null;
 
 export async function startTrustScoreCron() {
-  if (!process.env.RUN_CRON || process.env.RUN_CRON !== "true") {
-    console.log("⏭️  Trust score cron disabled (RUN_CRON not set)");
-    return;
-  }
-
   if (cronInterval) {
     console.log("⚠️  Trust score cron already running");
     return;
@@ -56,7 +50,7 @@ async function runTrustScoreUpdate() {
     const duration = Date.now() - startTime;
 
     console.log(
-      `✅ Trust scores updated: ${updatedCount} users (${duration}ms)`
+      `✅ Trust scores updated: ${updatedCount} users (${duration}ms)`,
     );
   } catch (error) {
     console.error("❌ Error updating trust scores:", error);
