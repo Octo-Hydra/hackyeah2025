@@ -12,18 +12,40 @@ import { MobileLayout } from "@/components/mobile-layout";
 import { isMobileDevice } from "@/lib/user-agent";
 import Link from "next/link";
 import { Shield, ArrowLeft, Users, Flag, Settings } from "lucide-react";
-import Image from "next/image";
+import type { Metadata } from "next";
 
-export default async function ModeratorPage() {
+export const metadata: Metadata = {
+  title: "Panel Administratora",
+  description:
+    "Panel administratora OnTime. Zarządzaj zgłoszeniami użytkowników, weryfikuj alerty i administruj systemem.",
+  alternates: {
+    canonical: "/admin",
+  },
+  openGraph: {
+    title: "Panel Administratora | OnTime",
+    description: "Panel administratora do zarządzania zgłoszeniami i alertami.",
+    url: "/admin",
+  },
+  twitter: {
+    title: "Panel Administratora | OnTime",
+    description: "Panel administratora do zarządzania zgłoszeniami i alertami.",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default async function AdminPage() {
   const session = await auth();
 
   if (!session) {
-    redirect("/auth/signin?callbackUrl=/moderator");
+    redirect("/auth/signin?callbackUrl=/admin");
   }
 
-  // Check if user has moderator or admin role
+  // Check if user has admin role
   const userRole = session.user?.role;
-  if (userRole !== "MODERATOR" && userRole !== "ADMIN") {
+  if (userRole !== "ADMIN") {
     redirect("/?error=unauthorized");
   }
 
@@ -44,7 +66,7 @@ export default async function ModeratorPage() {
               </Button>
               <div className="flex items-center gap-2">
                 <Shield className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold">Moderator Panel</h1>
+                <h1 className="text-xl font-bold">Admin Panel</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -58,28 +80,12 @@ export default async function ModeratorPage() {
           </div>
         </header>
 
-        {/* Mobile Header */}
-        <header className="border-b bg-white dark:bg-gray-950 md:hidden">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/apple-touch-icon.png"
-                alt="OnTime"
-                width={28}
-                height={28}
-                className="rounded-lg"
-              />
-              <h1 className="text-lg font-bold">Moderator</h1>
-            </div>
-          </div>
-        </header>
-
         {/* Main Content */}
-        <main className="overflow-y-auto max-h-[calc(100vh-6rem)] container mx-auto px-4 py-8">
+        <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 py-8 md:max-h-[calc(100vh-4rem)]">
           <div className="mb-6">
-            <h2 className="mb-2 text-3xl font-bold">Moderator Dashboard</h2>
+            <h2 className="mb-2 text-3xl font-bold">Admin Dashboard</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Manage alerts, users, and content moderation
+              Manage alerts, users, and system administration
             </p>
           </div>
 
@@ -147,9 +153,9 @@ export default async function ModeratorPage() {
           {/* Recent Activity */}
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Recent Moderation Activity</CardTitle>
+              <CardTitle>Recent Admin Activity</CardTitle>
               <CardDescription>
-                Latest actions taken by moderators
+                Latest actions taken by administrators
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -167,7 +173,7 @@ export default async function ModeratorPage() {
                   },
                   {
                     action: "Updated content filter",
-                    user: session.user?.email || "moderator@example.com",
+                    user: session.user?.email || "admin@example.com",
                     time: "1 hour ago",
                   },
                 ].map((item, i) => (

@@ -1,12 +1,13 @@
 /**
  * Test Notification System
- * 
+ *
  * Usage: node test-notifications.mjs
  */
 
 import { MongoClient, ObjectId } from "mongodb";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ontime";
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/ontime";
 
 async function testNotificationSystem() {
   console.log("=== Notification System Test ===\n");
@@ -22,8 +23,14 @@ async function testNotificationSystem() {
     // 1. Find users with different roles
     console.log("📊 Finding users...");
     const admin = await db.collection("Users").findOne({ role: "ADMIN" });
-    const moderator = await db.collection("Users").findOne({ role: "MODERATOR" });
-    const users = await db.collection("Users").find({ role: "USER" }).limit(3).toArray();
+    const moderator = await db
+      .collection("Users")
+      .findOne({ role: "MODERATOR" });
+    const users = await db
+      .collection("Users")
+      .find({ role: "USER" })
+      .limit(3)
+      .toArray();
 
     console.log(`   Admin: ${admin ? admin.name : "Not found"}`);
     console.log(`   Moderator: ${moderator ? moderator.name : "Not found"}`);
@@ -44,8 +51,12 @@ async function testNotificationSystem() {
         .findOne({ _id: new ObjectId(incident.reportedBy) });
 
       console.log(`   ${incident.title}`);
-      console.log(`      By: ${reporter?.name || "Unknown"} (${reporter?.role})`);
-      console.log(`      Trust Score: ${reporter?.trustScore?.toFixed(2) || "N/A"}`);
+      console.log(
+        `      By: ${reporter?.name || "Unknown"} (${reporter?.role})`,
+      );
+      console.log(
+        `      Trust Score: ${reporter?.trustScore?.toFixed(2) || "N/A"}`,
+      );
       console.log(`      Status: ${incident.status}`);
       console.log(`      Created: ${incident.createdAt}\n`);
     }
@@ -77,15 +88,13 @@ async function testNotificationSystem() {
         const oneDayAgo = new Date();
         oneDayAgo.setHours(oneDayAgo.getHours() - 24);
 
-        const similarReports = await db
-          .collection("Incidents")
-          .countDocuments({
-            _id: { $ne: incident._id },
-            kind: incident.kind,
-            status: "PUBLISHED",
-            lineIds: { $in: incident.lineIds || [] },
-            createdAt: { $gte: oneDayAgo.toISOString() },
-          });
+        const similarReports = await db.collection("Incidents").countDocuments({
+          _id: { $ne: incident._id },
+          kind: incident.kind,
+          status: "PUBLISHED",
+          lineIds: { $in: incident.lineIds || [] },
+          createdAt: { $gte: oneDayAgo.toISOString() },
+        });
 
         console.log(`   Similar reports (24h): ${similarReports}`);
 
@@ -116,21 +125,25 @@ async function testNotificationSystem() {
 
     for (const user of usersWithJourneys) {
       console.log(`   ${user.name} (${user.email})`);
-      
+
       if (user.activeJourney) {
-        console.log(`      Active Journey: ${user.activeJourney.lineIds?.length || 0} lines`);
+        console.log(
+          `      Active Journey: ${user.activeJourney.lineIds?.length || 0} lines`,
+        );
       }
-      
+
       if (user.favoriteConnections?.length > 0) {
-        console.log(`      Favorites: ${user.favoriteConnections.length} connections`);
+        console.log(
+          `      Favorites: ${user.favoriteConnections.length} connections`,
+        );
       }
-      
+
       console.log();
     }
 
     // 5. Deduplication cache test
     console.log("🔄 Deduplication Test:\n");
-    
+
     const testCache = new Map();
     const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -147,7 +160,7 @@ async function testNotificationSystem() {
     // Check if would be delivered again
     const deliveredAt = testCache.get(cacheKey);
     const now = Date.now();
-    const isDuplicate = deliveredAt && (now - deliveredAt < CACHE_TTL_MS);
+    const isDuplicate = deliveredAt && now - deliveredAt < CACHE_TTL_MS;
 
     if (isDuplicate) {
       console.log(`   ⏭️  Would skip (duplicate, within TTL)`);
@@ -161,13 +174,23 @@ async function testNotificationSystem() {
     console.log("📊 Statistics:\n");
     const stats = {
       totalIncidents: await db.collection("Incidents").countDocuments(),
-      publishedIncidents: await db.collection("Incidents").countDocuments({ status: "PUBLISHED" }),
-      resolvedIncidents: await db.collection("Incidents").countDocuments({ status: "RESOLVED" }),
+      publishedIncidents: await db
+        .collection("Incidents")
+        .countDocuments({ status: "PUBLISHED" }),
+      resolvedIncidents: await db
+        .collection("Incidents")
+        .countDocuments({ status: "RESOLVED" }),
       totalUsers: await db.collection("Users").countDocuments(),
       admins: await db.collection("Users").countDocuments({ role: "ADMIN" }),
-      moderators: await db.collection("Users").countDocuments({ role: "MODERATOR" }),
-      regularUsers: await db.collection("Users").countDocuments({ role: "USER" }),
-      usersWithTrustScore: await db.collection("Users").countDocuments({ trustScore: { $exists: true } }),
+      moderators: await db
+        .collection("Users")
+        .countDocuments({ role: "MODERATOR" }),
+      regularUsers: await db
+        .collection("Users")
+        .countDocuments({ role: "USER" }),
+      usersWithTrustScore: await db
+        .collection("Users")
+        .countDocuments({ trustScore: { $exists: true } }),
     };
 
     console.log(`   Total Incidents: ${stats.totalIncidents}`);
@@ -183,7 +206,7 @@ async function testNotificationSystem() {
 
     // 7. Recommendations
     console.log("💡 Recommendations:\n");
-    
+
     if (stats.usersWithTrustScore === 0) {
       console.log("   ⚠️  No users have trust scores yet");
       console.log("      → Enable cron with RUN_CRON=true");
@@ -195,7 +218,7 @@ async function testNotificationSystem() {
     } else {
       console.log("   ✅ Trust scores are being calculated");
     }
-    
+
     console.log();
 
     if (stats.publishedIncidents < 5) {
@@ -205,7 +228,6 @@ async function testNotificationSystem() {
     }
 
     console.log();
-
   } catch (error) {
     console.error("❌ Error:", error);
   } finally {

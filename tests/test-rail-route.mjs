@@ -96,7 +96,7 @@ async function main() {
 
       // Verify format
       const allSegmentsValid = data.findPath.segments.every(
-        (seg) => seg.from && seg.to && seg.from.stopName && seg.to.stopName
+        (seg) => seg.from && seg.to && seg.from.stopName && seg.to.stopName,
       );
 
       if (allSegmentsValid) {

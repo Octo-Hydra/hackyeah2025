@@ -67,7 +67,7 @@ interface FavoriteConnectionInput {
 async function notifyAffectedUsers(
   doc: IncidentModel,
   incidentId: string,
-  db: any,
+  db: Db,
 ) {
   // Simplified notification - just log for now
   // TODO: Implement proper user notification based on active journeys and favorites
@@ -121,25 +121,19 @@ async function updateUserReputation(
     if (incident.reportedBy) {
       const user = await db
         .collection<UserModel>("Users")
-<<<<<<< HEAD
         .findOne({ _id: new ObjectId(incident.reportedBy) });
 
       if (user) {
         const newReputation = Math.max(
           MIN_REPUTATION,
-          (user.reputation || 100) + FAKE_REPORT_PENALTY
-=======
-        .updateOne(
-          { _id: new ObjectId(incident.reportedBy) },
-          { $inc: { reputation: FAKE_REPORT_PENALTY } },
->>>>>>> 867b10d49bba9d7c1960c6c0a89f3bb873e73e50
+          (user.reputation || 100) + FAKE_REPORT_PENALTY,
         );
 
         await db
           .collection<UserModel>("Users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
-            { $set: { reputation: newReputation } }
+            { $set: { reputation: newReputation } },
           );
       }
     }
@@ -311,10 +305,10 @@ export const Mutation = {
         affectedSegment.lineId = detectedLineId;
       }
     }
-    // For moderators/admins: Optional geolocation detection
+    // For admins: Optional geolocation detection
     else if (!isRegularUser && input.reporterLocation) {
       console.log(
-        `📍 STAFF report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
+        `📍 ADMIN report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
       );
 
       const stops = await db.collection<StopModel>("Stops").find({}).toArray();
@@ -405,7 +399,9 @@ export const Mutation = {
     };
 
     // Intelligent notification system (with deduplication and trust score)
-    await processIncidentNotifications(db, doc, user.role);
+    // Map MODERATOR role to USER for backwards compatibility
+    const mappedRole = user.role === "MODERATOR" ? "USER" : user.role;
+    await processIncidentNotifications(db, doc, mappedRole as "USER" | "ADMIN");
     // Notify affected users
     await notifyAffectedUsers(doc, incidentId, db);
 
@@ -540,9 +536,9 @@ export const Mutation = {
       throw new Error("User not found");
     }
 
-    // Only MODERATOR or ADMIN can resolve reports
-    if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
-      throw new Error("Only moderators and administrators can resolve reports");
+    // Only ADMIN can resolve reports
+    if (user.role !== "ADMIN") {
+      throw new Error("Only administrators can resolve reports");
     }
 
     // Fetch the incident to resolve
@@ -673,7 +669,7 @@ export const Mutation = {
 
   async clearActiveJourney(
     _: unknown,
-    __: any,
+    __: unknown,
     ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
@@ -736,7 +732,7 @@ export const Mutation = {
       .collection<UserModel>("users")
       .updateOne(
         { email: userEmail },
-        { $pull: { favoriteConnections: { id } as any } },
+        { $pull: { favoriteConnections: { id } } },
       );
 
     return result.modifiedCount > 0;

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-export type UserRole = "USER" | "MODERATOR" | "ADMIN";
+export type UserRole = "USER" | "ADMIN";
 
 /**
  * Get current session or redirect to sign in
@@ -57,10 +57,11 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 /**
- * Check if user is moderator or admin
+ * Check if user is admin (deprecated: use isAdmin instead)
+ * @deprecated Use isAdmin instead
  */
 export async function isModerator(): Promise<boolean> {
-  return requireRole(["MODERATOR", "ADMIN"]);
+  return requireRole("ADMIN");
 }
 
 /**
@@ -83,8 +84,8 @@ export async function canModifyResource(
     return false;
   }
 
-  // Admins and moderators can modify anything
-  if (session.user.role === "ADMIN" || session.user.role === "MODERATOR") {
+  // Admins can modify anything
+  if (session.user.role === "ADMIN") {
     return true;
   }
 

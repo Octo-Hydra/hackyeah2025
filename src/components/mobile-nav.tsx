@@ -39,11 +39,11 @@ const navItems: NavItem[] = [
     requireAuth: true,
   },
   {
-    name: "Moderator",
-    href: "/moderator",
+    name: "Admin",
+    href: "/admin",
     icon: Shield,
     requireAuth: true,
-    requireRole: "MODERATOR",
+    requireRole: "ADMIN",
   },
 ];
 
@@ -67,9 +67,9 @@ export function MobileNav() {
   // Use different nav items based on auth status
   const items = session ? navItems : guestNavItems;
 
-  // Check if user has moderator or admin role
+  // Check if user has admin role
   const userRole = session?.user?.role;
-  const isModerator = userRole === "MODERATOR" || userRole === "ADMIN";
+  const isAdmin = userRole === "ADMIN";
 
   return (
     <nav
@@ -83,8 +83,8 @@ export function MobileNav() {
             return null;
           }
 
-          // Skip if requires moderator role and user doesn't have it
-          if (item.requireRole === "MODERATOR" && !isModerator) {
+          // Skip if requires admin role and user doesn't have it
+          if (item.requireRole === "ADMIN" && !isAdmin) {
             return null;
           }
 
