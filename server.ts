@@ -60,7 +60,7 @@ const yoga = createYoga({
           acc[key] = value;
           return acc;
         },
-        {} as Record<string, string>,
+        {} as Record<string, string>
       );
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
@@ -78,7 +78,7 @@ const yoga = createYoga({
           console.log("🔓 Attempting to decode token...");
           console.log(
             "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET,
+            !!process.env.NEXTAUTH_SECRET
           );
 
           const decoded = await decode({
@@ -139,7 +139,7 @@ const yoga = createYoga({
           console.error(`Error while handling ${req.url}`, err);
           res.writeHead(500).end();
         }
-      },
+      }
     );
 
     // create websocket server
@@ -186,11 +186,11 @@ const yoga = createYoga({
           return args;
         },
       },
-      wsServer,
+      wsServer
     );
 
     await new Promise<void>((resolve, reject) =>
-      server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
+      server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
     );
 
     console.log(`

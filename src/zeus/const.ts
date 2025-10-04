@@ -30,6 +30,50 @@ export const AllTypesProps: Record<string,any> = {
 			input:"FindPathInput"
 		}
 	},
+	AdminQuery:{
+		users:{
+			filter:"UserFilterInput",
+			pagination:"PaginationInput"
+		},
+		user:{
+
+		},
+		incidents:{
+			filter:"IncidentFilterInput",
+			pagination:"PaginationInput"
+		},
+		incident:{
+
+		},
+		archivedIncidents:{
+			filter:"IncidentFilterInput",
+			pagination:"PaginationInput"
+		},
+		lineIncidentStats:{
+			period:"StatsPeriod"
+		},
+		lineDelayStats:{
+			period:"StatsPeriod"
+		},
+		topDelays:{
+			transportType:"TransportType",
+			period:"StatsPeriod"
+		},
+		linesIncidentOverview:{
+			period:"StatsPeriod"
+		}
+	},
+	UserFilterInput:{
+		role:"UserRole"
+	},
+	IncidentFilterInput:{
+		status:"ReportStatus",
+		kind:"IncidentKind",
+		transportType:"TransportType"
+	},
+	PaginationInput:{
+
+	},
 	Mutation:{
 		register:{
 
@@ -68,6 +112,63 @@ export const AllTypesProps: Record<string,any> = {
 
 		}
 	},
+	AdminMutation:{
+		createUser:{
+			input:"CreateUserInput"
+		},
+		updateUser:{
+			input:"UpdateUserInput"
+		},
+		deleteUser:{
+
+		},
+		updateUserRole:{
+			role:"UserRole"
+		},
+		updateUserReputation:{
+
+		},
+		createIncident:{
+			input:"CreateAdminIncidentInput"
+		},
+		updateIncident:{
+			input:"UpdateAdminIncidentInput"
+		},
+		deleteIncident:{
+
+		},
+		markIncidentAsFake:{
+
+		},
+		restoreIncident:{
+
+		},
+		bulkResolveIncidents:{
+
+		},
+		bulkDeleteIncidents:{
+
+		}
+	},
+	CreateUserInput:{
+		role:"UserRole"
+	},
+	UpdateUserInput:{
+		role:"UserRole"
+	},
+	CreateAdminIncidentInput:{
+		kind:"IncidentKind",
+		status:"ReportStatus",
+		affectedSegment:"IncidentSegmentInput"
+	},
+	UpdateAdminIncidentInput:{
+		kind:"IncidentKind",
+		status:"ReportStatus",
+		affectedSegment:"IncidentSegmentInput"
+	},
+	IncidentSegmentInput:{
+
+	},
 	IncidentKind: "enum" as const,
 	TransportType: "enum" as const,
 	ReportStatus: "enum" as const,
@@ -104,6 +205,7 @@ export const AllTypesProps: Record<string,any> = {
 
 		}
 	},
+	StatsPeriod: "enum" as const,
 	ID: `scalar.ID` as const
 }
 
@@ -149,7 +251,64 @@ export const ReturnTypes: Record<string,any> = {
 		incidentsByLine:"Incident",
 		lines:"Line",
 		stops:"Stop",
-		findPath:"JourneyPath"
+		findPath:"JourneyPath",
+		admin:"AdminQuery"
+	},
+	AdminQuery:{
+		users:"UserConnection",
+		user:"User",
+		incidents:"IncidentConnection",
+		incident:"Incident",
+		archivedIncidents:"IncidentConnection",
+		stats:"AdminStats",
+		lineIncidentStats:"LineIncidentStats",
+		lineDelayStats:"LineDelayStats",
+		topDelays:"LineDelayRanking",
+		linesIncidentOverview:"LineIncidentOverview"
+	},
+	AdminStats:{
+		totalUsers:"Int",
+		totalIncidents:"Int",
+		activeIncidents:"Int",
+		resolvedIncidents:"Int",
+		fakeIncidents:"Int",
+		usersByRole:"RoleStats",
+		incidentsByKind:"KindStats",
+		averageReputation:"Float",
+		averageTrustScore:"Float"
+	},
+	RoleStats:{
+		users:"Int",
+		moderators:"Int",
+		admins:"Int"
+	},
+	KindStats:{
+		kind:"IncidentKind",
+		count:"Int"
+	},
+	UserConnection:{
+		edges:"UserEdge",
+		pageInfo:"PageInfo",
+		totalCount:"Int"
+	},
+	UserEdge:{
+		node:"User",
+		id:"ID"
+	},
+	IncidentConnection:{
+		edges:"IncidentEdge",
+		pageInfo:"PageInfo",
+		totalCount:"Int"
+	},
+	IncidentEdge:{
+		node:"Incident",
+		id:"ID"
+	},
+	PageInfo:{
+		hasNextPage:"Boolean",
+		hasPreviousPage:"Boolean",
+		startCursor:"ID",
+		endCursor:"ID"
 	},
 	Mutation:{
 		register:"Boolean",
@@ -166,7 +325,22 @@ export const ReturnTypes: Record<string,any> = {
 		setActiveJourney:"ActiveJourney",
 		clearActiveJourney:"Boolean",
 		addFavoriteConnection:"ID",
-		removeFavoriteConnection:"Boolean"
+		removeFavoriteConnection:"Boolean",
+		admin:"AdminMutation"
+	},
+	AdminMutation:{
+		createUser:"User",
+		updateUser:"User",
+		deleteUser:"Boolean",
+		updateUserRole:"User",
+		updateUserReputation:"User",
+		createIncident:"Incident",
+		updateIncident:"Incident",
+		deleteIncident:"Boolean",
+		markIncidentAsFake:"Incident",
+		restoreIncident:"Incident",
+		bulkResolveIncidents:"Incident",
+		bulkDeleteIncidents:"Boolean"
 	},
 	Incident:{
 		id:"ID",
@@ -176,6 +350,7 @@ export const ReturnTypes: Record<string,any> = {
 		status:"ReportStatus",
 		lines:"Line",
 		affectedSegment:"IncidentSegment",
+		delayMinutes:"Int",
 		isFake:"Boolean",
 		reportedBy:"ID",
 		reporter:"User",
@@ -231,6 +406,55 @@ export const ReturnTypes: Record<string,any> = {
 		lineIncidentUpdates:"Incident",
 		myLinesIncidents:"Incident",
 		smartIncidentNotifications:"Incident"
+	},
+	LineIncidentStats:{
+		lineId:"ID",
+		lineName:"String",
+		transportType:"TransportType",
+		period:"StatsPeriod",
+		totalIncidents:"Int",
+		incidentsByKind:"IncidentKindCount",
+		averageDelayMinutes:"Float",
+		timeline:"IncidentTimelineEntry"
+	},
+	IncidentKindCount:{
+		kind:"IncidentKind",
+		count:"Int"
+	},
+	IncidentTimelineEntry:{
+		timestamp:"String",
+		incidentCount:"Int"
+	},
+	LineDelayStats:{
+		lineId:"ID",
+		lineName:"String",
+		transportType:"TransportType",
+		period:"StatsPeriod",
+		totalDelays:"Int",
+		averageDelayMinutes:"Float",
+		maxDelayMinutes:"Int",
+		minDelayMinutes:"Int",
+		delayDistribution:"DelayBucket"
+	},
+	DelayBucket:{
+		rangeLabel:"String",
+		count:"Int"
+	},
+	LineDelayRanking:{
+		rank:"Int",
+		lineId:"ID",
+		lineName:"String",
+		transportType:"TransportType",
+		totalDelays:"Int",
+		averageDelayMinutes:"Float",
+		incidentCount:"Int"
+	},
+	LineIncidentOverview:{
+		lineId:"ID",
+		lineName:"String",
+		transportType:"TransportType",
+		incidentCount:"Int",
+		lastIncidentTime:"String"
 	},
 	ID: `scalar.ID` as const
 }

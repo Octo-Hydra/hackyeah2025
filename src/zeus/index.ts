@@ -984,9 +984,108 @@ incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transport
 lines?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Line"]],
 stops?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Stop"]],
 findPath?: [{	input: ValueTypes["FindPathInput"] | Variable<any, string>},ValueTypes["JourneyPath"]],
+	admin?:ValueTypes["AdminQuery"],
 		__typename?: boolean | `@${string}`,
 	['...on Query']?: Omit<ValueTypes["Query"], "...on Query">
 }>;
+	["AdminQuery"]: AliasType<{
+users?: [{	filter?: ValueTypes["UserFilterInput"] | undefined | null | Variable<any, string>,	pagination?: ValueTypes["PaginationInput"] | undefined | null | Variable<any, string>},ValueTypes["UserConnection"]],
+user?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["User"]],
+incidents?: [{	filter?: ValueTypes["IncidentFilterInput"] | undefined | null | Variable<any, string>,	pagination?: ValueTypes["PaginationInput"] | undefined | null | Variable<any, string>},ValueTypes["IncidentConnection"]],
+incident?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
+archivedIncidents?: [{	filter?: ValueTypes["IncidentFilterInput"] | undefined | null | Variable<any, string>,	pagination?: ValueTypes["PaginationInput"] | undefined | null | Variable<any, string>},ValueTypes["IncidentConnection"]],
+	stats?:ValueTypes["AdminStats"],
+lineIncidentStats?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	period: ValueTypes["StatsPeriod"] | Variable<any, string>},ValueTypes["LineIncidentStats"]],
+lineDelayStats?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	period: ValueTypes["StatsPeriod"] | Variable<any, string>},ValueTypes["LineDelayStats"]],
+topDelays?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>,	period: ValueTypes["StatsPeriod"] | Variable<any, string>,	limit?: number | undefined | null | Variable<any, string>},ValueTypes["LineDelayRanking"]],
+linesIncidentOverview?: [{	period: ValueTypes["StatsPeriod"] | Variable<any, string>},ValueTypes["LineIncidentOverview"]],
+		__typename?: boolean | `@${string}`,
+	['...on AdminQuery']?: Omit<ValueTypes["AdminQuery"], "...on AdminQuery">
+}>;
+	["AdminStats"]: AliasType<{
+	totalUsers?:boolean | `@${string}`,
+	totalIncidents?:boolean | `@${string}`,
+	activeIncidents?:boolean | `@${string}`,
+	resolvedIncidents?:boolean | `@${string}`,
+	fakeIncidents?:boolean | `@${string}`,
+	usersByRole?:ValueTypes["RoleStats"],
+	incidentsByKind?:ValueTypes["KindStats"],
+	averageReputation?:boolean | `@${string}`,
+	averageTrustScore?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on AdminStats']?: Omit<ValueTypes["AdminStats"], "...on AdminStats">
+}>;
+	["RoleStats"]: AliasType<{
+	users?:boolean | `@${string}`,
+	moderators?:boolean | `@${string}`,
+	admins?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on RoleStats']?: Omit<ValueTypes["RoleStats"], "...on RoleStats">
+}>;
+	["KindStats"]: AliasType<{
+	kind?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on KindStats']?: Omit<ValueTypes["KindStats"], "...on KindStats">
+}>;
+	["UserConnection"]: AliasType<{
+	edges?:ValueTypes["UserEdge"],
+	pageInfo?:ValueTypes["PageInfo"],
+	totalCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on UserConnection']?: Omit<ValueTypes["UserConnection"], "...on UserConnection">
+}>;
+	["UserEdge"]: AliasType<{
+	node?:ValueTypes["User"],
+	id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on UserEdge']?: Omit<ValueTypes["UserEdge"], "...on UserEdge">
+}>;
+	["IncidentConnection"]: AliasType<{
+	edges?:ValueTypes["IncidentEdge"],
+	pageInfo?:ValueTypes["PageInfo"],
+	totalCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on IncidentConnection']?: Omit<ValueTypes["IncidentConnection"], "...on IncidentConnection">
+}>;
+	["IncidentEdge"]: AliasType<{
+	node?:ValueTypes["Incident"],
+	id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on IncidentEdge']?: Omit<ValueTypes["IncidentEdge"], "...on IncidentEdge">
+}>;
+	["PageInfo"]: AliasType<{
+	hasNextPage?:boolean | `@${string}`,
+	hasPreviousPage?:boolean | `@${string}`,
+	startCursor?:boolean | `@${string}`,
+	endCursor?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on PageInfo']?: Omit<ValueTypes["PageInfo"], "...on PageInfo">
+}>;
+	["UserFilterInput"]: {
+	role?: ValueTypes["UserRole"] | undefined | null | Variable<any, string>,
+	minReputation?: number | undefined | null | Variable<any, string>,
+	maxReputation?: number | undefined | null | Variable<any, string>,
+	minTrustScore?: number | undefined | null | Variable<any, string>,
+	maxTrustScore?: number | undefined | null | Variable<any, string>,
+	search?: string | undefined | null | Variable<any, string>
+};
+	["IncidentFilterInput"]: {
+	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
+	kind?: ValueTypes["IncidentKind"] | undefined | null | Variable<any, string>,
+	lineId?: ValueTypes["ID"] | undefined | null | Variable<any, string>,
+	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>,
+	isFake?: boolean | undefined | null | Variable<any, string>,
+	reportedBy?: ValueTypes["ID"] | undefined | null | Variable<any, string>,
+	dateFrom?: string | undefined | null | Variable<any, string>,
+	dateTo?: string | undefined | null | Variable<any, string>
+};
+	["PaginationInput"]: {
+	first?: number | undefined | null | Variable<any, string>,
+	after?: ValueTypes["ID"] | undefined | null | Variable<any, string>,
+	last?: number | undefined | null | Variable<any, string>,
+	before?: ValueTypes["ID"] | undefined | null | Variable<any, string>
+};
 	["Mutation"]: AliasType<{
 register?: [{	name: string | Variable<any, string>,	email: string | Variable<any, string>,	password: string | Variable<any, string>},boolean | `@${string}`],
 verifyEmail?: [{	token: string | Variable<any, string>},boolean | `@${string}`],
@@ -1003,9 +1102,64 @@ setActiveJourney?: [{	input: ValueTypes["ActiveJourneyInput"] | Variable<any, st
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},boolean | `@${string}`],
 removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+	admin?:ValueTypes["AdminMutation"],
 		__typename?: boolean | `@${string}`,
 	['...on Mutation']?: Omit<ValueTypes["Mutation"], "...on Mutation">
 }>;
+	["AdminMutation"]: AliasType<{
+createUser?: [{	input: ValueTypes["CreateUserInput"] | Variable<any, string>},ValueTypes["User"]],
+updateUser?: [{	id: ValueTypes["ID"] | Variable<any, string>,	input: ValueTypes["UpdateUserInput"] | Variable<any, string>},ValueTypes["User"]],
+deleteUser?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+updateUserRole?: [{	id: ValueTypes["ID"] | Variable<any, string>,	role: ValueTypes["UserRole"] | Variable<any, string>},ValueTypes["User"]],
+updateUserReputation?: [{	id: ValueTypes["ID"] | Variable<any, string>,	reputation: number | Variable<any, string>},ValueTypes["User"]],
+createIncident?: [{	input: ValueTypes["CreateAdminIncidentInput"] | Variable<any, string>},ValueTypes["Incident"]],
+updateIncident?: [{	id: ValueTypes["ID"] | Variable<any, string>,	input: ValueTypes["UpdateAdminIncidentInput"] | Variable<any, string>},ValueTypes["Incident"]],
+deleteIncident?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+markIncidentAsFake?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
+restoreIncident?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
+bulkResolveIncidents?: [{	ids: Array<ValueTypes["ID"]> | Variable<any, string>},ValueTypes["Incident"]],
+bulkDeleteIncidents?: [{	ids: Array<ValueTypes["ID"]> | Variable<any, string>},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`,
+	['...on AdminMutation']?: Omit<ValueTypes["AdminMutation"], "...on AdminMutation">
+}>;
+	["CreateUserInput"]: {
+	name: string | Variable<any, string>,
+	email: string | Variable<any, string>,
+	password: string | Variable<any, string>,
+	role: ValueTypes["UserRole"] | Variable<any, string>,
+	reputation?: number | undefined | null | Variable<any, string>
+};
+	["UpdateUserInput"]: {
+	name?: string | undefined | null | Variable<any, string>,
+	email?: string | undefined | null | Variable<any, string>,
+	password?: string | undefined | null | Variable<any, string>,
+	role?: ValueTypes["UserRole"] | undefined | null | Variable<any, string>,
+	reputation?: number | undefined | null | Variable<any, string>
+};
+	["CreateAdminIncidentInput"]: {
+	title: string | Variable<any, string>,
+	description?: string | undefined | null | Variable<any, string>,
+	kind: ValueTypes["IncidentKind"] | Variable<any, string>,
+	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
+	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>,
+	affectedSegment?: ValueTypes["IncidentSegmentInput"] | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>
+};
+	["UpdateAdminIncidentInput"]: {
+	title?: string | undefined | null | Variable<any, string>,
+	description?: string | undefined | null | Variable<any, string>,
+	kind?: ValueTypes["IncidentKind"] | undefined | null | Variable<any, string>,
+	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
+	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>,
+	affectedSegment?: ValueTypes["IncidentSegmentInput"] | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>,
+	isFake?: boolean | undefined | null | Variable<any, string>
+};
+	["IncidentSegmentInput"]: {
+	startStopId: ValueTypes["ID"] | Variable<any, string>,
+	endStopId: ValueTypes["ID"] | Variable<any, string>,
+	lineId?: ValueTypes["ID"] | undefined | null | Variable<any, string>
+};
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
 	["ReportStatus"]:ReportStatus;
@@ -1017,6 +1171,7 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	status?:boolean | `@${string}`,
 	lines?:ValueTypes["Line"],
 	affectedSegment?:ValueTypes["IncidentSegment"],
+	delayMinutes?:boolean | `@${string}`,
 	isFake?:boolean | `@${string}`,
 	reportedBy?:boolean | `@${string}`,
 	reporter?:ValueTypes["User"],
@@ -1043,13 +1198,15 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	kind: ValueTypes["IncidentKind"] | Variable<any, string>,
 	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
 	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>,
-	reporterLocation?: ValueTypes["CoordinatesInput"] | undefined | null | Variable<any, string>
+	reporterLocation?: ValueTypes["CoordinatesInput"] | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>
 };
 	["UpdateReportInput"]: {
 	description?: string | undefined | null | Variable<any, string>,
 	kind?: ValueTypes["IncidentKind"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
-	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>
+	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>
 };
 	["Coordinates"]: AliasType<{
 	latitude?:boolean | `@${string}`,
@@ -1112,6 +1269,70 @@ myLinesIncidents?: [{	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>},
 smartIncidentNotifications?: [{	userId: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
 		__typename?: boolean | `@${string}`,
 	['...on Subscription']?: Omit<ValueTypes["Subscription"], "...on Subscription">
+}>;
+	["StatsPeriod"]:StatsPeriod;
+	["LineIncidentStats"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	period?:boolean | `@${string}`,
+	totalIncidents?:boolean | `@${string}`,
+	incidentsByKind?:ValueTypes["IncidentKindCount"],
+	averageDelayMinutes?:boolean | `@${string}`,
+	timeline?:ValueTypes["IncidentTimelineEntry"],
+		__typename?: boolean | `@${string}`,
+	['...on LineIncidentStats']?: Omit<ValueTypes["LineIncidentStats"], "...on LineIncidentStats">
+}>;
+	["IncidentKindCount"]: AliasType<{
+	kind?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on IncidentKindCount']?: Omit<ValueTypes["IncidentKindCount"], "...on IncidentKindCount">
+}>;
+	["IncidentTimelineEntry"]: AliasType<{
+	timestamp?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on IncidentTimelineEntry']?: Omit<ValueTypes["IncidentTimelineEntry"], "...on IncidentTimelineEntry">
+}>;
+	["LineDelayStats"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	period?:boolean | `@${string}`,
+	totalDelays?:boolean | `@${string}`,
+	averageDelayMinutes?:boolean | `@${string}`,
+	maxDelayMinutes?:boolean | `@${string}`,
+	minDelayMinutes?:boolean | `@${string}`,
+	delayDistribution?:ValueTypes["DelayBucket"],
+		__typename?: boolean | `@${string}`,
+	['...on LineDelayStats']?: Omit<ValueTypes["LineDelayStats"], "...on LineDelayStats">
+}>;
+	["DelayBucket"]: AliasType<{
+	rangeLabel?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on DelayBucket']?: Omit<ValueTypes["DelayBucket"], "...on DelayBucket">
+}>;
+	["LineDelayRanking"]: AliasType<{
+	rank?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	totalDelays?:boolean | `@${string}`,
+	averageDelayMinutes?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on LineDelayRanking']?: Omit<ValueTypes["LineDelayRanking"], "...on LineDelayRanking">
+}>;
+	["LineIncidentOverview"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+	lastIncidentTime?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on LineIncidentOverview']?: Omit<ValueTypes["LineIncidentOverview"], "...on LineIncidentOverview">
 }>;
 	["ID"]:unknown
   }
@@ -1189,8 +1410,98 @@ incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverI
 lines?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Line"]],
 stops?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Stop"]],
 findPath?: [{	input: ResolverInputTypes["FindPathInput"]},ResolverInputTypes["JourneyPath"]],
+	admin?:ResolverInputTypes["AdminQuery"],
 		__typename?: boolean | `@${string}`
 }>;
+	["AdminQuery"]: AliasType<{
+users?: [{	filter?: ResolverInputTypes["UserFilterInput"] | undefined | null,	pagination?: ResolverInputTypes["PaginationInput"] | undefined | null},ResolverInputTypes["UserConnection"]],
+user?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["User"]],
+incidents?: [{	filter?: ResolverInputTypes["IncidentFilterInput"] | undefined | null,	pagination?: ResolverInputTypes["PaginationInput"] | undefined | null},ResolverInputTypes["IncidentConnection"]],
+incident?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+archivedIncidents?: [{	filter?: ResolverInputTypes["IncidentFilterInput"] | undefined | null,	pagination?: ResolverInputTypes["PaginationInput"] | undefined | null},ResolverInputTypes["IncidentConnection"]],
+	stats?:ResolverInputTypes["AdminStats"],
+lineIncidentStats?: [{	lineId: ResolverInputTypes["ID"],	period: ResolverInputTypes["StatsPeriod"]},ResolverInputTypes["LineIncidentStats"]],
+lineDelayStats?: [{	lineId: ResolverInputTypes["ID"],	period: ResolverInputTypes["StatsPeriod"]},ResolverInputTypes["LineDelayStats"]],
+topDelays?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null,	period: ResolverInputTypes["StatsPeriod"],	limit?: number | undefined | null},ResolverInputTypes["LineDelayRanking"]],
+linesIncidentOverview?: [{	period: ResolverInputTypes["StatsPeriod"]},ResolverInputTypes["LineIncidentOverview"]],
+		__typename?: boolean | `@${string}`
+}>;
+	["AdminStats"]: AliasType<{
+	totalUsers?:boolean | `@${string}`,
+	totalIncidents?:boolean | `@${string}`,
+	activeIncidents?:boolean | `@${string}`,
+	resolvedIncidents?:boolean | `@${string}`,
+	fakeIncidents?:boolean | `@${string}`,
+	usersByRole?:ResolverInputTypes["RoleStats"],
+	incidentsByKind?:ResolverInputTypes["KindStats"],
+	averageReputation?:boolean | `@${string}`,
+	averageTrustScore?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RoleStats"]: AliasType<{
+	users?:boolean | `@${string}`,
+	moderators?:boolean | `@${string}`,
+	admins?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["KindStats"]: AliasType<{
+	kind?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["UserConnection"]: AliasType<{
+	edges?:ResolverInputTypes["UserEdge"],
+	pageInfo?:ResolverInputTypes["PageInfo"],
+	totalCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["UserEdge"]: AliasType<{
+	node?:ResolverInputTypes["User"],
+	id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["IncidentConnection"]: AliasType<{
+	edges?:ResolverInputTypes["IncidentEdge"],
+	pageInfo?:ResolverInputTypes["PageInfo"],
+	totalCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["IncidentEdge"]: AliasType<{
+	node?:ResolverInputTypes["Incident"],
+	id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["PageInfo"]: AliasType<{
+	hasNextPage?:boolean | `@${string}`,
+	hasPreviousPage?:boolean | `@${string}`,
+	startCursor?:boolean | `@${string}`,
+	endCursor?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["UserFilterInput"]: {
+	role?: ResolverInputTypes["UserRole"] | undefined | null,
+	minReputation?: number | undefined | null,
+	maxReputation?: number | undefined | null,
+	minTrustScore?: number | undefined | null,
+	maxTrustScore?: number | undefined | null,
+	search?: string | undefined | null
+};
+	["IncidentFilterInput"]: {
+	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
+	kind?: ResolverInputTypes["IncidentKind"] | undefined | null,
+	lineId?: ResolverInputTypes["ID"] | undefined | null,
+	transportType?: ResolverInputTypes["TransportType"] | undefined | null,
+	isFake?: boolean | undefined | null,
+	reportedBy?: ResolverInputTypes["ID"] | undefined | null,
+	dateFrom?: string | undefined | null,
+	dateTo?: string | undefined | null
+};
+	["PaginationInput"]: {
+	first?: number | undefined | null,
+	after?: ResolverInputTypes["ID"] | undefined | null,
+	last?: number | undefined | null,
+	before?: ResolverInputTypes["ID"] | undefined | null
+};
 	["Mutation"]: AliasType<{
 register?: [{	name: string,	email: string,	password: string},boolean | `@${string}`],
 verifyEmail?: [{	token: string},boolean | `@${string}`],
@@ -1207,8 +1518,62 @@ setActiveJourney?: [{	input: ResolverInputTypes["ActiveJourneyInput"]},ResolverI
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ResolverInputTypes["FavoriteConnectionInput"]},boolean | `@${string}`],
 removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
+	admin?:ResolverInputTypes["AdminMutation"],
 		__typename?: boolean | `@${string}`
 }>;
+	["AdminMutation"]: AliasType<{
+createUser?: [{	input: ResolverInputTypes["CreateUserInput"]},ResolverInputTypes["User"]],
+updateUser?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["UpdateUserInput"]},ResolverInputTypes["User"]],
+deleteUser?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
+updateUserRole?: [{	id: ResolverInputTypes["ID"],	role: ResolverInputTypes["UserRole"]},ResolverInputTypes["User"]],
+updateUserReputation?: [{	id: ResolverInputTypes["ID"],	reputation: number},ResolverInputTypes["User"]],
+createIncident?: [{	input: ResolverInputTypes["CreateAdminIncidentInput"]},ResolverInputTypes["Incident"]],
+updateIncident?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["UpdateAdminIncidentInput"]},ResolverInputTypes["Incident"]],
+deleteIncident?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
+markIncidentAsFake?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+restoreIncident?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+bulkResolveIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},ResolverInputTypes["Incident"]],
+bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`
+}>;
+	["CreateUserInput"]: {
+	name: string,
+	email: string,
+	password: string,
+	role: ResolverInputTypes["UserRole"],
+	reputation?: number | undefined | null
+};
+	["UpdateUserInput"]: {
+	name?: string | undefined | null,
+	email?: string | undefined | null,
+	password?: string | undefined | null,
+	role?: ResolverInputTypes["UserRole"] | undefined | null,
+	reputation?: number | undefined | null
+};
+	["CreateAdminIncidentInput"]: {
+	title: string,
+	description?: string | undefined | null,
+	kind: ResolverInputTypes["IncidentKind"],
+	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null,
+	affectedSegment?: ResolverInputTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
+};
+	["UpdateAdminIncidentInput"]: {
+	title?: string | undefined | null,
+	description?: string | undefined | null,
+	kind?: ResolverInputTypes["IncidentKind"] | undefined | null,
+	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null,
+	affectedSegment?: ResolverInputTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null,
+	isFake?: boolean | undefined | null
+};
+	["IncidentSegmentInput"]: {
+	startStopId: ResolverInputTypes["ID"],
+	endStopId: ResolverInputTypes["ID"],
+	lineId?: ResolverInputTypes["ID"] | undefined | null
+};
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
 	["ReportStatus"]:ReportStatus;
@@ -1220,6 +1585,7 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 	status?:boolean | `@${string}`,
 	lines?:ResolverInputTypes["Line"],
 	affectedSegment?:ResolverInputTypes["IncidentSegment"],
+	delayMinutes?:boolean | `@${string}`,
 	isFake?:boolean | `@${string}`,
 	reportedBy?:boolean | `@${string}`,
 	reporter?:ResolverInputTypes["User"],
@@ -1243,13 +1609,15 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 	kind: ResolverInputTypes["IncidentKind"],
 	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
 	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null,
-	reporterLocation?: ResolverInputTypes["CoordinatesInput"] | undefined | null
+	reporterLocation?: ResolverInputTypes["CoordinatesInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["UpdateReportInput"]: {
 	description?: string | undefined | null,
 	kind?: ResolverInputTypes["IncidentKind"] | undefined | null,
 	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
-	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null
+	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["Coordinates"]: AliasType<{
 	latitude?:boolean | `@${string}`,
@@ -1305,6 +1673,63 @@ incidentUpdated?: [{	transportType?: ResolverInputTypes["TransportType"] | undef
 lineIncidentUpdates?: [{	lineId: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
 myLinesIncidents?: [{	lineIds: Array<ResolverInputTypes["ID"]>},ResolverInputTypes["Incident"]],
 smartIncidentNotifications?: [{	userId: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+		__typename?: boolean | `@${string}`
+}>;
+	["StatsPeriod"]:StatsPeriod;
+	["LineIncidentStats"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	period?:boolean | `@${string}`,
+	totalIncidents?:boolean | `@${string}`,
+	incidentsByKind?:ResolverInputTypes["IncidentKindCount"],
+	averageDelayMinutes?:boolean | `@${string}`,
+	timeline?:ResolverInputTypes["IncidentTimelineEntry"],
+		__typename?: boolean | `@${string}`
+}>;
+	["IncidentKindCount"]: AliasType<{
+	kind?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["IncidentTimelineEntry"]: AliasType<{
+	timestamp?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["LineDelayStats"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	period?:boolean | `@${string}`,
+	totalDelays?:boolean | `@${string}`,
+	averageDelayMinutes?:boolean | `@${string}`,
+	maxDelayMinutes?:boolean | `@${string}`,
+	minDelayMinutes?:boolean | `@${string}`,
+	delayDistribution?:ResolverInputTypes["DelayBucket"],
+		__typename?: boolean | `@${string}`
+}>;
+	["DelayBucket"]: AliasType<{
+	rangeLabel?:boolean | `@${string}`,
+	count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["LineDelayRanking"]: AliasType<{
+	rank?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	totalDelays?:boolean | `@${string}`,
+	averageDelayMinutes?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["LineIncidentOverview"]: AliasType<{
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	incidentCount?:boolean | `@${string}`,
+	lastIncidentTime?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["schema"]: AliasType<{
@@ -1382,7 +1807,88 @@ export type ModelTypes = {
 	incidentsByLine: Array<ModelTypes["Incident"]>,
 	lines: Array<ModelTypes["Line"]>,
 	stops: Array<ModelTypes["Stop"]>,
-	findPath?: ModelTypes["JourneyPath"] | undefined | null
+	findPath?: ModelTypes["JourneyPath"] | undefined | null,
+	admin: ModelTypes["AdminQuery"]
+};
+	["AdminQuery"]: {
+		users: ModelTypes["UserConnection"],
+	user?: ModelTypes["User"] | undefined | null,
+	incidents: ModelTypes["IncidentConnection"],
+	incident?: ModelTypes["Incident"] | undefined | null,
+	archivedIncidents: ModelTypes["IncidentConnection"],
+	stats: ModelTypes["AdminStats"],
+	lineIncidentStats: ModelTypes["LineIncidentStats"],
+	lineDelayStats: ModelTypes["LineDelayStats"],
+	topDelays: Array<ModelTypes["LineDelayRanking"]>,
+	linesIncidentOverview: Array<ModelTypes["LineIncidentOverview"]>
+};
+	["AdminStats"]: {
+		totalUsers: number,
+	totalIncidents: number,
+	activeIncidents: number,
+	resolvedIncidents: number,
+	fakeIncidents: number,
+	usersByRole: ModelTypes["RoleStats"],
+	incidentsByKind: Array<ModelTypes["KindStats"]>,
+	averageReputation: number,
+	averageTrustScore: number
+};
+	["RoleStats"]: {
+		users: number,
+	moderators: number,
+	admins: number
+};
+	["KindStats"]: {
+		kind: ModelTypes["IncidentKind"],
+	count: number
+};
+	["UserConnection"]: {
+		edges: Array<ModelTypes["UserEdge"]>,
+	pageInfo: ModelTypes["PageInfo"],
+	totalCount: number
+};
+	["UserEdge"]: {
+		node: ModelTypes["User"],
+	id: ModelTypes["ID"]
+};
+	["IncidentConnection"]: {
+		edges: Array<ModelTypes["IncidentEdge"]>,
+	pageInfo: ModelTypes["PageInfo"],
+	totalCount: number
+};
+	["IncidentEdge"]: {
+		node: ModelTypes["Incident"],
+	id: ModelTypes["ID"]
+};
+	["PageInfo"]: {
+		hasNextPage: boolean,
+	hasPreviousPage: boolean,
+	startCursor?: ModelTypes["ID"] | undefined | null,
+	endCursor?: ModelTypes["ID"] | undefined | null
+};
+	["UserFilterInput"]: {
+	role?: ModelTypes["UserRole"] | undefined | null,
+	minReputation?: number | undefined | null,
+	maxReputation?: number | undefined | null,
+	minTrustScore?: number | undefined | null,
+	maxTrustScore?: number | undefined | null,
+	search?: string | undefined | null
+};
+	["IncidentFilterInput"]: {
+	status?: ModelTypes["ReportStatus"] | undefined | null,
+	kind?: ModelTypes["IncidentKind"] | undefined | null,
+	lineId?: ModelTypes["ID"] | undefined | null,
+	transportType?: ModelTypes["TransportType"] | undefined | null,
+	isFake?: boolean | undefined | null,
+	reportedBy?: ModelTypes["ID"] | undefined | null,
+	dateFrom?: string | undefined | null,
+	dateTo?: string | undefined | null
+};
+	["PaginationInput"]: {
+	first?: number | undefined | null,
+	after?: ModelTypes["ID"] | undefined | null,
+	last?: number | undefined | null,
+	before?: ModelTypes["ID"] | undefined | null
 };
 	["Mutation"]: {
 		register: boolean,
@@ -1399,7 +1905,60 @@ export type ModelTypes = {
 	setActiveJourney?: ModelTypes["ActiveJourney"] | undefined | null,
 	clearActiveJourney: boolean,
 	addFavoriteConnection: ModelTypes["ID"],
-	removeFavoriteConnection: boolean
+	removeFavoriteConnection: boolean,
+	admin: ModelTypes["AdminMutation"]
+};
+	["AdminMutation"]: {
+		createUser: ModelTypes["User"],
+	updateUser: ModelTypes["User"],
+	deleteUser: boolean,
+	updateUserRole: ModelTypes["User"],
+	updateUserReputation: ModelTypes["User"],
+	createIncident: ModelTypes["Incident"],
+	updateIncident: ModelTypes["Incident"],
+	deleteIncident: boolean,
+	markIncidentAsFake: ModelTypes["Incident"],
+	restoreIncident: ModelTypes["Incident"],
+	bulkResolveIncidents: Array<ModelTypes["Incident"]>,
+	bulkDeleteIncidents: boolean
+};
+	["CreateUserInput"]: {
+	name: string,
+	email: string,
+	password: string,
+	role: ModelTypes["UserRole"],
+	reputation?: number | undefined | null
+};
+	["UpdateUserInput"]: {
+	name?: string | undefined | null,
+	email?: string | undefined | null,
+	password?: string | undefined | null,
+	role?: ModelTypes["UserRole"] | undefined | null,
+	reputation?: number | undefined | null
+};
+	["CreateAdminIncidentInput"]: {
+	title: string,
+	description?: string | undefined | null,
+	kind: ModelTypes["IncidentKind"],
+	status?: ModelTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
+	affectedSegment?: ModelTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
+};
+	["UpdateAdminIncidentInput"]: {
+	title?: string | undefined | null,
+	description?: string | undefined | null,
+	kind?: ModelTypes["IncidentKind"] | undefined | null,
+	status?: ModelTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
+	affectedSegment?: ModelTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null,
+	isFake?: boolean | undefined | null
+};
+	["IncidentSegmentInput"]: {
+	startStopId: ModelTypes["ID"],
+	endStopId: ModelTypes["ID"],
+	lineId?: ModelTypes["ID"] | undefined | null
 };
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
@@ -1412,6 +1971,7 @@ export type ModelTypes = {
 	status: ModelTypes["ReportStatus"],
 	lines?: Array<ModelTypes["Line"]> | undefined | null,
 	affectedSegment?: ModelTypes["IncidentSegment"] | undefined | null,
+	delayMinutes?: number | undefined | null,
 	isFake?: boolean | undefined | null,
 	reportedBy?: ModelTypes["ID"] | undefined | null,
 	reporter?: ModelTypes["User"] | undefined | null,
@@ -1432,13 +1992,15 @@ export type ModelTypes = {
 	kind: ModelTypes["IncidentKind"],
 	status?: ModelTypes["ReportStatus"] | undefined | null,
 	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
-	reporterLocation?: ModelTypes["CoordinatesInput"] | undefined | null
+	reporterLocation?: ModelTypes["CoordinatesInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["UpdateReportInput"]: {
 	description?: string | undefined | null,
 	kind?: ModelTypes["IncidentKind"] | undefined | null,
 	status?: ModelTypes["ReportStatus"] | undefined | null,
-	lineIds?: Array<ModelTypes["ID"]> | undefined | null
+	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["Coordinates"]: {
 		latitude: number,
@@ -1490,6 +2052,56 @@ export type ModelTypes = {
 	myLinesIncidents: ModelTypes["Incident"],
 	smartIncidentNotifications: ModelTypes["Incident"]
 };
+	["StatsPeriod"]:StatsPeriod;
+	["LineIncidentStats"]: {
+		lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	period: ModelTypes["StatsPeriod"],
+	totalIncidents: number,
+	incidentsByKind: Array<ModelTypes["IncidentKindCount"]>,
+	averageDelayMinutes?: number | undefined | null,
+	timeline: Array<ModelTypes["IncidentTimelineEntry"]>
+};
+	["IncidentKindCount"]: {
+		kind: ModelTypes["IncidentKind"],
+	count: number
+};
+	["IncidentTimelineEntry"]: {
+		timestamp: string,
+	incidentCount: number
+};
+	["LineDelayStats"]: {
+		lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	period: ModelTypes["StatsPeriod"],
+	totalDelays: number,
+	averageDelayMinutes: number,
+	maxDelayMinutes: number,
+	minDelayMinutes: number,
+	delayDistribution: Array<ModelTypes["DelayBucket"]>
+};
+	["DelayBucket"]: {
+		rangeLabel: string,
+	count: number
+};
+	["LineDelayRanking"]: {
+		rank: number,
+	lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	totalDelays: number,
+	averageDelayMinutes: number,
+	incidentCount: number
+};
+	["LineIncidentOverview"]: {
+		lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	incidentCount: number,
+	lastIncidentTime?: string | undefined | null
+};
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
 	mutation?: ModelTypes["Mutation"] | undefined | null,
@@ -1499,14 +2111,24 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Generic result type for operations;
-	// Incidents by line (moved from nested UserQuery);
-	// Transit queries;
-	// Auth mutations;
-	// Incident mutations;
-	// User journey mutations;
-	// Geographic coordinates;
-	// Smart notifications with deduplication and trust-based filtering;
+    // Generic result type for operations;
+	// Incidents by line (moved from nested UserQuery);
+	// Transit queries;
+	// Admin queries (ADMIN/MODERATOR only);
+	// User management;
+	// Incident management;
+	// Archived incidents (RESOLVED status);
+	// Statistics;
+	// Reports and analytics;
+	// Auth mutations;
+	// Incident mutations;
+	// User journey mutations;
+	// Admin mutations (ADMIN/MODERATOR only);
+	// User CRUD (ADMIN only);
+	// Incident management (ADMIN/MODERATOR);
+	// Geographic coordinates;
+	// Smart notifications with deduplication and trust-based filtering;
+	// Admin-only analytics types;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
@@ -1586,7 +2208,106 @@ export type GraphQLTypes = {
 	lines: Array<GraphQLTypes["Line"]>,
 	stops: Array<GraphQLTypes["Stop"]>,
 	findPath?: GraphQLTypes["JourneyPath"] | undefined | null,
+	admin: GraphQLTypes["AdminQuery"],
 	['...on Query']: Omit<GraphQLTypes["Query"], "...on Query">
+};
+	["AdminQuery"]: {
+	__typename: "AdminQuery",
+	users: GraphQLTypes["UserConnection"],
+	user?: GraphQLTypes["User"] | undefined | null,
+	incidents: GraphQLTypes["IncidentConnection"],
+	incident?: GraphQLTypes["Incident"] | undefined | null,
+	archivedIncidents: GraphQLTypes["IncidentConnection"],
+	stats: GraphQLTypes["AdminStats"],
+	lineIncidentStats: GraphQLTypes["LineIncidentStats"],
+	lineDelayStats: GraphQLTypes["LineDelayStats"],
+	topDelays: Array<GraphQLTypes["LineDelayRanking"]>,
+	linesIncidentOverview: Array<GraphQLTypes["LineIncidentOverview"]>,
+	['...on AdminQuery']: Omit<GraphQLTypes["AdminQuery"], "...on AdminQuery">
+};
+	["AdminStats"]: {
+	__typename: "AdminStats",
+	totalUsers: number,
+	totalIncidents: number,
+	activeIncidents: number,
+	resolvedIncidents: number,
+	fakeIncidents: number,
+	usersByRole: GraphQLTypes["RoleStats"],
+	incidentsByKind: Array<GraphQLTypes["KindStats"]>,
+	averageReputation: number,
+	averageTrustScore: number,
+	['...on AdminStats']: Omit<GraphQLTypes["AdminStats"], "...on AdminStats">
+};
+	["RoleStats"]: {
+	__typename: "RoleStats",
+	users: number,
+	moderators: number,
+	admins: number,
+	['...on RoleStats']: Omit<GraphQLTypes["RoleStats"], "...on RoleStats">
+};
+	["KindStats"]: {
+	__typename: "KindStats",
+	kind: GraphQLTypes["IncidentKind"],
+	count: number,
+	['...on KindStats']: Omit<GraphQLTypes["KindStats"], "...on KindStats">
+};
+	["UserConnection"]: {
+	__typename: "UserConnection",
+	edges: Array<GraphQLTypes["UserEdge"]>,
+	pageInfo: GraphQLTypes["PageInfo"],
+	totalCount: number,
+	['...on UserConnection']: Omit<GraphQLTypes["UserConnection"], "...on UserConnection">
+};
+	["UserEdge"]: {
+	__typename: "UserEdge",
+	node: GraphQLTypes["User"],
+	id: GraphQLTypes["ID"],
+	['...on UserEdge']: Omit<GraphQLTypes["UserEdge"], "...on UserEdge">
+};
+	["IncidentConnection"]: {
+	__typename: "IncidentConnection",
+	edges: Array<GraphQLTypes["IncidentEdge"]>,
+	pageInfo: GraphQLTypes["PageInfo"],
+	totalCount: number,
+	['...on IncidentConnection']: Omit<GraphQLTypes["IncidentConnection"], "...on IncidentConnection">
+};
+	["IncidentEdge"]: {
+	__typename: "IncidentEdge",
+	node: GraphQLTypes["Incident"],
+	id: GraphQLTypes["ID"],
+	['...on IncidentEdge']: Omit<GraphQLTypes["IncidentEdge"], "...on IncidentEdge">
+};
+	["PageInfo"]: {
+	__typename: "PageInfo",
+	hasNextPage: boolean,
+	hasPreviousPage: boolean,
+	startCursor?: GraphQLTypes["ID"] | undefined | null,
+	endCursor?: GraphQLTypes["ID"] | undefined | null,
+	['...on PageInfo']: Omit<GraphQLTypes["PageInfo"], "...on PageInfo">
+};
+	["UserFilterInput"]: {
+		role?: GraphQLTypes["UserRole"] | undefined | null,
+	minReputation?: number | undefined | null,
+	maxReputation?: number | undefined | null,
+	minTrustScore?: number | undefined | null,
+	maxTrustScore?: number | undefined | null,
+	search?: string | undefined | null
+};
+	["IncidentFilterInput"]: {
+		status?: GraphQLTypes["ReportStatus"] | undefined | null,
+	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	lineId?: GraphQLTypes["ID"] | undefined | null,
+	transportType?: GraphQLTypes["TransportType"] | undefined | null,
+	isFake?: boolean | undefined | null,
+	reportedBy?: GraphQLTypes["ID"] | undefined | null,
+	dateFrom?: string | undefined | null,
+	dateTo?: string | undefined | null
+};
+	["PaginationInput"]: {
+		first?: number | undefined | null,
+	after?: GraphQLTypes["ID"] | undefined | null,
+	last?: number | undefined | null,
+	before?: GraphQLTypes["ID"] | undefined | null
 };
 	["Mutation"]: {
 	__typename: "Mutation",
@@ -1605,7 +2326,62 @@ export type GraphQLTypes = {
 	clearActiveJourney: boolean,
 	addFavoriteConnection: GraphQLTypes["ID"],
 	removeFavoriteConnection: boolean,
+	admin: GraphQLTypes["AdminMutation"],
 	['...on Mutation']: Omit<GraphQLTypes["Mutation"], "...on Mutation">
+};
+	["AdminMutation"]: {
+	__typename: "AdminMutation",
+	createUser: GraphQLTypes["User"],
+	updateUser: GraphQLTypes["User"],
+	deleteUser: boolean,
+	updateUserRole: GraphQLTypes["User"],
+	updateUserReputation: GraphQLTypes["User"],
+	createIncident: GraphQLTypes["Incident"],
+	updateIncident: GraphQLTypes["Incident"],
+	deleteIncident: boolean,
+	markIncidentAsFake: GraphQLTypes["Incident"],
+	restoreIncident: GraphQLTypes["Incident"],
+	bulkResolveIncidents: Array<GraphQLTypes["Incident"]>,
+	bulkDeleteIncidents: boolean,
+	['...on AdminMutation']: Omit<GraphQLTypes["AdminMutation"], "...on AdminMutation">
+};
+	["CreateUserInput"]: {
+		name: string,
+	email: string,
+	password: string,
+	role: GraphQLTypes["UserRole"],
+	reputation?: number | undefined | null
+};
+	["UpdateUserInput"]: {
+		name?: string | undefined | null,
+	email?: string | undefined | null,
+	password?: string | undefined | null,
+	role?: GraphQLTypes["UserRole"] | undefined | null,
+	reputation?: number | undefined | null
+};
+	["CreateAdminIncidentInput"]: {
+		title: string,
+	description?: string | undefined | null,
+	kind: GraphQLTypes["IncidentKind"],
+	status?: GraphQLTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
+	affectedSegment?: GraphQLTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
+};
+	["UpdateAdminIncidentInput"]: {
+		title?: string | undefined | null,
+	description?: string | undefined | null,
+	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	status?: GraphQLTypes["ReportStatus"] | undefined | null,
+	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
+	affectedSegment?: GraphQLTypes["IncidentSegmentInput"] | undefined | null,
+	delayMinutes?: number | undefined | null,
+	isFake?: boolean | undefined | null
+};
+	["IncidentSegmentInput"]: {
+		startStopId: GraphQLTypes["ID"],
+	endStopId: GraphQLTypes["ID"],
+	lineId?: GraphQLTypes["ID"] | undefined | null
 };
 	["IncidentKind"]: IncidentKind;
 	["TransportType"]: TransportType;
@@ -1619,6 +2395,7 @@ export type GraphQLTypes = {
 	status: GraphQLTypes["ReportStatus"],
 	lines?: Array<GraphQLTypes["Line"]> | undefined | null,
 	affectedSegment?: GraphQLTypes["IncidentSegment"] | undefined | null,
+	delayMinutes?: number | undefined | null,
 	isFake?: boolean | undefined | null,
 	reportedBy?: GraphQLTypes["ID"] | undefined | null,
 	reporter?: GraphQLTypes["User"] | undefined | null,
@@ -1644,13 +2421,15 @@ export type GraphQLTypes = {
 	kind: GraphQLTypes["IncidentKind"],
 	status?: GraphQLTypes["ReportStatus"] | undefined | null,
 	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
-	reporterLocation?: GraphQLTypes["CoordinatesInput"] | undefined | null
+	reporterLocation?: GraphQLTypes["CoordinatesInput"] | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["UpdateReportInput"]: {
 		description?: string | undefined | null,
 	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
 	status?: GraphQLTypes["ReportStatus"] | undefined | null,
-	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null
+	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["Coordinates"]: {
 	__typename: "Coordinates",
@@ -1714,6 +2493,70 @@ export type GraphQLTypes = {
 	smartIncidentNotifications: GraphQLTypes["Incident"],
 	['...on Subscription']: Omit<GraphQLTypes["Subscription"], "...on Subscription">
 };
+	["StatsPeriod"]: StatsPeriod;
+	["LineIncidentStats"]: {
+	__typename: "LineIncidentStats",
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	period: GraphQLTypes["StatsPeriod"],
+	totalIncidents: number,
+	incidentsByKind: Array<GraphQLTypes["IncidentKindCount"]>,
+	averageDelayMinutes?: number | undefined | null,
+	timeline: Array<GraphQLTypes["IncidentTimelineEntry"]>,
+	['...on LineIncidentStats']: Omit<GraphQLTypes["LineIncidentStats"], "...on LineIncidentStats">
+};
+	["IncidentKindCount"]: {
+	__typename: "IncidentKindCount",
+	kind: GraphQLTypes["IncidentKind"],
+	count: number,
+	['...on IncidentKindCount']: Omit<GraphQLTypes["IncidentKindCount"], "...on IncidentKindCount">
+};
+	["IncidentTimelineEntry"]: {
+	__typename: "IncidentTimelineEntry",
+	timestamp: string,
+	incidentCount: number,
+	['...on IncidentTimelineEntry']: Omit<GraphQLTypes["IncidentTimelineEntry"], "...on IncidentTimelineEntry">
+};
+	["LineDelayStats"]: {
+	__typename: "LineDelayStats",
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	period: GraphQLTypes["StatsPeriod"],
+	totalDelays: number,
+	averageDelayMinutes: number,
+	maxDelayMinutes: number,
+	minDelayMinutes: number,
+	delayDistribution: Array<GraphQLTypes["DelayBucket"]>,
+	['...on LineDelayStats']: Omit<GraphQLTypes["LineDelayStats"], "...on LineDelayStats">
+};
+	["DelayBucket"]: {
+	__typename: "DelayBucket",
+	rangeLabel: string,
+	count: number,
+	['...on DelayBucket']: Omit<GraphQLTypes["DelayBucket"], "...on DelayBucket">
+};
+	["LineDelayRanking"]: {
+	__typename: "LineDelayRanking",
+	rank: number,
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	totalDelays: number,
+	averageDelayMinutes: number,
+	incidentCount: number,
+	['...on LineDelayRanking']: Omit<GraphQLTypes["LineDelayRanking"], "...on LineDelayRanking">
+};
+	["LineIncidentOverview"]: {
+	__typename: "LineIncidentOverview",
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	incidentCount: number,
+	lastIncidentTime?: string | undefined | null,
+	['...on LineIncidentOverview']: Omit<GraphQLTypes["LineIncidentOverview"], "...on LineIncidentOverview">
+};
 	["ID"]: "scalar" & { name: "ID" }
     }
 export enum UserRole {
@@ -1737,6 +2580,11 @@ export enum ReportStatus {
 	PUBLISHED = "PUBLISHED",
 	RESOLVED = "RESOLVED"
 }
+export enum StatsPeriod {
+	LAST_24H = "LAST_24H",
+	LAST_7D = "LAST_7D",
+	LAST_31D = "LAST_31D"
+}
 
 type ZEUS_VARIABLES = {
 	["UserRole"]: ValueTypes["UserRole"];
@@ -1744,6 +2592,14 @@ type ZEUS_VARIABLES = {
 	["PathSegmentInput"]: ValueTypes["PathSegmentInput"];
 	["SegmentLocationInput"]: ValueTypes["SegmentLocationInput"];
 	["FavoriteConnectionInput"]: ValueTypes["FavoriteConnectionInput"];
+	["UserFilterInput"]: ValueTypes["UserFilterInput"];
+	["IncidentFilterInput"]: ValueTypes["IncidentFilterInput"];
+	["PaginationInput"]: ValueTypes["PaginationInput"];
+	["CreateUserInput"]: ValueTypes["CreateUserInput"];
+	["UpdateUserInput"]: ValueTypes["UpdateUserInput"];
+	["CreateAdminIncidentInput"]: ValueTypes["CreateAdminIncidentInput"];
+	["UpdateAdminIncidentInput"]: ValueTypes["UpdateAdminIncidentInput"];
+	["IncidentSegmentInput"]: ValueTypes["IncidentSegmentInput"];
 	["IncidentKind"]: ValueTypes["IncidentKind"];
 	["TransportType"]: ValueTypes["TransportType"];
 	["ReportStatus"]: ValueTypes["ReportStatus"];
@@ -1751,5 +2607,6 @@ type ZEUS_VARIABLES = {
 	["UpdateReportInput"]: ValueTypes["UpdateReportInput"];
 	["CoordinatesInput"]: ValueTypes["CoordinatesInput"];
 	["FindPathInput"]: ValueTypes["FindPathInput"];
+	["StatsPeriod"]: ValueTypes["StatsPeriod"];
 	["ID"]: ValueTypes["ID"];
 }

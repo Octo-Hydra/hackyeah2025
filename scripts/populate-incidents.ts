@@ -130,7 +130,7 @@ async function populateIncidents() {
   const db = client.db();
 
   // Fetch all lines
-  const lines = await db.collection<Line>("lines").find({}).toArray();
+  const lines = await db.collection<Line>("Lines").find({}).toArray();
 
   if (lines.length === 0) {
     console.error(
