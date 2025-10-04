@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
 import type { SearchResult as GeoSearchResult } from "leaflet-geosearch/dist/providers/provider.js";
+import { Query } from "@/lib/graphql_request";
 
 interface LocationPoint {
   address: string;
@@ -141,18 +142,99 @@ export function AddJourneyDialog() {
     setEndSuggestions([]);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!startPoint || !endPoint) {
       return;
     }
 
-    // TODO: Display route on map
-    console.log("Journey:", {
-      start: startPoint,
-      end: endPoint,
-    });
+    setIsLoadingStart(true); // Reuse loading state for submit
+
+    try {
+      // Import the GraphQL client utilityconst
+      const query = Query();
+      const result = await query({
+        findPath: [
+          {
+            input: {
+              startCoordinates: {
+                latitude: startPoint.lat,
+                longitude: startPoint.lon,
+              },
+              endCoordinates: {
+                latitude: endPoint.lat,
+                longitude: endPoint.lon,
+              },
+            },
+          },
+          {
+            segments: {
+              segmentType: true,
+              from: {
+                stopId: true,
+                stopName: true,
+                coordinates: {
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              to: {
+                stopId: true,
+                stopName: true,
+                coordinates: {
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              lineId: true,
+              lineName: true,
+              transportType: true,
+              departureTime: true,
+              arrivalTime: true,
+              duration: true,
+              distance: true,
+              platformNumber: true,
+              warnings: true,
+            },
+            totalDuration: true,
+            totalTransfers: true,
+            departureTime: true,
+            arrivalTime: true,
+            warnings: true,
+          },
+        ],
+      });
+
+      // Query the findPath endpoint
+
+      console.log("=== Journey Path Response ===");
+      console.log("Start:", startPoint);
+      console.log("End:", endPoint);
+      console.log("Path Result:", result.findPath);
+
+      if (result.findPath) {
+        console.log(
+          "Total Duration:",
+          result.findPath.totalDuration,
+          "minutes",
+        );
+        console.log("Total Transfers:", result.findPath.totalTransfers);
+        console.log("Departure:", result.findPath.departureTime);
+        console.log("Arrival:", result.findPath.arrivalTime);
+        console.log("Segments:", result.findPath.segments);
+        console.log("Warnings:", result.findPath.warnings);
+      } else {
+        console.log("No path found");
+      }
+
+      // TODO: Display route on map
+    } catch (error) {
+      console.error("Error fetching journey path:", error);
+      alert("Failed to fetch journey path. Please try again.");
+    } finally {
+      setIsLoadingStart(false);
+    }
 
     // Reset and close
     setStartPoint(null);
@@ -348,11 +430,22 @@ export function AddJourneyDialog() {
                 setEndInput("");
                 setOpen(false);
               }}
+              disabled={isLoadingStart}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!startPoint || !endPoint}>
-              Plan Journey
+            <Button
+              type="submit"
+              disabled={!startPoint || !endPoint || isLoadingStart}
+            >
+              {isLoadingStart ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Finding Path...
+                </>
+              ) : (
+                "Plan Journey"
+              )}
             </Button>
           </DialogFooter>
         </form>
