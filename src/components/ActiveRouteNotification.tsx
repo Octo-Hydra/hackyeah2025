@@ -28,7 +28,6 @@ export function RouteNotification({
       )}
     >
       {/* Glowing accent line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       <div className="relative p-3 sm:p-4 md:p-5">
         {/* Route display */}
@@ -103,7 +102,8 @@ export function RouteNotification({
       </div>
 
       {/* Bottom accent glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+      {/* <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" /> */}
+      {/* <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" /> */}
     </div>
   );
 }

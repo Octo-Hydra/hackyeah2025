@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,11 +7,10 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { signOut } from "@/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 import { MobileLayout } from "@/components/mobile-layout";
 import { isMobileDevice } from "@/lib/user-agent";
 import { LayoutDashboard, User, Mail, Calendar } from "lucide-react";
-import Image from "next/image";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -128,20 +126,7 @@ export default async function DashboardPage() {
                 <CardTitle>Szybkie akcje</CardTitle>
               </CardHeader>
               <CardContent>
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut();
-                  }}
-                >
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    className="w-full"
-                  >
-                    Wyloguj się
-                  </Button>
-                </form>
+                <SignOutButton />
               </CardContent>
             </Card>
           </div>
