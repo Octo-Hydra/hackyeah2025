@@ -10,6 +10,7 @@ import resolvers from "./src/backend/resolvers";
 import { decode } from "next-auth/jwt";
 import { startTrustScoreCron } from "./src/backend/cron/trust-score-cron.js";
 import { DB } from "./src/backend/db/client.js";
+import { Db } from "mongodb";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -34,6 +35,7 @@ const yoga = createYoga({
     subscriptionsProtocol: "WS",
   },
   schema: createSchema<{
+    db: Db;
     session: {
       user: { email: string; name: string; image: string };
       expires: string;
@@ -58,7 +60,7 @@ const yoga = createYoga({
           acc[key] = value;
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
@@ -76,7 +78,7 @@ const yoga = createYoga({
           console.log("🔓 Attempting to decode token...");
           console.log(
             "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET
+            !!process.env.NEXTAUTH_SECRET,
           );
 
           const decoded = await decode({
@@ -136,7 +138,7 @@ const yoga = createYoga({
         console.error(`Error while handling ${req.url}`, err);
         res.writeHead(500).end();
       }
-    }
+    },
   );
 
   // create websocket server
@@ -183,11 +185,11 @@ const yoga = createYoga({
         return args;
       },
     },
-    wsServer
+    wsServer,
   );
 
   await new Promise<void>((resolve, reject) =>
-    server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
+    server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
   );
 
   console.log(`
