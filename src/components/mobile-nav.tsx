@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Shield, Bell } from "lucide-react";
+import { Home, User, Shield, Bell, LayoutDashboard, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 
-const navItems = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  requireAuth?: boolean;
+  requireRole?: string;
+}
+
+const navItems: NavItem[] = [
   {
     name: "Home",
     href: "/",
@@ -16,6 +24,13 @@ const navItems = [
     name: "Alerts",
     href: "/alerts",
     icon: Bell,
+    requireAuth: true,
+  },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    requireAuth: true,
   },
   {
     name: "Profile",
@@ -28,6 +43,20 @@ const navItems = [
     href: "/moderator",
     icon: Shield,
     requireAuth: true,
+    requireRole: "MODERATOR",
+  },
+];
+
+const guestNavItems: NavItem[] = [
+  {
+    name: "Home",
+    href: "/",
+    icon: Home,
+  },
+  {
+    name: "Login",
+    href: "/auth/signin",
+    icon: LogIn,
   },
 ];
 
@@ -35,13 +64,16 @@ export function MobileNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
+  // Use different nav items based on auth status
+  const items = session ? navItems : guestNavItems;
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden touch-ui"
       style={{ position: "fixed", bottom: 0 }}
     >
       <div className="flex h-16 items-center justify-around px-2">
-        {navItems.map((item) => {
+        {items.map((item) => {
           // Skip auth-required items if not logged in
           if (item.requireAuth && !session) {
             return null;

@@ -6,15 +6,11 @@ enum UserRole {
 
 type User {
   id: ID!
-  createdAt: String!
-  updatedAt: String!
   name: String!
   email: String!
   role: UserRole!
-  twoFactorEnabled: Boolean!
   reputation: Int
   activeJourney: ActiveJourney
-  favoriteConnections: [FavoriteConnection!]
 }
 
 type ActiveJourney {
@@ -24,18 +20,13 @@ type ActiveJourney {
   endStopId: ID!
   startTime: String!
   expectedEndTime: String!
-  notifiedIncidentIds: [ID!]
 }
 
 type FavoriteConnection {
   id: ID!
   name: String!
-  routeIds: [ID!]!
-  lineIds: [ID!]!
   startStopId: ID!
   endStopId: ID!
-  notifyAlways: Boolean!
-  createdAt: String!
 }
 
 input ActiveJourneyInput {
@@ -43,24 +34,18 @@ input ActiveJourneyInput {
   lineIds: [ID!]!
   startStopId: ID!
   endStopId: ID!
-  startTime: String!
-  expectedEndTime: String!
 }
 
 input FavoriteConnectionInput {
   name: String!
-  routeIds: [ID!]!
-  lineIds: [ID!]!
   startStopId: ID!
   endStopId: ID!
-  notifyAlways: Boolean
 }
 
 # Generic result type for operations
 type OperationResult {
   success: Boolean!
   message: String
-  data: String # Generic data field (userId, token, etc.)
 }
 
 type TwoFactorSetup {
@@ -80,35 +65,31 @@ type Query {
 
 type Mutation {
   # Auth mutations
-  register(name: String!, email: String!, password: String!): OperationResult!
-  verifyEmail(token: String!): OperationResult!
-  resendVerificationEmail(email: String!): OperationResult!
+  register(name: String!, email: String!, password: String!): Boolean!
+  verifyEmail(token: String!): Boolean!
+  resendVerificationEmail(email: String!): Boolean!
   setup2FA: TwoFactorSetup!
-  verify2FA(token: String!, secret: String!): OperationResult!
-  disable2FA: OperationResult!
+  verify2FA(token: String!, secret: String!): Boolean!
+  disable2FA: Boolean!
 
-  # Incident mutations (combined carrier + user)
+  # Incident mutations
   createReport(input: CreateReportInput!): Incident!
   updateReport(id: ID!, input: UpdateReportInput!): Incident!
-  deleteReport(id: ID!): OperationResult!
+  deleteReport(id: ID!): Boolean!
   publishReport(id: ID!): Incident!
 
   # User journey mutations
-  setActiveJourney(input: ActiveJourneyInput!): User!
-  clearActiveJourney: User!
-  addFavoriteConnection(input: FavoriteConnectionInput!): FavoriteConnection!
-  removeFavoriteConnection(id: ID!): OperationResult!
-  updateFavoriteConnection(
-    id: ID!
-    input: FavoriteConnectionInput!
-  ): FavoriteConnection!
+  setActiveJourney(input: ActiveJourneyInput!): Boolean!
+  clearActiveJourney: Boolean!
+  addFavoriteConnection(input: FavoriteConnectionInput!): ID!
+  removeFavoriteConnection(id: ID!): Boolean!
 }
 
 enum IncidentKind {
   INCIDENT
   NETWORK_FAILURE
   VEHICLE_FAILURE
-  PEDESTRIAN_ACCIDENT
+  ACCIDENT
   TRAFFIC_JAM
   PLATFORM_CHANGES
 }
@@ -116,11 +97,6 @@ enum IncidentKind {
 enum TransportType {
   BUS
   RAIL
-}
-
-enum IncidentClass {
-  CLASS_1
-  CLASS_2
 }
 
 enum ReportStatus {
@@ -134,27 +110,16 @@ type Incident {
   title: String!
   description: String
   kind: IncidentKind!
-  incidentClass: IncidentClass!
   status: ReportStatus!
   lines: [Line!]
-  reporterLocation: Coordinates
   affectedSegment: IncidentSegment
-  createdBy: User
   createdAt: String!
-  updatedAt: String!
 }
 
 type IncidentSegment {
   startStopId: ID!
   endStopId: ID!
   lineId: ID
-  confidence: SegmentConfidence!
-}
-
-enum SegmentConfidence {
-  HIGH
-  MEDIUM
-  LOW
 }
 
 type Line {
@@ -196,52 +161,34 @@ type Stop {
   name: String!
   coordinates: Coordinates!
   transportType: TransportType!
-  platformNumbers: [String!]
 }
 
-# Location info for segment endpoints
 type SegmentLocation {
-  stopId: ID
-  stopName: String
+  stopName: String!
   coordinates: Coordinates!
 }
 
-# Single segment of a journey
 type PathSegment {
   from: SegmentLocation!
   to: SegmentLocation!
   lineId: ID!
-  lineName: String
-  transportType: TransportType
-  departureTime: String
-  arrivalTime: String
+  lineName: String!
+  transportType: TransportType!
+  departureTime: String!
+  arrivalTime: String!
   duration: Int!
-  distance: Int
-  platformNumber: String
-  hasIncident: Boolean! # Does this segment have an active incident?
-  incidentWarning: String # Warning message if incident exists
-  incidentSeverity: IncidentSeverity # Severity level
+  hasIncident: Boolean!
 }
 
-enum IncidentSeverity {
-  HIGH
-  MEDIUM
-  LOW
-}
-
-# Complete journey path
 type JourneyPath {
   segments: [PathSegment!]!
   totalDuration: Int!
-  totalTransfers: Int!
   departureTime: String!
   arrivalTime: String!
   warnings: [String!]!
-  hasIncidents: Boolean! # Does any segment have incidents?
-  affectedSegments: [Int!]! # Indices of segments with incidents
+  hasIncidents: Boolean!
 }
 
-# Input for finding a path
 input FindPathInput {
   from: CoordinatesInput!
   to: CoordinatesInput!
@@ -249,13 +196,8 @@ input FindPathInput {
 }
 
 type Subscription {
-  # General incident updates
   incidentCreated(transportType: TransportType): Incident!
   incidentUpdated(transportType: TransportType): Incident!
-
-  # Line-specific incident updates
   lineIncidentUpdates(lineId: ID!): Incident!
-
-  # User's subscribed lines
   myLinesIncidents(lineIds: [ID!]!): Incident!
 }

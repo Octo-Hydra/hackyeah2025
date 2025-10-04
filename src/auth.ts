@@ -67,36 +67,113 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
   pages: {
     signIn: "/auth/signin",
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  events: {
+    async linkAccount({ user, account }) {
+      // Log when accounts are linked
+      console.log(
+        `[Auth] Account linked: ${account.provider} for user ${user.email}`,
+      );
+    },
+    async signIn({ user, account, isNewUser }) {
+      console.log(
+        `[Auth] Sign in: ${user.email} via ${account?.provider} (new user: ${isNewUser})`,
+      );
+    },
   },
   callbacks: {
+    async signIn({ user, account }) {
+      // Handle account linking for users with same email
+      if (account && account.provider !== "credentials" && user.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+
+          // Check if user already exists with this email
+          const existingUser = await db
+            .collection("users")
+            .findOne({ email: user.email });
+
+          if (existingUser) {
+            // Check if this account is already linked
+            const existingAccount = await db.collection("accounts").findOne({
+              userId: existingUser._id,
+              provider: account.provider,
+            });
+
+            if (!existingAccount) {
+              // Link new account to existing user
+              console.log(
+                `[Auth] Linking ${account.provider} account to existing user: ${user.email}`,
+              );
+              // The adapter will handle the linking
+            }
+          }
+        } catch (error) {
+          console.error("[Auth] Error during sign in:", error);
+          // Allow sign in to continue even if linking check fails
+        }
+      }
+
+      // Allow sign in
+      return true;
+    },
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
+      // Handle redirects securely
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       }
-
-      // Allows callback URLs on the same origin
       if (new URL(url).origin === baseUrl) {
         return url;
       }
-
-      // Default redirect to base URL for external URLs
       return baseUrl;
     },
     async jwt({ token, user }) {
+      // Initial sign in
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image;
       }
+
+      // Get user role from database
+      if (token.email && !token.role) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          const dbUser = await db
+            .collection("users")
+            .findOne({ email: token.email });
+
+          if (dbUser) {
+            token.role = (dbUser.role as string) || "USER";
+            token.id = dbUser._id.toString();
+          }
+        } catch (error) {
+          console.error("[Auth] Error fetching user role:", error);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      // Add custom fields to session
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.image = token.picture as string;
+        // Add role to session - extend user type
+        const role = token.role as "USER" | "MODERATOR" | "ADMIN" | undefined;
+        session.user.role = role || "USER";
       }
       return session;
     },

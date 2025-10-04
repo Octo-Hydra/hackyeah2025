@@ -46,29 +46,21 @@ interface ActiveJourneyInput {
   lineIds: string[];
   startStopId: string;
   endStopId: string;
-  startTime: string;
-  expectedEndTime: string;
 }
 
 interface FavoriteConnectionInput {
   name: string;
-  routeIds: string[];
-  lineIds: string[];
   startStopId: string;
   endStopId: string;
-  notifyAlways?: boolean;
 }
 
 // Helper functions
 function mapUserDoc(user: UserModel) {
   return {
     id: user._id?.toString() || user.id || "",
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
     name: user.name,
     email: user.email,
     role: user.role,
-    twoFactorEnabled: user.twoFactorEnabled,
     reputation: user.reputation || 0,
     activeJourney: user.activeJourney
       ? {
@@ -88,33 +80,8 @@ function mapUserDoc(user: UserModel) {
               : user.activeJourney.endStopId.toString(),
           startTime: user.activeJourney.startTime,
           expectedEndTime: user.activeJourney.expectedEndTime,
-          notifiedIncidentIds:
-            user.activeJourney.notifiedIncidentIds?.map((id) =>
-              typeof id === "string" ? id : id.toString()
-            ) || [],
         }
       : null,
-    favoriteConnections:
-      user.favoriteConnections?.map((fav) => ({
-        id: fav.id,
-        name: fav.name,
-        routeIds: fav.routeIds.map((id) =>
-          typeof id === "string" ? id : id.toString()
-        ),
-        lineIds: fav.lineIds.map((id) =>
-          typeof id === "string" ? id : id.toString()
-        ),
-        startStopId:
-          typeof fav.startStopId === "string"
-            ? fav.startStopId
-            : fav.startStopId.toString(),
-        endStopId:
-          typeof fav.endStopId === "string"
-            ? fav.endStopId
-            : fav.endStopId.toString(),
-        notifyAlways: fav.notifyAlways,
-        createdAt: fav.createdAt,
-      })) || [],
   };
 }
 
@@ -124,47 +91,9 @@ async function notifyAffectedUsers(
   incidentId: string,
   db: any
 ) {
-  const users = await db.collection("Users").find({}).toArray();
-
-  for (const user of users) {
-    if (!user.activeJourney && !user.favoriteConnections?.length) continue;
-
-    const activeLineIds = extractActiveJourneyLineIds(user);
-    const favoriteLineIds = extractFavoriteLineIds(user);
-
-    const incidentLineIds =
-      doc.lineIds?.map((id) =>
-        id ? (typeof id === "string" ? id : id.toString()) : null
-      ) ?? [];
-
-    const decision = shouldNotifyUser(
-      incidentLineIds,
-      activeLineIds,
-      favoriteLineIds,
-      doc.incidentClass
-    );
-
-    if (decision.shouldNotify) {
-      console.log(
-        `✅ NOTIFY ${user.email}: ${decision.reason} (priority: ${decision.priority})`
-      );
-
-      if (user.activeJourney) {
-        const currentNotified = user.activeJourney.notifiedIncidentIds || [];
-        await db.collection("Users").updateOne(
-          { _id: user._id },
-          {
-            $set: {
-              "activeJourney.notifiedIncidentIds": [
-                ...currentNotified,
-                new ObjectId(incidentId),
-              ],
-            },
-          }
-        );
-      }
-    }
-  }
+  // Simplified notification - just log for now
+  // TODO: Implement proper user notification based on active journeys and favorites
+  console.log(`📢 New incident created: ${doc.title} (ID: ${incidentId})`);
 }
 
 export const Mutation = {
@@ -174,40 +103,38 @@ export const Mutation = {
   register: (
     _: unknown,
     { name, email, password }: { name: string; email: string; password: string }
-  ) => ({
-    success: true,
-    message: "registered (mock)",
-    data: null,
-  }),
+  ): boolean => {
+    // Mock implementation
+    return true;
+  },
 
-  verifyEmail: (_: unknown, { token }: { token: string }) => ({
-    success: true,
-    message: "verified (mock)",
-    data: null,
-  }),
+  verifyEmail: (_: unknown, { token }: { token: string }): boolean => {
+    // Mock implementation
+    return true;
+  },
 
-  resendVerificationEmail: (_: unknown, { email }: { email: string }) => ({
-    success: true,
-    message: "resent (mock)",
-    data: null,
-  }),
+  resendVerificationEmail: (
+    _: unknown,
+    { email }: { email: string }
+  ): boolean => {
+    // Mock implementation
+    return true;
+  },
 
   setup2FA: () => ({ secret: "mock-secret", qrCode: "mock-qrcode" }),
 
   verify2FA: (
     _: unknown,
     { token, secret }: { token: string; secret: string }
-  ) => ({
-    success: true,
-    message: "2FA verified (mock)",
-    data: null,
-  }),
+  ): boolean => {
+    // Mock implementation
+    return true;
+  },
 
-  disable2FA: () => ({
-    success: true,
-    message: "2FA disabled (mock)",
-    data: null,
-  }),
+  disable2FA: (): boolean => {
+    // Mock implementation
+    return true;
+  },
 
   // ============================================
   // INCIDENT MUTATIONS
@@ -219,13 +146,6 @@ export const Mutation = {
   ) {
     const db = await DB();
     const now = new Date().toISOString();
-
-    const incidentClass =
-      input.kind === "VEHICLE_FAILURE" ||
-      input.kind === "NETWORK_FAILURE" ||
-      input.kind === "PEDESTRIAN_ACCIDENT"
-        ? "CLASS_1"
-        : "CLASS_2";
 
     let affectedSegment = null;
     let detectedLineId: ObjectId | null = null;
@@ -270,16 +190,12 @@ export const Mutation = {
       title: input.title,
       description: input.description || null,
       kind: input.kind,
-      incidentClass,
       status: (input.status || "PUBLISHED") as ReportStatus,
       lineIds: Array.isArray(input.lineIds)
         ? input.lineIds.map((id) => (id ? new ObjectId(id) : null))
         : null,
-      reporterLocation: input.reporterLocation || null,
       affectedSegment,
-      createdBy: ctx.session?.user?.email || null,
       createdAt: now,
-      updatedAt: now,
     };
 
     const res = await db.collection<IncidentModel>("Incidents").insertOne(doc);
@@ -287,12 +203,18 @@ export const Mutation = {
 
     // Create IncidentLocation entry
     if (affectedSegment && detectedLineId) {
+      // Determine severity based on incident kind (VEHICLE_FAILURE, NETWORK_FAILURE are high severity)
+      const severity =
+        input.kind === "VEHICLE_FAILURE" || input.kind === "NETWORK_FAILURE"
+          ? "HIGH"
+          : "MEDIUM";
+
       const incidentLocation: IncidentLocationModel = {
         incidentId: res.insertedId,
         lineId: detectedLineId,
         startStopId: affectedSegment.startStopId,
         endStopId: affectedSegment.endStopId,
-        severity: incidentClass === "CLASS_1" ? "HIGH" : "MEDIUM",
+        severity,
         active: true,
         createdAt: now,
         resolvedAt: null,
@@ -341,11 +263,8 @@ export const Mutation = {
     ctx: GraphQLContext
   ) {
     const db = await DB();
-    const now = new Date().toISOString();
 
-    const updateFields: Partial<IncidentModel> = {
-      updatedAt: now,
-    };
+    const updateFields: Partial<IncidentModel> = {};
 
     if (input.title !== undefined) updateFields.title = input.title;
     if (input.description !== undefined)
@@ -393,18 +312,17 @@ export const Mutation = {
     return incident;
   },
 
-  async deleteReport(_: unknown, { id }: { id: string }, ctx: GraphQLContext) {
+  async deleteReport(
+    _: unknown,
+    { id }: { id: string },
+    ctx: GraphQLContext
+  ): Promise<boolean> {
     const db = await DB();
     const result = await db
       .collection<IncidentModel>("Incidents")
       .deleteOne({ _id: new ObjectId(id) });
 
-    return {
-      success: result.deletedCount > 0,
-      message:
-        result.deletedCount > 0 ? "Incident deleted" : "Incident not found",
-      data: null,
-    };
+    return result.deletedCount > 0;
   },
 
   async publishReport(_: unknown, { id }: { id: string }, ctx: GraphQLContext) {
@@ -442,40 +360,42 @@ export const Mutation = {
     _: unknown,
     { input }: { input: ActiveJourneyInput },
     ctx: GraphQLContext
-  ) {
+  ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
     if (!userEmail) {
       throw new Error("Not authenticated");
     }
+
+    // Generate times automatically
+    const now = new Date();
+    const startTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    // Estimate 60 minutes for the journey
+    const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+    const expectedEndTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
 
     const activeJourney: ActiveJourney = {
       routeIds: input.routeIds.map((id) => new ObjectId(id)),
       lineIds: input.lineIds.map((id) => new ObjectId(id)),
       startStopId: new ObjectId(input.startStopId),
       endStopId: new ObjectId(input.endStopId),
-      startTime: input.startTime,
-      expectedEndTime: input.expectedEndTime,
-      notifiedIncidentIds: [],
+      startTime,
+      expectedEndTime,
     };
 
     const result = await db
       .collection<UserModel>("Users")
-      .findOneAndUpdate(
-        { email: userEmail },
-        { $set: { activeJourney, updatedAt: new Date().toISOString() } },
-        { returnDocument: "after" }
-      );
+      .updateOne({ email: userEmail }, { $set: { activeJourney } });
 
-    if (!result) {
-      throw new Error("User not found");
-    }
-
-    return mapUserDoc(result);
+    return result.modifiedCount > 0;
   },
 
-  async clearActiveJourney(_: unknown, __: any, ctx: GraphQLContext) {
+  async clearActiveJourney(
+    _: unknown,
+    __: any,
+    ctx: GraphQLContext
+  ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
@@ -483,27 +403,18 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
-    const result = await db.collection<UserModel>("Users").findOneAndUpdate(
-      { email: userEmail },
-      {
-        $unset: { activeJourney: "" },
-        $set: { updatedAt: new Date().toISOString() },
-      },
-      { returnDocument: "after" }
-    );
+    const result = await db
+      .collection<UserModel>("Users")
+      .updateOne({ email: userEmail }, { $unset: { activeJourney: "" } });
 
-    if (!result) {
-      throw new Error("User not found");
-    }
-
-    return mapUserDoc(result);
+    return result.modifiedCount > 0;
   },
 
   async addFavoriteConnection(
     _: unknown,
     { input }: { input: FavoriteConnectionInput },
     ctx: GraphQLContext
-  ) {
+  ): Promise<string> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
@@ -511,44 +422,29 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
+    const favoriteId = new ObjectId().toString();
     const favorite: FavoriteConnection = {
-      id: new ObjectId().toString(),
+      id: favoriteId,
       name: input.name,
-      routeIds: input.routeIds.map((id) => new ObjectId(id)),
-      lineIds: input.lineIds.map((id) => new ObjectId(id)),
       startStopId: new ObjectId(input.startStopId),
       endStopId: new ObjectId(input.endStopId),
-      notifyAlways: input.notifyAlways ?? false,
-      createdAt: new Date().toISOString(),
     };
 
-    const result = await db.collection<UserModel>("Users").findOneAndUpdate(
-      { email: userEmail },
-      {
-        $push: { favoriteConnections: favorite },
-        $set: { updatedAt: new Date().toISOString() },
-      },
-      { returnDocument: "after" }
-    );
+    await db
+      .collection<UserModel>("Users")
+      .updateOne(
+        { email: userEmail },
+        { $push: { favoriteConnections: favorite } }
+      );
 
-    if (!result) {
-      throw new Error("User not found");
-    }
-
-    return {
-      ...favorite,
-      routeIds: favorite.routeIds.map((id) => id.toString()),
-      lineIds: favorite.lineIds.map((id) => id.toString()),
-      startStopId: favorite.startStopId.toString(),
-      endStopId: favorite.endStopId.toString(),
-    };
+    return favoriteId;
   },
 
   async removeFavoriteConnection(
     _: unknown,
     { id }: { id: string },
     ctx: GraphQLContext
-  ) {
+  ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
@@ -556,77 +452,14 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
-    const result = await db.collection<UserModel>("Users").updateOne(
-      { email: userEmail },
-      {
-        $pull: { favoriteConnections: { id } as any },
-        $set: { updatedAt: new Date().toISOString() },
-      }
-    );
-
-    return {
-      success: result.modifiedCount > 0,
-      message:
-        result.modifiedCount > 0 ? "Favorite removed" : "Favorite not found",
-      data: null,
-    };
-  },
-
-  async updateFavoriteConnection(
-    _: unknown,
-    { id, input }: { id: string; input: FavoriteConnectionInput },
-    ctx: GraphQLContext
-  ) {
-    const db = await DB();
-    const userEmail = ctx.session?.user?.email;
-
-    if (!userEmail) {
-      throw new Error("Not authenticated");
-    }
-
-    const user = await db
+    const result = await db
       .collection<UserModel>("Users")
-      .findOne({ email: userEmail });
+      .updateOne(
+        { email: userEmail },
+        { $pull: { favoriteConnections: { id } as any } }
+      );
 
-    if (!user || !user.favoriteConnections) {
-      throw new Error("User or favorites not found");
-    }
-
-    const favIndex = user.favoriteConnections.findIndex((f) => f.id === id);
-    if (favIndex === -1) {
-      throw new Error("Favorite not found");
-    }
-
-    const updated: FavoriteConnection = {
-      id,
-      name: input.name,
-      routeIds: input.routeIds.map((rid) => new ObjectId(rid)),
-      lineIds: input.lineIds.map((lid) => new ObjectId(lid)),
-      startStopId: new ObjectId(input.startStopId),
-      endStopId: new ObjectId(input.endStopId),
-      notifyAlways: input.notifyAlways ?? false,
-      createdAt: user.favoriteConnections[favIndex].createdAt,
-    };
-
-    user.favoriteConnections[favIndex] = updated;
-
-    await db.collection<UserModel>("Users").updateOne(
-      { email: userEmail },
-      {
-        $set: {
-          favoriteConnections: user.favoriteConnections,
-          updatedAt: new Date().toISOString(),
-        },
-      }
-    );
-
-    return {
-      ...updated,
-      routeIds: updated.routeIds.map((id) => id.toString()),
-      lineIds: updated.lineIds.map((id) => id.toString()),
-      startStopId: updated.startStopId.toString(),
-      endStopId: updated.endStopId.toString(),
-    };
+    return result.modifiedCount > 0;
   },
 };
 

@@ -8,38 +8,29 @@ export interface ActiveJourney {
   lineIds: Array<ObjectId | string>; // Lines involved in the journey
   startStopId: ObjectId | string;
   endStopId: ObjectId | string;
-  startTime: string; // When journey started (ISO)
-  expectedEndTime: string; // Expected arrival time (ISO)
-  notifiedIncidentIds?: Array<ObjectId | string>; // Incidents user was already notified about
+  startTime: string; // When journey started (HH:mm)
+  expectedEndTime: string; // Expected arrival time (HH:mm)
 }
 
 // Favorite connection saved by user
 export interface FavoriteConnection {
   id: string; // Unique ID for this favorite
   name: string; // User-defined name (e.g., "Home to Work")
-  routeIds: Array<ObjectId | string>;
-  lineIds: Array<ObjectId | string>;
   startStopId: ObjectId | string;
   endStopId: ObjectId | string;
-  notifyAlways: boolean; // Send notifications even when not traveling
-  createdAt: string;
 }
 
 export interface UserModel {
   _id?: ObjectId | string;
   id?: string;
-  createdAt: string;
-  updatedAt: string;
   name: string;
   email: string;
   role: "USER" | "MODERATOR" | "ADMIN";
-  twoFactorEnabled: boolean;
   reputation?: number; // User's reputation for reporting accuracy
   activeJourney?: ActiveJourney | null; // Current active journey
   favoriteConnections?: FavoriteConnection[]; // Saved favorite routes
 }
 
-export type IncidentClass = "CLASS_1" | "CLASS_2";
 export type ReportStatus = "DRAFT" | "PUBLISHED" | "RESOLVED";
 export type TransportType = "BUS" | "RAIL";
 
@@ -47,7 +38,7 @@ export type IncidentKind =
   | "INCIDENT"
   | "NETWORK_FAILURE"
   | "VEHICLE_FAILURE"
-  | "PEDESTRIAN_ACCIDENT"
+  | "ACCIDENT"
   | "TRAFFIC_JAM"
   | "PLATFORM_CHANGES";
 
@@ -56,20 +47,14 @@ export interface IncidentModel {
   title: string;
   description?: string | null;
   kind: IncidentKind;
-  incidentClass: IncidentClass;
   status: ReportStatus;
   lineIds?: Array<ObjectId | string | null> | null;
-  vehicleIds?: Array<ObjectId | string | null> | null;
-  reporterLocation?: Coordinates | null; // User's location when reporting
   affectedSegment?: {
-    // Detected segment between two stops
     startStopId: ObjectId | string;
     endStopId: ObjectId | string;
-    lineId?: ObjectId | string | null; // Which line is affected
+    lineId?: ObjectId | string | null;
   } | null;
-  createdBy?: string | null;
   createdAt: string;
-  updatedAt: string;
 }
 
 // Incident location - tracks which segments have incidents

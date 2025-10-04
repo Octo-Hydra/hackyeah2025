@@ -78,7 +78,7 @@ function parseCSV<T>(filePath: string, limit?: number): T[] {
 async function parseStopTimesForTrips(
   filePath: string,
   tripIds: Set<string>,
-  stopsMap: Map<string, ObjectId>
+  stopsMap: Map<string, ObjectId>,
 ): Promise<
   Map<
     string,
@@ -146,7 +146,7 @@ async function parseStopTimesForTrips(
   }
 
   console.log(
-    `\r   ✅ Processed ${processed} stop times for ${tripStopTimes.size} trips`
+    `\r   ✅ Processed ${processed} stop times for ${tripStopTimes.size} trips`,
   );
 
   // Sort by sequence
@@ -184,7 +184,9 @@ function getRouteType(gtfsType: string): "BUS" | "RAIL" | "TRAM" | "METRO" {
 }
 
 async function importGTFSFull() {
-  const client = new MongoClient("mongodb://admin:admin@localhost:27017");
+  const client = new MongoClient(
+    "mongodb://admin:admin@localhost:27017/agentsfun?authSource=admin",
+  );
 
   try {
     await client.connect();
@@ -209,7 +211,7 @@ async function importGTFSFull() {
 
     const busStops = parseCSV<GTFSStop>(
       path.join(process.cwd(), "populate-gtfs", "bus", "stops.txt"),
-      CONFIG.MAX_STOPS
+      CONFIG.MAX_STOPS,
     );
 
     for (const stop of busStops) {
@@ -239,7 +241,7 @@ async function importGTFSFull() {
 
     const trainStops = parseCSV<GTFSStop>(
       path.join(process.cwd(), "populate-gtfs", "train", "stops.txt"),
-      CONFIG.MAX_STOPS
+      CONFIG.MAX_STOPS,
     );
 
     for (const stop of trainStops) {
@@ -274,7 +276,7 @@ async function importGTFSFull() {
 
     const busRoutes = parseCSV<GTFSRoute>(
       path.join(process.cwd(), "populate-gtfs", "bus", "routes.txt"),
-      CONFIG.MAX_ROUTES
+      CONFIG.MAX_ROUTES,
     );
 
     for (const route of busRoutes) {
@@ -298,7 +300,7 @@ async function importGTFSFull() {
 
     const trainRoutes = parseCSV<GTFSRoute>(
       path.join(process.cwd(), "populate-gtfs", "train", "routes.txt"),
-      CONFIG.MAX_ROUTES
+      CONFIG.MAX_ROUTES,
     );
 
     for (const route of trainRoutes) {
@@ -328,7 +330,7 @@ async function importGTFSFull() {
     // BUS ROUTES
     const busTrips = parseCSV<GTFSTrip>(
       path.join(process.cwd(), "populate-gtfs", "bus", "trips.txt"),
-      CONFIG.MAX_TRIPS_WITH_TIMES
+      CONFIG.MAX_TRIPS_WITH_TIMES,
     );
 
     const selectedBusTripIds = new Set(busTrips.map((t) => t.trip_id));
@@ -338,7 +340,7 @@ async function importGTFSFull() {
       busStopTimes = await parseStopTimesForTrips(
         path.join(process.cwd(), "populate-gtfs", "bus", "stop_times.txt"),
         selectedBusTripIds,
-        stopsMap
+        stopsMap,
       );
     }
 
@@ -371,7 +373,7 @@ async function importGTFSFull() {
     // TRAIN ROUTES
     const trainTrips = parseCSV<GTFSTrip>(
       path.join(process.cwd(), "populate-gtfs", "train", "trips.txt"),
-      CONFIG.MAX_TRIPS_WITH_TIMES
+      CONFIG.MAX_TRIPS_WITH_TIMES,
     );
 
     const selectedTrainTripIds = new Set(trainTrips.map((t) => t.trip_id));
@@ -381,7 +383,7 @@ async function importGTFSFull() {
       trainStopTimes = await parseStopTimesForTrips(
         path.join(process.cwd(), "populate-gtfs", "train", "stop_times.txt"),
         selectedTrainTripIds,
-        stopsMap
+        stopsMap,
       );
     }
 
@@ -416,18 +418,18 @@ async function importGTFSFull() {
     console.log("📊 Full Import Summary:");
     console.log("=".repeat(60));
     console.log(
-      `Total Stops:           ${busStops.length + trainStops.length}`
+      `Total Stops:           ${busStops.length + trainStops.length}`,
     );
     console.log(
-      `Total Lines:           ${busRoutes.length + trainRoutes.length}`
+      `Total Lines:           ${busRoutes.length + trainRoutes.length}`,
     );
     console.log(`Bus Routes:            ${busRoutesCreated}`);
     console.log(`Train Routes:          ${trainRoutesCreated}`);
     console.log(
-      `Total Routes:          ${busRoutesCreated + trainRoutesCreated}`
+      `Total Routes:          ${busRoutesCreated + trainRoutesCreated}`,
     );
     console.log(
-      `Stop Times Enabled:    ${CONFIG.ENABLE_STOP_TIMES ? "YES ✅" : "NO ❌"}`
+      `Stop Times Enabled:    ${CONFIG.ENABLE_STOP_TIMES ? "YES ✅" : "NO ❌"}`,
     );
     console.log("=".repeat(60));
 

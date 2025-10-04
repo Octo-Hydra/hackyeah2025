@@ -909,15 +909,11 @@ export type ValueTypes = {
     ["UserRole"]:UserRole;
 	["User"]: AliasType<{
 	id?:boolean | `@${string}`,
-	createdAt?:boolean | `@${string}`,
-	updatedAt?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	email?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	twoFactorEnabled?:boolean | `@${string}`,
 	reputation?:boolean | `@${string}`,
 	activeJourney?:ValueTypes["ActiveJourney"],
-	favoriteConnections?:ValueTypes["FavoriteConnection"],
 		__typename?: boolean | `@${string}`,
 	['...on User']?: Omit<ValueTypes["User"], "...on User">
 }>;
@@ -928,19 +924,14 @@ export type ValueTypes = {
 	endStopId?:boolean | `@${string}`,
 	startTime?:boolean | `@${string}`,
 	expectedEndTime?:boolean | `@${string}`,
-	notifiedIncidentIds?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on ActiveJourney']?: Omit<ValueTypes["ActiveJourney"], "...on ActiveJourney">
 }>;
 	["FavoriteConnection"]: AliasType<{
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	routeIds?:boolean | `@${string}`,
-	lineIds?:boolean | `@${string}`,
 	startStopId?:boolean | `@${string}`,
 	endStopId?:boolean | `@${string}`,
-	notifyAlways?:boolean | `@${string}`,
-	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on FavoriteConnection']?: Omit<ValueTypes["FavoriteConnection"], "...on FavoriteConnection">
 }>;
@@ -948,22 +939,16 @@ export type ValueTypes = {
 	routeIds: Array<ValueTypes["ID"]> | Variable<any, string>,
 	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>,
 	startStopId: ValueTypes["ID"] | Variable<any, string>,
-	endStopId: ValueTypes["ID"] | Variable<any, string>,
-	startTime: string | Variable<any, string>,
-	expectedEndTime: string | Variable<any, string>
+	endStopId: ValueTypes["ID"] | Variable<any, string>
 };
 	["FavoriteConnectionInput"]: {
 	name: string | Variable<any, string>,
-	routeIds: Array<ValueTypes["ID"]> | Variable<any, string>,
-	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>,
 	startStopId: ValueTypes["ID"] | Variable<any, string>,
-	endStopId: ValueTypes["ID"] | Variable<any, string>,
-	notifyAlways?: boolean | undefined | null | Variable<any, string>
+	endStopId: ValueTypes["ID"] | Variable<any, string>
 };
 	["OperationResult"]: AliasType<{
 	success?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
-	data?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on OperationResult']?: Omit<ValueTypes["OperationResult"], "...on OperationResult">
 }>;
@@ -983,41 +968,35 @@ findPath?: [{	input: ValueTypes["FindPathInput"] | Variable<any, string>},ValueT
 	['...on Query']?: Omit<ValueTypes["Query"], "...on Query">
 }>;
 	["Mutation"]: AliasType<{
-register?: [{	name: string | Variable<any, string>,	email: string | Variable<any, string>,	password: string | Variable<any, string>},ValueTypes["OperationResult"]],
-verifyEmail?: [{	token: string | Variable<any, string>},ValueTypes["OperationResult"]],
-resendVerificationEmail?: [{	email: string | Variable<any, string>},ValueTypes["OperationResult"]],
+register?: [{	name: string | Variable<any, string>,	email: string | Variable<any, string>,	password: string | Variable<any, string>},boolean | `@${string}`],
+verifyEmail?: [{	token: string | Variable<any, string>},boolean | `@${string}`],
+resendVerificationEmail?: [{	email: string | Variable<any, string>},boolean | `@${string}`],
 	setup2FA?:ValueTypes["TwoFactorSetup"],
-verify2FA?: [{	token: string | Variable<any, string>,	secret: string | Variable<any, string>},ValueTypes["OperationResult"]],
-	disable2FA?:ValueTypes["OperationResult"],
+verify2FA?: [{	token: string | Variable<any, string>,	secret: string | Variable<any, string>},boolean | `@${string}`],
+	disable2FA?:boolean | `@${string}`,
 createReport?: [{	input: ValueTypes["CreateReportInput"] | Variable<any, string>},ValueTypes["Incident"]],
 updateReport?: [{	id: ValueTypes["ID"] | Variable<any, string>,	input: ValueTypes["UpdateReportInput"] | Variable<any, string>},ValueTypes["Incident"]],
-deleteReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["OperationResult"]],
+deleteReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
 publishReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
-setActiveJourney?: [{	input: ValueTypes["ActiveJourneyInput"] | Variable<any, string>},ValueTypes["User"]],
-	clearActiveJourney?:ValueTypes["User"],
-addFavoriteConnection?: [{	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},ValueTypes["FavoriteConnection"]],
-removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["OperationResult"]],
-updateFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>,	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},ValueTypes["FavoriteConnection"]],
+setActiveJourney?: [{	input: ValueTypes["ActiveJourneyInput"] | Variable<any, string>},boolean | `@${string}`],
+	clearActiveJourney?:boolean | `@${string}`,
+addFavoriteConnection?: [{	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},boolean | `@${string}`],
+removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`,
 	['...on Mutation']?: Omit<ValueTypes["Mutation"], "...on Mutation">
 }>;
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
-	["IncidentClass"]:IncidentClass;
 	["ReportStatus"]:ReportStatus;
 	["Incident"]: AliasType<{
 	id?:boolean | `@${string}`,
 	title?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	kind?:boolean | `@${string}`,
-	incidentClass?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
 	lines?:ValueTypes["Line"],
-	reporterLocation?:ValueTypes["Coordinates"],
 	affectedSegment?:ValueTypes["IncidentSegment"],
-	createdBy?:ValueTypes["User"],
 	createdAt?:boolean | `@${string}`,
-	updatedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on Incident']?: Omit<ValueTypes["Incident"], "...on Incident">
 }>;
@@ -1025,11 +1004,9 @@ updateFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>,	inpu
 	startStopId?:boolean | `@${string}`,
 	endStopId?:boolean | `@${string}`,
 	lineId?:boolean | `@${string}`,
-	confidence?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on IncidentSegment']?: Omit<ValueTypes["IncidentSegment"], "...on IncidentSegment">
 }>;
-	["SegmentConfidence"]:SegmentConfidence;
 	["Line"]: AliasType<{
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
@@ -1067,12 +1044,10 @@ updateFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>,	inpu
 	name?:boolean | `@${string}`,
 	coordinates?:ValueTypes["Coordinates"],
 	transportType?:boolean | `@${string}`,
-	platformNumbers?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on Stop']?: Omit<ValueTypes["Stop"], "...on Stop">
 }>;
 	["SegmentLocation"]: AliasType<{
-	stopId?:boolean | `@${string}`,
 	stopName?:boolean | `@${string}`,
 	coordinates?:ValueTypes["Coordinates"],
 		__typename?: boolean | `@${string}`,
@@ -1087,24 +1062,17 @@ updateFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>,	inpu
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
-	distance?:boolean | `@${string}`,
-	platformNumber?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
-	incidentWarning?:boolean | `@${string}`,
-	incidentSeverity?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on PathSegment']?: Omit<ValueTypes["PathSegment"], "...on PathSegment">
 }>;
-	["IncidentSeverity"]:IncidentSeverity;
 	["JourneyPath"]: AliasType<{
 	segments?:ValueTypes["PathSegment"],
 	totalDuration?:boolean | `@${string}`,
-	totalTransfers?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
 	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
-	affectedSegments?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on JourneyPath']?: Omit<ValueTypes["JourneyPath"], "...on JourneyPath">
 }>;
@@ -1128,15 +1096,11 @@ export type ResolverInputTypes = {
     ["UserRole"]:UserRole;
 	["User"]: AliasType<{
 	id?:boolean | `@${string}`,
-	createdAt?:boolean | `@${string}`,
-	updatedAt?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	email?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	twoFactorEnabled?:boolean | `@${string}`,
 	reputation?:boolean | `@${string}`,
 	activeJourney?:ResolverInputTypes["ActiveJourney"],
-	favoriteConnections?:ResolverInputTypes["FavoriteConnection"],
 		__typename?: boolean | `@${string}`
 }>;
 	["ActiveJourney"]: AliasType<{
@@ -1146,40 +1110,29 @@ export type ResolverInputTypes = {
 	endStopId?:boolean | `@${string}`,
 	startTime?:boolean | `@${string}`,
 	expectedEndTime?:boolean | `@${string}`,
-	notifiedIncidentIds?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["FavoriteConnection"]: AliasType<{
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	routeIds?:boolean | `@${string}`,
-	lineIds?:boolean | `@${string}`,
 	startStopId?:boolean | `@${string}`,
 	endStopId?:boolean | `@${string}`,
-	notifyAlways?:boolean | `@${string}`,
-	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ActiveJourneyInput"]: {
 	routeIds: Array<ResolverInputTypes["ID"]>,
 	lineIds: Array<ResolverInputTypes["ID"]>,
 	startStopId: ResolverInputTypes["ID"],
-	endStopId: ResolverInputTypes["ID"],
-	startTime: string,
-	expectedEndTime: string
+	endStopId: ResolverInputTypes["ID"]
 };
 	["FavoriteConnectionInput"]: {
 	name: string,
-	routeIds: Array<ResolverInputTypes["ID"]>,
-	lineIds: Array<ResolverInputTypes["ID"]>,
 	startStopId: ResolverInputTypes["ID"],
-	endStopId: ResolverInputTypes["ID"],
-	notifyAlways?: boolean | undefined | null
+	endStopId: ResolverInputTypes["ID"]
 };
 	["OperationResult"]: AliasType<{
 	success?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
-	data?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["TwoFactorSetup"]: AliasType<{
@@ -1196,50 +1149,42 @@ findPath?: [{	input: ResolverInputTypes["FindPathInput"]},ResolverInputTypes["Jo
 		__typename?: boolean | `@${string}`
 }>;
 	["Mutation"]: AliasType<{
-register?: [{	name: string,	email: string,	password: string},ResolverInputTypes["OperationResult"]],
-verifyEmail?: [{	token: string},ResolverInputTypes["OperationResult"]],
-resendVerificationEmail?: [{	email: string},ResolverInputTypes["OperationResult"]],
+register?: [{	name: string,	email: string,	password: string},boolean | `@${string}`],
+verifyEmail?: [{	token: string},boolean | `@${string}`],
+resendVerificationEmail?: [{	email: string},boolean | `@${string}`],
 	setup2FA?:ResolverInputTypes["TwoFactorSetup"],
-verify2FA?: [{	token: string,	secret: string},ResolverInputTypes["OperationResult"]],
-	disable2FA?:ResolverInputTypes["OperationResult"],
+verify2FA?: [{	token: string,	secret: string},boolean | `@${string}`],
+	disable2FA?:boolean | `@${string}`,
 createReport?: [{	input: ResolverInputTypes["CreateReportInput"]},ResolverInputTypes["Incident"]],
 updateReport?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["UpdateReportInput"]},ResolverInputTypes["Incident"]],
-deleteReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["OperationResult"]],
+deleteReport?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
 publishReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
-setActiveJourney?: [{	input: ResolverInputTypes["ActiveJourneyInput"]},ResolverInputTypes["User"]],
-	clearActiveJourney?:ResolverInputTypes["User"],
-addFavoriteConnection?: [{	input: ResolverInputTypes["FavoriteConnectionInput"]},ResolverInputTypes["FavoriteConnection"]],
-removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["OperationResult"]],
-updateFavoriteConnection?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["FavoriteConnectionInput"]},ResolverInputTypes["FavoriteConnection"]],
+setActiveJourney?: [{	input: ResolverInputTypes["ActiveJourneyInput"]},boolean | `@${string}`],
+	clearActiveJourney?:boolean | `@${string}`,
+addFavoriteConnection?: [{	input: ResolverInputTypes["FavoriteConnectionInput"]},boolean | `@${string}`],
+removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
 }>;
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
-	["IncidentClass"]:IncidentClass;
 	["ReportStatus"]:ReportStatus;
 	["Incident"]: AliasType<{
 	id?:boolean | `@${string}`,
 	title?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	kind?:boolean | `@${string}`,
-	incidentClass?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
 	lines?:ResolverInputTypes["Line"],
-	reporterLocation?:ResolverInputTypes["Coordinates"],
 	affectedSegment?:ResolverInputTypes["IncidentSegment"],
-	createdBy?:ResolverInputTypes["User"],
 	createdAt?:boolean | `@${string}`,
-	updatedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["IncidentSegment"]: AliasType<{
 	startStopId?:boolean | `@${string}`,
 	endStopId?:boolean | `@${string}`,
 	lineId?:boolean | `@${string}`,
-	confidence?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
-	["SegmentConfidence"]:SegmentConfidence;
 	["Line"]: AliasType<{
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
@@ -1275,11 +1220,9 @@ updateFavoriteConnection?: [{	id: ResolverInputTypes["ID"],	input: ResolverInput
 	name?:boolean | `@${string}`,
 	coordinates?:ResolverInputTypes["Coordinates"],
 	transportType?:boolean | `@${string}`,
-	platformNumbers?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["SegmentLocation"]: AliasType<{
-	stopId?:boolean | `@${string}`,
 	stopName?:boolean | `@${string}`,
 	coordinates?:ResolverInputTypes["Coordinates"],
 		__typename?: boolean | `@${string}`
@@ -1293,23 +1236,16 @@ updateFavoriteConnection?: [{	id: ResolverInputTypes["ID"],	input: ResolverInput
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
-	distance?:boolean | `@${string}`,
-	platformNumber?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
-	incidentWarning?:boolean | `@${string}`,
-	incidentSeverity?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
-	["IncidentSeverity"]:IncidentSeverity;
 	["JourneyPath"]: AliasType<{
 	segments?:ResolverInputTypes["PathSegment"],
 	totalDuration?:boolean | `@${string}`,
-	totalTransfers?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
 	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
-	affectedSegments?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["FindPathInput"]: {
@@ -1337,15 +1273,11 @@ export type ModelTypes = {
     ["UserRole"]:UserRole;
 	["User"]: {
 		id: ModelTypes["ID"],
-	createdAt: string,
-	updatedAt: string,
 	name: string,
 	email: string,
 	role: ModelTypes["UserRole"],
-	twoFactorEnabled: boolean,
 	reputation?: number | undefined | null,
-	activeJourney?: ModelTypes["ActiveJourney"] | undefined | null,
-	favoriteConnections?: Array<ModelTypes["FavoriteConnection"]> | undefined | null
+	activeJourney?: ModelTypes["ActiveJourney"] | undefined | null
 };
 	["ActiveJourney"]: {
 		routeIds: Array<ModelTypes["ID"]>,
@@ -1353,39 +1285,28 @@ export type ModelTypes = {
 	startStopId: ModelTypes["ID"],
 	endStopId: ModelTypes["ID"],
 	startTime: string,
-	expectedEndTime: string,
-	notifiedIncidentIds?: Array<ModelTypes["ID"]> | undefined | null
+	expectedEndTime: string
 };
 	["FavoriteConnection"]: {
 		id: ModelTypes["ID"],
 	name: string,
-	routeIds: Array<ModelTypes["ID"]>,
-	lineIds: Array<ModelTypes["ID"]>,
 	startStopId: ModelTypes["ID"],
-	endStopId: ModelTypes["ID"],
-	notifyAlways: boolean,
-	createdAt: string
+	endStopId: ModelTypes["ID"]
 };
 	["ActiveJourneyInput"]: {
 	routeIds: Array<ModelTypes["ID"]>,
 	lineIds: Array<ModelTypes["ID"]>,
 	startStopId: ModelTypes["ID"],
-	endStopId: ModelTypes["ID"],
-	startTime: string,
-	expectedEndTime: string
+	endStopId: ModelTypes["ID"]
 };
 	["FavoriteConnectionInput"]: {
 	name: string,
-	routeIds: Array<ModelTypes["ID"]>,
-	lineIds: Array<ModelTypes["ID"]>,
 	startStopId: ModelTypes["ID"],
-	endStopId: ModelTypes["ID"],
-	notifyAlways?: boolean | undefined | null
+	endStopId: ModelTypes["ID"]
 };
 	["OperationResult"]: {
 		success: boolean,
-	message?: string | undefined | null,
-	data?: string | undefined | null
+	message?: string | undefined | null
 };
 	["TwoFactorSetup"]: {
 		secret: string,
@@ -1399,47 +1320,39 @@ export type ModelTypes = {
 	findPath?: ModelTypes["JourneyPath"] | undefined | null
 };
 	["Mutation"]: {
-		register: ModelTypes["OperationResult"],
-	verifyEmail: ModelTypes["OperationResult"],
-	resendVerificationEmail: ModelTypes["OperationResult"],
+		register: boolean,
+	verifyEmail: boolean,
+	resendVerificationEmail: boolean,
 	setup2FA: ModelTypes["TwoFactorSetup"],
-	verify2FA: ModelTypes["OperationResult"],
-	disable2FA: ModelTypes["OperationResult"],
+	verify2FA: boolean,
+	disable2FA: boolean,
 	createReport: ModelTypes["Incident"],
 	updateReport: ModelTypes["Incident"],
-	deleteReport: ModelTypes["OperationResult"],
+	deleteReport: boolean,
 	publishReport: ModelTypes["Incident"],
-	setActiveJourney: ModelTypes["User"],
-	clearActiveJourney: ModelTypes["User"],
-	addFavoriteConnection: ModelTypes["FavoriteConnection"],
-	removeFavoriteConnection: ModelTypes["OperationResult"],
-	updateFavoriteConnection: ModelTypes["FavoriteConnection"]
+	setActiveJourney: boolean,
+	clearActiveJourney: boolean,
+	addFavoriteConnection: ModelTypes["ID"],
+	removeFavoriteConnection: boolean
 };
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
-	["IncidentClass"]:IncidentClass;
 	["ReportStatus"]:ReportStatus;
 	["Incident"]: {
 		id: ModelTypes["ID"],
 	title: string,
 	description?: string | undefined | null,
 	kind: ModelTypes["IncidentKind"],
-	incidentClass: ModelTypes["IncidentClass"],
 	status: ModelTypes["ReportStatus"],
 	lines?: Array<ModelTypes["Line"]> | undefined | null,
-	reporterLocation?: ModelTypes["Coordinates"] | undefined | null,
 	affectedSegment?: ModelTypes["IncidentSegment"] | undefined | null,
-	createdBy?: ModelTypes["User"] | undefined | null,
-	createdAt: string,
-	updatedAt: string
+	createdAt: string
 };
 	["IncidentSegment"]: {
 		startStopId: ModelTypes["ID"],
 	endStopId: ModelTypes["ID"],
-	lineId?: ModelTypes["ID"] | undefined | null,
-	confidence: ModelTypes["SegmentConfidence"]
+	lineId?: ModelTypes["ID"] | undefined | null
 };
-	["SegmentConfidence"]:SegmentConfidence;
 	["Line"]: {
 		id: ModelTypes["ID"],
 	name: string,
@@ -1472,39 +1385,30 @@ export type ModelTypes = {
 		id: ModelTypes["ID"],
 	name: string,
 	coordinates: ModelTypes["Coordinates"],
-	transportType: ModelTypes["TransportType"],
-	platformNumbers?: Array<string> | undefined | null
+	transportType: ModelTypes["TransportType"]
 };
 	["SegmentLocation"]: {
-		stopId?: ModelTypes["ID"] | undefined | null,
-	stopName?: string | undefined | null,
+		stopName: string,
 	coordinates: ModelTypes["Coordinates"]
 };
 	["PathSegment"]: {
 		from: ModelTypes["SegmentLocation"],
 	to: ModelTypes["SegmentLocation"],
 	lineId: ModelTypes["ID"],
-	lineName?: string | undefined | null,
-	transportType?: ModelTypes["TransportType"] | undefined | null,
-	departureTime?: string | undefined | null,
-	arrivalTime?: string | undefined | null,
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
 	duration: number,
-	distance?: number | undefined | null,
-	platformNumber?: string | undefined | null,
-	hasIncident: boolean,
-	incidentWarning?: string | undefined | null,
-	incidentSeverity?: ModelTypes["IncidentSeverity"] | undefined | null
+	hasIncident: boolean
 };
-	["IncidentSeverity"]:IncidentSeverity;
 	["JourneyPath"]: {
 		segments: Array<ModelTypes["PathSegment"]>,
 	totalDuration: number,
-	totalTransfers: number,
 	departureTime: string,
 	arrivalTime: string,
 	warnings: Array<string>,
-	hasIncidents: boolean,
-	affectedSegments: Array<number>
+	hasIncidents: boolean
 };
 	["FindPathInput"]: {
 	from: ModelTypes["CoordinatesInput"],
@@ -1530,29 +1434,18 @@ export type GraphQLTypes = {
 	// Incidents by line (moved from nested UserQuery);
 	// Transit queries;
 	// Auth mutations;
-	// Incident mutations (combined carrier + user);
+	// Incident mutations;
 	// User journey mutations;
 	// Geographic coordinates;
-	// Location info for segment endpoints;
-	// Single segment of a journey;
-	// Complete journey path;
-	// Input for finding a path;
-	// General incident updates;
-	// Line-specific incident updates;
-	// User's subscribed lines;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
 	id: GraphQLTypes["ID"],
-	createdAt: string,
-	updatedAt: string,
 	name: string,
 	email: string,
 	role: GraphQLTypes["UserRole"],
-	twoFactorEnabled: boolean,
 	reputation?: number | undefined | null,
 	activeJourney?: GraphQLTypes["ActiveJourney"] | undefined | null,
-	favoriteConnections?: Array<GraphQLTypes["FavoriteConnection"]> | undefined | null,
 	['...on User']: Omit<GraphQLTypes["User"], "...on User">
 };
 	["ActiveJourney"]: {
@@ -1563,42 +1456,31 @@ export type GraphQLTypes = {
 	endStopId: GraphQLTypes["ID"],
 	startTime: string,
 	expectedEndTime: string,
-	notifiedIncidentIds?: Array<GraphQLTypes["ID"]> | undefined | null,
 	['...on ActiveJourney']: Omit<GraphQLTypes["ActiveJourney"], "...on ActiveJourney">
 };
 	["FavoriteConnection"]: {
 	__typename: "FavoriteConnection",
 	id: GraphQLTypes["ID"],
 	name: string,
-	routeIds: Array<GraphQLTypes["ID"]>,
-	lineIds: Array<GraphQLTypes["ID"]>,
 	startStopId: GraphQLTypes["ID"],
 	endStopId: GraphQLTypes["ID"],
-	notifyAlways: boolean,
-	createdAt: string,
 	['...on FavoriteConnection']: Omit<GraphQLTypes["FavoriteConnection"], "...on FavoriteConnection">
 };
 	["ActiveJourneyInput"]: {
 		routeIds: Array<GraphQLTypes["ID"]>,
 	lineIds: Array<GraphQLTypes["ID"]>,
 	startStopId: GraphQLTypes["ID"],
-	endStopId: GraphQLTypes["ID"],
-	startTime: string,
-	expectedEndTime: string
+	endStopId: GraphQLTypes["ID"]
 };
 	["FavoriteConnectionInput"]: {
 		name: string,
-	routeIds: Array<GraphQLTypes["ID"]>,
-	lineIds: Array<GraphQLTypes["ID"]>,
 	startStopId: GraphQLTypes["ID"],
-	endStopId: GraphQLTypes["ID"],
-	notifyAlways?: boolean | undefined | null
+	endStopId: GraphQLTypes["ID"]
 };
 	["OperationResult"]: {
 	__typename: "OperationResult",
 	success: boolean,
 	message?: string | undefined | null,
-	data?: string | undefined | null,
 	['...on OperationResult']: Omit<GraphQLTypes["OperationResult"], "...on OperationResult">
 };
 	["TwoFactorSetup"]: {
@@ -1618,26 +1500,24 @@ export type GraphQLTypes = {
 };
 	["Mutation"]: {
 	__typename: "Mutation",
-	register: GraphQLTypes["OperationResult"],
-	verifyEmail: GraphQLTypes["OperationResult"],
-	resendVerificationEmail: GraphQLTypes["OperationResult"],
+	register: boolean,
+	verifyEmail: boolean,
+	resendVerificationEmail: boolean,
 	setup2FA: GraphQLTypes["TwoFactorSetup"],
-	verify2FA: GraphQLTypes["OperationResult"],
-	disable2FA: GraphQLTypes["OperationResult"],
+	verify2FA: boolean,
+	disable2FA: boolean,
 	createReport: GraphQLTypes["Incident"],
 	updateReport: GraphQLTypes["Incident"],
-	deleteReport: GraphQLTypes["OperationResult"],
+	deleteReport: boolean,
 	publishReport: GraphQLTypes["Incident"],
-	setActiveJourney: GraphQLTypes["User"],
-	clearActiveJourney: GraphQLTypes["User"],
-	addFavoriteConnection: GraphQLTypes["FavoriteConnection"],
-	removeFavoriteConnection: GraphQLTypes["OperationResult"],
-	updateFavoriteConnection: GraphQLTypes["FavoriteConnection"],
+	setActiveJourney: boolean,
+	clearActiveJourney: boolean,
+	addFavoriteConnection: GraphQLTypes["ID"],
+	removeFavoriteConnection: boolean,
 	['...on Mutation']: Omit<GraphQLTypes["Mutation"], "...on Mutation">
 };
 	["IncidentKind"]: IncidentKind;
 	["TransportType"]: TransportType;
-	["IncidentClass"]: IncidentClass;
 	["ReportStatus"]: ReportStatus;
 	["Incident"]: {
 	__typename: "Incident",
@@ -1645,14 +1525,10 @@ export type GraphQLTypes = {
 	title: string,
 	description?: string | undefined | null,
 	kind: GraphQLTypes["IncidentKind"],
-	incidentClass: GraphQLTypes["IncidentClass"],
 	status: GraphQLTypes["ReportStatus"],
 	lines?: Array<GraphQLTypes["Line"]> | undefined | null,
-	reporterLocation?: GraphQLTypes["Coordinates"] | undefined | null,
 	affectedSegment?: GraphQLTypes["IncidentSegment"] | undefined | null,
-	createdBy?: GraphQLTypes["User"] | undefined | null,
 	createdAt: string,
-	updatedAt: string,
 	['...on Incident']: Omit<GraphQLTypes["Incident"], "...on Incident">
 };
 	["IncidentSegment"]: {
@@ -1660,10 +1536,8 @@ export type GraphQLTypes = {
 	startStopId: GraphQLTypes["ID"],
 	endStopId: GraphQLTypes["ID"],
 	lineId?: GraphQLTypes["ID"] | undefined | null,
-	confidence: GraphQLTypes["SegmentConfidence"],
 	['...on IncidentSegment']: Omit<GraphQLTypes["IncidentSegment"], "...on IncidentSegment">
 };
-	["SegmentConfidence"]: SegmentConfidence;
 	["Line"]: {
 	__typename: "Line",
 	id: GraphQLTypes["ID"],
@@ -1702,13 +1576,11 @@ export type GraphQLTypes = {
 	name: string,
 	coordinates: GraphQLTypes["Coordinates"],
 	transportType: GraphQLTypes["TransportType"],
-	platformNumbers?: Array<string> | undefined | null,
 	['...on Stop']: Omit<GraphQLTypes["Stop"], "...on Stop">
 };
 	["SegmentLocation"]: {
 	__typename: "SegmentLocation",
-	stopId?: GraphQLTypes["ID"] | undefined | null,
-	stopName?: string | undefined | null,
+	stopName: string,
 	coordinates: GraphQLTypes["Coordinates"],
 	['...on SegmentLocation']: Omit<GraphQLTypes["SegmentLocation"], "...on SegmentLocation">
 };
@@ -1717,29 +1589,22 @@ export type GraphQLTypes = {
 	from: GraphQLTypes["SegmentLocation"],
 	to: GraphQLTypes["SegmentLocation"],
 	lineId: GraphQLTypes["ID"],
-	lineName?: string | undefined | null,
-	transportType?: GraphQLTypes["TransportType"] | undefined | null,
-	departureTime?: string | undefined | null,
-	arrivalTime?: string | undefined | null,
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
 	duration: number,
-	distance?: number | undefined | null,
-	platformNumber?: string | undefined | null,
 	hasIncident: boolean,
-	incidentWarning?: string | undefined | null,
-	incidentSeverity?: GraphQLTypes["IncidentSeverity"] | undefined | null,
 	['...on PathSegment']: Omit<GraphQLTypes["PathSegment"], "...on PathSegment">
 };
-	["IncidentSeverity"]: IncidentSeverity;
 	["JourneyPath"]: {
 	__typename: "JourneyPath",
 	segments: Array<GraphQLTypes["PathSegment"]>,
 	totalDuration: number,
-	totalTransfers: number,
 	departureTime: string,
 	arrivalTime: string,
 	warnings: Array<string>,
 	hasIncidents: boolean,
-	affectedSegments: Array<number>,
 	['...on JourneyPath']: Omit<GraphQLTypes["JourneyPath"], "...on JourneyPath">
 };
 	["FindPathInput"]: {
@@ -1766,7 +1631,7 @@ export enum IncidentKind {
 	INCIDENT = "INCIDENT",
 	NETWORK_FAILURE = "NETWORK_FAILURE",
 	VEHICLE_FAILURE = "VEHICLE_FAILURE",
-	PEDESTRIAN_ACCIDENT = "PEDESTRIAN_ACCIDENT",
+	ACCIDENT = "ACCIDENT",
 	TRAFFIC_JAM = "TRAFFIC_JAM",
 	PLATFORM_CHANGES = "PLATFORM_CHANGES"
 }
@@ -1774,24 +1639,10 @@ export enum TransportType {
 	BUS = "BUS",
 	RAIL = "RAIL"
 }
-export enum IncidentClass {
-	CLASS_1 = "CLASS_1",
-	CLASS_2 = "CLASS_2"
-}
 export enum ReportStatus {
 	DRAFT = "DRAFT",
 	PUBLISHED = "PUBLISHED",
 	RESOLVED = "RESOLVED"
-}
-export enum SegmentConfidence {
-	HIGH = "HIGH",
-	MEDIUM = "MEDIUM",
-	LOW = "LOW"
-}
-export enum IncidentSeverity {
-	HIGH = "HIGH",
-	MEDIUM = "MEDIUM",
-	LOW = "LOW"
 }
 
 type ZEUS_VARIABLES = {
@@ -1800,13 +1651,10 @@ type ZEUS_VARIABLES = {
 	["FavoriteConnectionInput"]: ValueTypes["FavoriteConnectionInput"];
 	["IncidentKind"]: ValueTypes["IncidentKind"];
 	["TransportType"]: ValueTypes["TransportType"];
-	["IncidentClass"]: ValueTypes["IncidentClass"];
 	["ReportStatus"]: ValueTypes["ReportStatus"];
-	["SegmentConfidence"]: ValueTypes["SegmentConfidence"];
 	["CreateReportInput"]: ValueTypes["CreateReportInput"];
 	["UpdateReportInput"]: ValueTypes["UpdateReportInput"];
 	["CoordinatesInput"]: ValueTypes["CoordinatesInput"];
-	["IncidentSeverity"]: ValueTypes["IncidentSeverity"];
 	["FindPathInput"]: ValueTypes["FindPathInput"];
 	["ID"]: ValueTypes["ID"];
 }

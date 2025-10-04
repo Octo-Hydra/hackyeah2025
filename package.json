@@ -7,7 +7,7 @@
     "dev": "node --import=tsx/esm --env-file .env server.ts",
     "build": "next build --turbopack",
     "start": "NODE_ENV=production node --import=tsx/esm server.ts",
-    "lint": "eslint",
+    "lint": "eslint ./src/**/*.{js,ts,tsx}",
     "lint:fix": "eslint --fix ./src/**/*.{js,ts,tsx}",
     "seed:path": "node --import=tsx/esm scripts/seed-path-data.ts",
     "import:gtfs": "node --import=tsx/esm scripts/import-gtfs.ts",

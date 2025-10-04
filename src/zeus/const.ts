@@ -55,16 +55,11 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		removeFavoriteConnection:{
 
-		},
-		updateFavoriteConnection:{
-			input:"FavoriteConnectionInput"
 		}
 	},
 	IncidentKind: "enum" as const,
 	TransportType: "enum" as const,
-	IncidentClass: "enum" as const,
 	ReportStatus: "enum" as const,
-	SegmentConfidence: "enum" as const,
 	CreateReportInput:{
 		kind:"IncidentKind",
 		status:"ReportStatus",
@@ -77,7 +72,6 @@ export const AllTypesProps: Record<string,any> = {
 	CoordinatesInput:{
 
 	},
-	IncidentSeverity: "enum" as const,
 	FindPathInput:{
 		from:"CoordinatesInput",
 		to:"CoordinatesInput"
@@ -102,15 +96,11 @@ export const AllTypesProps: Record<string,any> = {
 export const ReturnTypes: Record<string,any> = {
 	User:{
 		id:"ID",
-		createdAt:"String",
-		updatedAt:"String",
 		name:"String",
 		email:"String",
 		role:"UserRole",
-		twoFactorEnabled:"Boolean",
 		reputation:"Int",
-		activeJourney:"ActiveJourney",
-		favoriteConnections:"FavoriteConnection"
+		activeJourney:"ActiveJourney"
 	},
 	ActiveJourney:{
 		routeIds:"ID",
@@ -118,23 +108,17 @@ export const ReturnTypes: Record<string,any> = {
 		startStopId:"ID",
 		endStopId:"ID",
 		startTime:"String",
-		expectedEndTime:"String",
-		notifiedIncidentIds:"ID"
+		expectedEndTime:"String"
 	},
 	FavoriteConnection:{
 		id:"ID",
 		name:"String",
-		routeIds:"ID",
-		lineIds:"ID",
 		startStopId:"ID",
-		endStopId:"ID",
-		notifyAlways:"Boolean",
-		createdAt:"String"
+		endStopId:"ID"
 	},
 	OperationResult:{
 		success:"Boolean",
-		message:"String",
-		data:"String"
+		message:"String"
 	},
 	TwoFactorSetup:{
 		secret:"String",
@@ -148,41 +132,35 @@ export const ReturnTypes: Record<string,any> = {
 		findPath:"JourneyPath"
 	},
 	Mutation:{
-		register:"OperationResult",
-		verifyEmail:"OperationResult",
-		resendVerificationEmail:"OperationResult",
+		register:"Boolean",
+		verifyEmail:"Boolean",
+		resendVerificationEmail:"Boolean",
 		setup2FA:"TwoFactorSetup",
-		verify2FA:"OperationResult",
-		disable2FA:"OperationResult",
+		verify2FA:"Boolean",
+		disable2FA:"Boolean",
 		createReport:"Incident",
 		updateReport:"Incident",
-		deleteReport:"OperationResult",
+		deleteReport:"Boolean",
 		publishReport:"Incident",
-		setActiveJourney:"User",
-		clearActiveJourney:"User",
-		addFavoriteConnection:"FavoriteConnection",
-		removeFavoriteConnection:"OperationResult",
-		updateFavoriteConnection:"FavoriteConnection"
+		setActiveJourney:"Boolean",
+		clearActiveJourney:"Boolean",
+		addFavoriteConnection:"ID",
+		removeFavoriteConnection:"Boolean"
 	},
 	Incident:{
 		id:"ID",
 		title:"String",
 		description:"String",
 		kind:"IncidentKind",
-		incidentClass:"IncidentClass",
 		status:"ReportStatus",
 		lines:"Line",
-		reporterLocation:"Coordinates",
 		affectedSegment:"IncidentSegment",
-		createdBy:"User",
-		createdAt:"String",
-		updatedAt:"String"
+		createdAt:"String"
 	},
 	IncidentSegment:{
 		startStopId:"ID",
 		endStopId:"ID",
-		lineId:"ID",
-		confidence:"SegmentConfidence"
+		lineId:"ID"
 	},
 	Line:{
 		id:"ID",
@@ -197,11 +175,9 @@ export const ReturnTypes: Record<string,any> = {
 		id:"ID",
 		name:"String",
 		coordinates:"Coordinates",
-		transportType:"TransportType",
-		platformNumbers:"String"
+		transportType:"TransportType"
 	},
 	SegmentLocation:{
-		stopId:"ID",
 		stopName:"String",
 		coordinates:"Coordinates"
 	},
@@ -214,21 +190,15 @@ export const ReturnTypes: Record<string,any> = {
 		departureTime:"String",
 		arrivalTime:"String",
 		duration:"Int",
-		distance:"Int",
-		platformNumber:"String",
-		hasIncident:"Boolean",
-		incidentWarning:"String",
-		incidentSeverity:"IncidentSeverity"
+		hasIncident:"Boolean"
 	},
 	JourneyPath:{
 		segments:"PathSegment",
 		totalDuration:"Int",
-		totalTransfers:"Int",
 		departureTime:"String",
 		arrivalTime:"String",
 		warnings:"String",
-		hasIncidents:"Boolean",
-		affectedSegments:"Int"
+		hasIncidents:"Boolean"
 	},
 	Subscription:{
 		incidentCreated:"Incident",
