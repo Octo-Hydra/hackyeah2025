@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,18 @@ import {
 
 export default function InterceptedSignInPage() {
   const router = useRouter();
+  const { data: session, status, update } = useSession();
   const [isOpen, setIsOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Close modal when user successfully signs in
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      setIsLoading(false); // Reset loading state
+      setIsOpen(false);
+    }
+  }, [status, session]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -43,6 +53,10 @@ export default function InterceptedSignInPage() {
     if (result?.error) {
       setError(result.error);
       setIsLoading(false);
+    } else if (result?.success) {
+      // Sign in successful, manually refresh session
+      await update();
+      // The useEffect watching session status will handle closing the modal
     }
   };
 
@@ -66,7 +80,16 @@ export default function InterceptedSignInPage() {
       const signInFormData = new FormData();
       signInFormData.append("email", formData.get("email") as string);
       signInFormData.append("password", formData.get("password") as string);
-      await handleCredentialsSignIn(signInFormData);
+      const signInResult = await handleCredentialsSignIn(signInFormData);
+
+      if (signInResult?.error) {
+        setError(signInResult.error);
+        setIsLoading(false);
+      } else {
+        // Manually refresh session after successful sign-in
+        await update();
+      }
+      // If successful, the useEffect will close the modal
     }
   };
 
