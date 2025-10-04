@@ -19,6 +19,7 @@ export const Query = {
     const query: any = {
       lineIds: new ObjectId(lineId),
       status: "PUBLISHED",
+      isFake: { $ne: true }, // Hide fake incidents from users
     };
 
     const incidents = await db

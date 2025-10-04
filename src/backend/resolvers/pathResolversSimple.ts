@@ -7,10 +7,11 @@ import type {
   PathSegment,
   JourneyPath,
   FindPathInput,
+  IncidentModel,
+  IncidentLocationModel,
 } from "../db/collections";
 import { DB } from "../db/client.js";
 
-// Haversine distance in meters
 function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
   const R = 6371000;
   const lat1 = (coord1.latitude * Math.PI) / 180;
@@ -29,7 +30,6 @@ function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
   return R * c;
 }
 
-// Find nearest stop
 async function findNearestStop(
   db: Db,
   coordinates: Coordinates,
@@ -61,6 +61,141 @@ function getCurrentTime(): string {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
+/**
+ * Get active incidents affecting the route
+ */
+async function getRouteIncidents(
+  db: Db,
+  segments: PathSegment[]
+): Promise<string[]> {
+  const warnings: string[] = [];
+
+  // Get all unique line IDs from segments
+  const lineIds = new Set<string>();
+  segments.forEach((seg) => {
+    if (seg.lineId) lineIds.add(seg.lineId);
+  });
+
+  if (lineIds.size === 0) return warnings;
+
+  // Find active incidents on these lines
+  const activeIncidents = await db
+    .collection<IncidentModel>("Incidents")
+    .find({
+      status: { $in: ["PUBLISHED", "DRAFT"] },
+      isFake: { $ne: true }, // Exclude fake incidents
+      lineIds: {
+        $in: Array.from(lineIds).map((id) => new ObjectId(id)),
+      },
+    })
+    .toArray();
+
+  // Format warnings for each incident
+  for (const incident of activeIncidents) {
+    const affectedLines: string[] = [];
+
+    // Get line names
+    if (incident.lineIds && incident.lineIds.length > 0) {
+      const lines = await db
+        .collection<LineModel>("Lines")
+        .find({
+          _id: {
+            $in: incident.lineIds
+              .filter((id): id is ObjectId | string => id !== null)
+              .map((id) => (typeof id === "string" ? new ObjectId(id) : id)),
+          },
+        })
+        .toArray();
+
+      affectedLines.push(...lines.map((l) => l.name));
+    }
+
+    // Create warning message based on incident type
+    const lineNames = affectedLines.join(", ") || "trasa";
+
+    let warningMsg = "";
+    switch (incident.kind) {
+      case "NETWORK_FAILURE":
+        warningMsg = `⚠️ AWARIA SIECI na linii ${lineNames}`;
+        break;
+      case "VEHICLE_FAILURE":
+        warningMsg = `⚠️ AWARIA POJAZDU na linii ${lineNames}`;
+        break;
+      case "ACCIDENT":
+        warningMsg = `🔴 WYPADEK na linii ${lineNames}`;
+        break;
+      case "TRAFFIC_JAM":
+        warningMsg = `🚦 KOREK na linii ${lineNames}`;
+        break;
+      case "PLATFORM_CHANGES":
+        warningMsg = `ℹ️ ZMIANA PERONU na linii ${lineNames}`;
+        break;
+      default:
+        warningMsg = `⚠️ INCYDENT na linii ${lineNames}`;
+    }
+
+    if (incident.description) {
+      warningMsg += `: ${incident.description}`;
+    }
+
+    warnings.push(warningMsg);
+  }
+
+  const incidentLocations = await db
+    .collection<IncidentLocationModel>("IncidentLocations")
+    .find({
+      active: true,
+      lineId: {
+        $in: Array.from(lineIds).map((id) => new ObjectId(id)),
+      },
+    })
+    .toArray();
+
+  // Map incidents to affected segments
+  for (const location of incidentLocations) {
+    const segment = segments.find((seg) => {
+      if (seg.lineId !== location.lineId.toString()) return false;
+
+      // Check if segment overlaps with incident location
+      const segFromId = seg.from.stopId;
+      const segToId = seg.to.stopId;
+      const locStartId = location.startStopId.toString();
+      const locEndId = location.endStopId.toString();
+
+      return (
+        segFromId === locStartId ||
+        segToId === locEndId ||
+        segFromId === locEndId ||
+        segToId === locStartId
+      );
+    });
+
+    if (segment) {
+      const incident = await db
+        .collection<IncidentModel>("Incidents")
+        .findOne({ _id: new ObjectId(location.incidentId) });
+
+      if (incident && !incident.isFake) {
+        const severityIcon =
+          location.severity === "HIGH"
+            ? "🔴"
+            : location.severity === "MEDIUM"
+              ? "🟡"
+              : "🟢";
+
+        const segmentWarning = `${severityIcon} ${incident.title} (${segment.from.stopName} → ${segment.to.stopName})`;
+
+        // Avoid duplicates
+        if (!warnings.includes(segmentWarning)) {
+          warnings.push(segmentWarning);
+        }
+      }
+    }
+  }
+
+  return warnings;
+}
+
 export const pathResolvers = {
   async findPath(
     _: unknown,
@@ -79,7 +214,7 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: ["No stops found nearby"],
+        warnings: ["Nie znaleziono przystanków w pobliżu podanych lokalizacji"],
       };
     }
 
@@ -90,7 +225,7 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: ["Start and end points are at the same location"],
+        warnings: ["Punkt początkowy i końcowy są w tej samej lokalizacji"],
       };
     }
 
@@ -100,7 +235,6 @@ export const pathResolvers = {
       .toArray();
 
     const segments: PathSegment[] = [];
-    const warnings: string[] = [];
 
     for (const route of allRoutes) {
       let fromIndex = -1;
@@ -182,8 +316,20 @@ export const pathResolvers = {
       }
     }
 
+    // Check for active incidents on the route
+    const routeWarnings = await getRouteIncidents(db, segments);
+
     if (segments.length === 0) {
-      warnings.push(`No route found from ${startStop.name} to ${endStop.name}`);
+      return {
+        segments: [],
+        totalDuration: 0,
+        totalTransfers: 0,
+        departureTime,
+        arrivalTime: departureTime,
+        warnings: [
+          `Nie znaleziono trasy z ${startStop.name} do ${endStop.name}`,
+        ],
+      };
     }
 
     return {
@@ -194,8 +340,8 @@ export const pathResolvers = {
       ),
       totalTransfers: 0,
       departureTime,
-      arrivalTime: segments[0]?.arrivalTime || departureTime,
-      warnings,
+      arrivalTime: segments[segments.length - 1]?.arrivalTime || departureTime,
+      warnings: routeWarnings, // Active incidents instead of route errors
     };
   },
 

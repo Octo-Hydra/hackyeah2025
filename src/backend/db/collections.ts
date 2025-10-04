@@ -26,7 +26,15 @@ export interface UserModel {
   name: string;
   email: string;
   role: "USER" | "MODERATOR" | "ADMIN";
-  reputation?: number; // User's reputation for reporting accuracy
+  reputation: number; // User's reputation for reporting accuracy (starts at 100)
+  trustScore?: number; // Dynamic trust score (0.5-2.5), calculated by cron
+  trustScoreBreakdown?: {
+    baseScore: number;
+    accuracyBonus: number;
+    highRepBonus: number;
+    validationRate: number;
+    updatedAt: string;
+  };
   activeJourney?: ActiveJourney | null; // Current active journey
   favoriteConnections?: FavoriteConnection[]; // Saved favorite routes
 }

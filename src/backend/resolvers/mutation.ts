@@ -22,6 +22,7 @@ import {
   determineIncidentSegment,
   formatIncidentSegment,
 } from "../../lib/geolocation-utils.js";
+import { processIncidentNotifications } from "../../lib/notification-system.js";
 import type { Db } from "mongodb";
 
 // Interfaces
@@ -135,16 +136,28 @@ async function updateUserReputation(
 ): Promise<void> {
   const FAKE_REPORT_PENALTY = -10; // Points deducted for fake report
   const VALIDATED_REPORT_REWARD = 5; // Points awarded for validated report
+  const MIN_REPUTATION = 0; // Reputation floor (can't go below 0)
 
   if (isFake) {
     // Deduct points from the reporter who made the fake report
     if (incident.reportedBy) {
-      await db
+      const user = await db
         .collection<UserModel>("Users")
-        .updateOne(
-          { _id: new ObjectId(incident.reportedBy) },
-          { $inc: { reputation: FAKE_REPORT_PENALTY } }
+        .findOne({ _id: new ObjectId(incident.reportedBy) });
+
+      if (user) {
+        const newReputation = Math.max(
+          MIN_REPUTATION,
+          (user.reputation || 100) + FAKE_REPORT_PENALTY
         );
+
+        await db
+          .collection<UserModel>("Users")
+          .updateOne(
+            { _id: new ObjectId(incident.reportedBy) },
+            { $set: { reputation: newReputation } }
+          );
+      }
     }
   } else {
     // Award points if the report was validated (multiple similar reports exist)
@@ -396,21 +409,8 @@ export const Mutation = {
         ) ?? null,
     };
 
-    // Notify affected users
-    await notifyAffectedUsers(doc, incidentId, db);
-
-    // Publish real-time event
-    pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
-    if (incident.lineIds && incident.lineIds.length > 0) {
-      incident.lineIds.forEach((lineId: string | null) => {
-        if (lineId) {
-          pubsub.publish(
-            `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
-            incident
-          );
-        }
-      });
-    }
+    // Intelligent notification system (with deduplication and trust score)
+    await processIncidentNotifications(db, doc, user.role);
 
     return incident;
   },
