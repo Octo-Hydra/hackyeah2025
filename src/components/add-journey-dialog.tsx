@@ -19,6 +19,7 @@ import type { SearchResult as GeoSearchResult } from "leaflet-geosearch/dist/pro
 import { Query, Mutation } from "@/lib/graphql_request";
 import { mapSegmentsToRoute } from "@/lib/map-utils";
 import { useAppStore } from "@/store/app-store";
+import { toast } from "sonner";
 
 interface LocationPoint {
   address: string;
@@ -27,8 +28,9 @@ interface LocationPoint {
 }
 
 export function AddJourneyDialog() {
-  const setActiveJourney = useAppStore((state) => state.setActiveJourney);
-  const setUser = useAppStore((state) => state.setUser);
+  const setUserActiveJourney = useAppStore(
+    (state) => state.setUserActiveJourney,
+  );
   const [open, setOpen] = useState(false);
   const [startPoint, setStartPoint] = useState<LocationPoint | null>({
     address: "Kraków, województwo małopolskie, Polska",
@@ -189,6 +191,7 @@ export function AddJourneyDialog() {
             totalDuration: true,
             segments: {
               from: {
+                stopId: true,
                 stopName: true,
                 coordinates: {
                   latitude: true,
@@ -196,6 +199,7 @@ export function AddJourneyDialog() {
                 },
               },
               to: {
+                stopId: true,
                 stopName: true,
                 coordinates: {
                   latitude: true,
@@ -279,81 +283,124 @@ export function AddJourneyDialog() {
           if (firstSegment && lastSegment) {
             // Call GraphQL mutation to set active journey
             const mutation = Mutation();
-            await mutation({
+            const mutationResult = await mutation({
               setActiveJourney: [
                 {
                   input: {
                     routeIds: routeIds as string[],
                     lineIds: lineIds as string[],
-                    startStopId: `stop-start-${Date.now()}`, // Generate IDs based on coordinates
-                    endStopId: `stop-end-${Date.now()}`,
+                    startStop: {
+                      stopId: firstSegment.from.stopId,
+                      stopName: firstSegment.from.stopName,
+                      coordinates: {
+                        latitude: firstSegment.from.coordinates.latitude,
+                        longitude: firstSegment.from.coordinates.longitude,
+                      },
+                    },
+                    endStop: {
+                      stopId: lastSegment.to.stopId,
+                      stopName: lastSegment.to.stopName,
+                      coordinates: {
+                        latitude: lastSegment.to.coordinates.latitude,
+                        longitude: lastSegment.to.coordinates.longitude,
+                      },
+                    },
                   },
                 },
-                true,
-              ],
-            });
-
-            // Fetch updated user with active journey
-            const userQuery = Query();
-            const userData = await userQuery({
-              me: {
-                id: true,
-                name: true,
-                email: true,
-                reputation: true,
-                activeJourney: {
+                {
                   routeIds: true,
                   lineIds: true,
-                  startStopId: true,
-                  endStopId: true,
+                  startStop: {
+                    stopId: true,
+                    stopName: true,
+                    coordinates: {
+                      latitude: true,
+                      longitude: true,
+                    },
+                  },
+                  endStop: {
+                    stopId: true,
+                    stopName: true,
+                    coordinates: {
+                      latitude: true,
+                      longitude: true,
+                    },
+                  },
                   startTime: true,
                   expectedEndTime: true,
                 },
-              },
+              ],
             });
 
-            // Update user in Zustand store
-            if (userData.me) {
-              setUser({
-                id: userData.me.id || "",
-                name: userData.me.name ?? null,
-                email: userData.me.email ?? null,
-                image: null,
-                reputation: userData.me.reputation || 0,
+            console.log("✅ Mutation result:", mutationResult.setActiveJourney);
+
+            // Check if mutation returned active journey
+            if (mutationResult.setActiveJourney) {
+              const activeJourneyData = mutationResult.setActiveJourney;
+
+              // Update user's active journey in Zustand store
+              setUserActiveJourney({
+                routeIds: activeJourneyData.routeIds as string[],
+                lineIds: activeJourneyData.lineIds as string[],
+                startStop: {
+                  stopId: activeJourneyData.startStop.stopId,
+                  stopName: activeJourneyData.startStop.stopName,
+                  coordinates: {
+                    latitude: activeJourneyData.startStop.coordinates.latitude,
+                    longitude:
+                      activeJourneyData.startStop.coordinates.longitude,
+                  },
+                },
+                endStop: {
+                  stopId: activeJourneyData.endStop.stopId,
+                  stopName: activeJourneyData.endStop.stopName,
+                  coordinates: {
+                    latitude: activeJourneyData.endStop.coordinates.latitude,
+                    longitude: activeJourneyData.endStop.coordinates.longitude,
+                  },
+                },
+                startTime: activeJourneyData.startTime,
+                expectedEndTime: activeJourneyData.expectedEndTime,
+              });
+
+              toast.success("Journey saved!", {
+                description: `From ${activeJourneyData.startStop.stopName} to ${activeJourneyData.endStop.stopName}`,
+              });
+            } else {
+              toast.error("Failed to save journey", {
+                description:
+                  "Could not save your active journey. Please try again.",
               });
             }
 
             // Also save to local store for map display
-            setActiveJourney({
-              id: `journey-${Date.now()}`,
-              startPoint: {
-                address: startPoint.address,
-                lat: startPoint.lat,
-                lon: startPoint.lon,
-              },
-              endPoint: {
-                address: endPoint.address,
-                lat: endPoint.lat,
-                lon: endPoint.lon,
-              },
-              route: mappedRoute,
-              startedAt: new Date().toISOString(),
-              totalDuration: result.findPath.totalDuration || undefined,
-              warnings: result.findPath.warnings || undefined,
-            });
 
             console.log("\n✅ Journey saved to backend and Zustand store!");
             console.log("✅ User data updated with active journey");
+          } else {
+            console.log("Could not map route for display");
+            toast.warning("Journey saved with limited map data", {
+              description: "Route mapping unavailable, but journey is tracked.",
+            });
           }
         } else {
-          console.log("Could not map route for display");
+          console.log("No segments found in path");
+          toast.warning("Journey incomplete", {
+            description: "No valid segments found in the route.",
+          });
         }
       } else {
         console.log("No path found");
+        toast.error("No path found", {
+          description: "Could not find a route between these locations.",
+        });
       }
     } catch (error) {
       console.error("Error fetching journey path:", error);
-      alert("Failed to fetch journey path. Please try again.");
+      toast.error("Failed to plan journey", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsLoadingStart(false);
     }

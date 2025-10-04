@@ -41,11 +41,20 @@ interface UpdateReportInput {
   lineIds?: Array<string | null>;
 }
 
+interface SegmentLocationInput {
+  stopId: string;
+  stopName: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 interface ActiveJourneyInput {
   routeIds: string[];
   lineIds: string[];
-  startStopId: string;
-  endStopId: string;
+  startStop: SegmentLocationInput;
+  endStop: SegmentLocationInput;
 }
 
 interface FavoriteConnectionInput {
@@ -65,10 +74,10 @@ function mapUserDoc(user: UserModel) {
     activeJourney: user.activeJourney
       ? {
           routeIds: user.activeJourney.routeIds.map((id) =>
-            typeof id === "string" ? id : id.toString()
+            typeof id === "string" ? id : id.toString(),
           ),
           lineIds: user.activeJourney.lineIds.map((id) =>
-            typeof id === "string" ? id : id.toString()
+            typeof id === "string" ? id : id.toString(),
           ),
           startStopId:
             typeof user.activeJourney.startStopId === "string"
@@ -89,7 +98,7 @@ function mapUserDoc(user: UserModel) {
 async function notifyAffectedUsers(
   doc: IncidentModel,
   incidentId: string,
-  db: any
+  db: any,
 ) {
   // Simplified notification - just log for now
   // TODO: Implement proper user notification based on active journeys and favorites
@@ -102,7 +111,11 @@ export const Mutation = {
   // ============================================
   register: (
     _: unknown,
-    { name, email, password }: { name: string; email: string; password: string }
+    {
+      name,
+      email,
+      password,
+    }: { name: string; email: string; password: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -115,7 +128,7 @@ export const Mutation = {
 
   resendVerificationEmail: (
     _: unknown,
-    { email }: { email: string }
+    { email }: { email: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -125,7 +138,7 @@ export const Mutation = {
 
   verify2FA: (
     _: unknown,
-    { token, secret }: { token: string; secret: string }
+    { token, secret }: { token: string; secret: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -142,7 +155,7 @@ export const Mutation = {
   async createReport(
     _: unknown,
     { input }: { input: CreateReportInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ) {
     const db = await DB();
     const now = new Date().toISOString();
@@ -153,7 +166,7 @@ export const Mutation = {
     // Geolocation-based segment detection
     if (input.reporterLocation) {
       console.log(
-        `📍 Reporter location: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`
+        `📍 Reporter location: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
       );
 
       const stops = await db.collection<StopModel>("Stops").find({}).toArray();
@@ -161,12 +174,12 @@ export const Mutation = {
       const segment = determineIncidentSegment(
         input.reporterLocation,
         stops,
-        1000
+        1000,
       );
 
       if (segment) {
         console.log(
-          `✅ Detected incident segment: ${formatIncidentSegment(segment)}`
+          `✅ Detected incident segment: ${formatIncidentSegment(segment)}`,
         );
 
         affectedSegment = {
@@ -181,7 +194,7 @@ export const Mutation = {
         }
       } else {
         console.log(
-          "⚠️ Could not determine incident segment from location (no nearby stops)"
+          "⚠️ Could not determine incident segment from location (no nearby stops)",
         );
       }
     }
@@ -225,7 +238,7 @@ export const Mutation = {
         .insertOne(incidentLocation);
 
       console.log(
-        `✅ Created IncidentLocation for line ${detectedLineId} between stops`
+        `✅ Created IncidentLocation for line ${detectedLineId} between stops`,
       );
     }
 
@@ -234,7 +247,7 @@ export const Mutation = {
       ...doc,
       lineIds:
         doc.lineIds?.map((id) =>
-          id ? (typeof id === "string" ? id : id.toString()) : null
+          id ? (typeof id === "string" ? id : id.toString()) : null,
         ) ?? null,
     };
 
@@ -248,7 +261,7 @@ export const Mutation = {
         if (lineId) {
           pubsub.publish(
             `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
-            incident
+            incident,
           );
         }
       });
@@ -260,7 +273,7 @@ export const Mutation = {
   async updateReport(
     _: unknown,
     { id, input }: { id: string; input: UpdateReportInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ) {
     const db = await DB();
 
@@ -273,7 +286,7 @@ export const Mutation = {
     if (input.status !== undefined) updateFields.status = input.status;
     if (input.lineIds !== undefined)
       updateFields.lineIds = input.lineIds.map((lid) =>
-        lid ? new ObjectId(lid) : null
+        lid ? new ObjectId(lid) : null,
       );
 
     const result = await db
@@ -281,7 +294,7 @@ export const Mutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: updateFields },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
@@ -293,7 +306,7 @@ export const Mutation = {
       ...result,
       lineIds:
         result.lineIds?.map((lid) =>
-          lid ? (typeof lid === "string" ? lid : lid.toString()) : null
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
         ) ?? null,
     };
 
@@ -303,7 +316,7 @@ export const Mutation = {
         if (lineId) {
           pubsub.publish(
             `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
-            incident
+            incident,
           );
         }
       });
@@ -315,7 +328,7 @@ export const Mutation = {
   async deleteReport(
     _: unknown,
     { id }: { id: string },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const result = await db
@@ -332,7 +345,7 @@ export const Mutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: { status: "PUBLISHED", updatedAt: new Date().toISOString() } },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
@@ -344,7 +357,7 @@ export const Mutation = {
       ...result,
       lineIds:
         result.lineIds?.map((lid) =>
-          lid ? (typeof lid === "string" ? lid : lid.toString()) : null
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
         ) ?? null,
     };
 
@@ -359,8 +372,8 @@ export const Mutation = {
   async setActiveJourney(
     _: unknown,
     { input }: { input: ActiveJourneyInput },
-    ctx: GraphQLContext
-  ): Promise<boolean> {
+    ctx: GraphQLContext,
+  ): Promise<ActiveJourney | null> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
@@ -378,23 +391,63 @@ export const Mutation = {
     const activeJourney: ActiveJourney = {
       routeIds: input.routeIds.map((id) => new ObjectId(id)),
       lineIds: input.lineIds.map((id) => new ObjectId(id)),
-      startStopId: new ObjectId(input.startStopId),
-      endStopId: new ObjectId(input.endStopId),
+      startStop: {
+        stopId: new ObjectId(input.startStop.stopId),
+        stopName: input.startStop.stopName,
+        coordinates: input.startStop.coordinates,
+      },
+      endStop: {
+        stopId: new ObjectId(input.endStop.stopId),
+        stopName: input.endStop.stopName,
+        coordinates: input.endStop.coordinates,
+      },
       startTime,
       expectedEndTime,
     };
 
+    console.log("Setting active journey for user:", userEmail, activeJourney);
     const result = await db
-      .collection<UserModel>("Users")
+      .collection<UserModel>("users")
       .updateOne({ email: userEmail }, { $set: { activeJourney } });
+    console.log("Set active journey result:", result);
 
-    return result.modifiedCount > 0;
+    if (result.modifiedCount === 0) {
+      return null;
+    }
+
+    // Return the created ActiveJourney with string IDs for GraphQL
+    return {
+      routeIds: activeJourney.routeIds.map((id) =>
+        id instanceof ObjectId ? id.toString() : id,
+      ),
+      lineIds: activeJourney.lineIds.map((id) =>
+        id instanceof ObjectId ? id.toString() : id,
+      ),
+      startStop: {
+        stopId:
+          activeJourney.startStop.stopId instanceof ObjectId
+            ? activeJourney.startStop.stopId.toString()
+            : activeJourney.startStop.stopId,
+        stopName: activeJourney.startStop.stopName,
+        coordinates: activeJourney.startStop.coordinates,
+      },
+      endStop: {
+        stopId:
+          activeJourney.endStop.stopId instanceof ObjectId
+            ? activeJourney.endStop.stopId.toString()
+            : activeJourney.endStop.stopId,
+        stopName: activeJourney.endStop.stopName,
+        coordinates: activeJourney.endStop.coordinates,
+      },
+      startTime: activeJourney.startTime,
+      expectedEndTime: activeJourney.expectedEndTime,
+    };
   },
 
   async clearActiveJourney(
     _: unknown,
     __: any,
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -404,7 +457,7 @@ export const Mutation = {
     }
 
     const result = await db
-      .collection<UserModel>("Users")
+      .collection<UserModel>("users")
       .updateOne({ email: userEmail }, { $unset: { activeJourney: "" } });
 
     return result.modifiedCount > 0;
@@ -413,7 +466,7 @@ export const Mutation = {
   async addFavoriteConnection(
     _: unknown,
     { input }: { input: FavoriteConnectionInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<string> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -431,10 +484,10 @@ export const Mutation = {
     };
 
     await db
-      .collection<UserModel>("Users")
+      .collection<UserModel>("users")
       .updateOne(
         { email: userEmail },
-        { $push: { favoriteConnections: favorite } }
+        { $push: { favoriteConnections: favorite } },
       );
 
     return favoriteId;
@@ -443,7 +496,7 @@ export const Mutation = {
   async removeFavoriteConnection(
     _: unknown,
     { id }: { id: string },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -453,10 +506,10 @@ export const Mutation = {
     }
 
     const result = await db
-      .collection<UserModel>("Users")
+      .collection<UserModel>("users")
       .updateOne(
         { email: userEmail },
-        { $pull: { favoriteConnections: { id } as any } }
+        { $pull: { favoriteConnections: { id } as any } },
       );
 
     return result.modifiedCount > 0;

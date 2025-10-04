@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { AppStoreProvider } from "@/store/app-store-provider";
+import { ActiveJourneyNotifier } from "@/components/active-journey-notifier";
+import { Toaster } from "@/components/ui/sonner";
 import { fetchUserForStore } from "@/store/fetch-user";
 import "./globals.css";
 
@@ -91,7 +93,11 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <AppStoreProvider user={user}>{children}</AppStoreProvider>
+          <AppStoreProvider user={user}>
+            <ActiveJourneyNotifier />
+            {children}
+            <Toaster />
+          </AppStoreProvider>
         </AuthProvider>
       </body>
     </html>

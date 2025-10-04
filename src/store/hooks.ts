@@ -40,11 +40,6 @@ export function useMapZoom() {
 /**
  * Hook to manage active journey
  */
-export function useJourneyActions() {
-  const setActiveJourney = useAppStore((state) => state.setActiveJourney);
-  const clearActiveJourney = useAppStore((state) => state.clearActiveJourney);
-  return { setActiveJourney, clearActiveJourney };
-}
 
 /**
  * Hook to get user's active journey from backend (GraphQL schema)

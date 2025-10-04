@@ -7,6 +7,15 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type { MappedRoute } from "@/lib/map-utils";
 
+export interface SegmentLocation {
+  stopId: string;
+  stopName: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export interface User {
   id: string;
   name?: string | null;
@@ -16,8 +25,8 @@ export interface User {
   activeJourney?: {
     routeIds: string[];
     lineIds: string[];
-    startStopId: string;
-    endStopId: string;
+    startStop: SegmentLocation;
+    endStop: SegmentLocation;
     startTime: string;
     expectedEndTime: string;
   };
@@ -45,11 +54,9 @@ interface AppState {
   // User state
   user: User | null;
   setUser: (user: User | null) => void;
+  setUserActiveJourney: (activeJourney: User["activeJourney"]) => void;
 
   // Journey state
-  activeJourney: ActiveJourney | null;
-  setActiveJourney: (journey: ActiveJourney | null) => void;
-  clearActiveJourney: () => void;
 
   // Map state
   mapCenter: [number, number] | null;
@@ -69,18 +76,26 @@ export const useAppStore = create<AppState>()(
         // User state
         user: null,
         setUser: (user) => set({ user }),
+        setUserActiveJourney: (activeJourney) => {
+          set((state) => ({
+            user: state.user
+              ? {
+                  ...state.user,
+                  activeJourney,
+                }
+              : null,
+            mapCenter:
+              activeJourney?.startStop.coordinates.latitude &&
+              activeJourney?.startStop.coordinates.longitude
+                ? [
+                    activeJourney.startStop.coordinates.latitude,
+                    activeJourney.startStop.coordinates.longitude,
+                  ]
+                : undefined,
+          }));
+        },
 
         // Journey state
-        activeJourney: null,
-        setActiveJourney: (journey) =>
-          set({
-            activeJourney: journey,
-            // Auto-center map on journey route if available
-            mapCenter: journey?.route?.allPoints[0]
-              ? [journey.route.allPoints[0].lat, journey.route.allPoints[0].lon]
-              : undefined,
-          }),
-        clearActiveJourney: () => set({ activeJourney: null }),
 
         // Map state
         mapCenter: null,
@@ -97,7 +112,6 @@ export const useAppStore = create<AppState>()(
         // Only persist user and journey data, not map state
         partialize: (state) => ({
           user: state.user,
-          activeJourney: state.activeJourney,
         }),
         onRehydrateStorage: () => (state) => {
           state?.setHasHydrated(true);
