@@ -929,10 +929,7 @@ export type ValueTypes = {
 	['...on TrustScoreBreakdown']?: Omit<ValueTypes["TrustScoreBreakdown"], "...on TrustScoreBreakdown">
 }>;
 	["ActiveJourney"]: AliasType<{
-	routeIds?:boolean | `@${string}`,
-	lineIds?:boolean | `@${string}`,
-	startStop?:ValueTypes["SegmentLocation"],
-	endStop?:ValueTypes["SegmentLocation"],
+	segments?:ValueTypes["PathSegment"],
 	startTime?:boolean | `@${string}`,
 	expectedEndTime?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
@@ -947,10 +944,17 @@ export type ValueTypes = {
 	['...on FavoriteConnection']?: Omit<ValueTypes["FavoriteConnection"], "...on FavoriteConnection">
 }>;
 	["ActiveJourneyInput"]: {
-	routeIds: Array<ValueTypes["ID"]> | Variable<any, string>,
-	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>,
-	startStop: ValueTypes["SegmentLocationInput"] | Variable<any, string>,
-	endStop: ValueTypes["SegmentLocationInput"] | Variable<any, string>
+	segments: Array<ValueTypes["PathSegmentInput"]> | Variable<any, string>
+};
+	["PathSegmentInput"]: {
+	from: ValueTypes["SegmentLocationInput"] | Variable<any, string>,
+	to: ValueTypes["SegmentLocationInput"] | Variable<any, string>,
+	lineId: ValueTypes["ID"] | Variable<any, string>,
+	lineName: string | Variable<any, string>,
+	transportType: ValueTypes["TransportType"] | Variable<any, string>,
+	departureTime: string | Variable<any, string>,
+	arrivalTime: string | Variable<any, string>,
+	duration: number | Variable<any, string>
 };
 	["SegmentLocationInput"]: {
 	stopId: ValueTypes["ID"] | Variable<any, string>,
@@ -1134,10 +1138,7 @@ export type ResolverInputTypes = {
 		__typename?: boolean | `@${string}`
 }>;
 	["ActiveJourney"]: AliasType<{
-	routeIds?:boolean | `@${string}`,
-	lineIds?:boolean | `@${string}`,
-	startStop?:ResolverInputTypes["SegmentLocation"],
-	endStop?:ResolverInputTypes["SegmentLocation"],
+	segments?:ResolverInputTypes["PathSegment"],
 	startTime?:boolean | `@${string}`,
 	expectedEndTime?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -1150,10 +1151,17 @@ export type ResolverInputTypes = {
 		__typename?: boolean | `@${string}`
 }>;
 	["ActiveJourneyInput"]: {
-	routeIds: Array<ResolverInputTypes["ID"]>,
-	lineIds: Array<ResolverInputTypes["ID"]>,
-	startStop: ResolverInputTypes["SegmentLocationInput"],
-	endStop: ResolverInputTypes["SegmentLocationInput"]
+	segments: Array<ResolverInputTypes["PathSegmentInput"]>
+};
+	["PathSegmentInput"]: {
+	from: ResolverInputTypes["SegmentLocationInput"],
+	to: ResolverInputTypes["SegmentLocationInput"],
+	lineId: ResolverInputTypes["ID"],
+	lineName: string,
+	transportType: ResolverInputTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
+	duration: number
 };
 	["SegmentLocationInput"]: {
 	stopId: ResolverInputTypes["ID"],
@@ -1328,10 +1336,7 @@ export type ModelTypes = {
 	updatedAt: string
 };
 	["ActiveJourney"]: {
-		routeIds: Array<ModelTypes["ID"]>,
-	lineIds: Array<ModelTypes["ID"]>,
-	startStop: ModelTypes["SegmentLocation"],
-	endStop: ModelTypes["SegmentLocation"],
+		segments: Array<ModelTypes["PathSegment"]>,
 	startTime: string,
 	expectedEndTime: string
 };
@@ -1342,10 +1347,17 @@ export type ModelTypes = {
 	endStopId: ModelTypes["ID"]
 };
 	["ActiveJourneyInput"]: {
-	routeIds: Array<ModelTypes["ID"]>,
-	lineIds: Array<ModelTypes["ID"]>,
-	startStop: ModelTypes["SegmentLocationInput"],
-	endStop: ModelTypes["SegmentLocationInput"]
+	segments: Array<ModelTypes["PathSegmentInput"]>
+};
+	["PathSegmentInput"]: {
+	from: ModelTypes["SegmentLocationInput"],
+	to: ModelTypes["SegmentLocationInput"],
+	lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
+	duration: number
 };
 	["SegmentLocationInput"]: {
 	stopId: ModelTypes["ID"],
@@ -1519,10 +1531,7 @@ export type GraphQLTypes = {
 };
 	["ActiveJourney"]: {
 	__typename: "ActiveJourney",
-	routeIds: Array<GraphQLTypes["ID"]>,
-	lineIds: Array<GraphQLTypes["ID"]>,
-	startStop: GraphQLTypes["SegmentLocation"],
-	endStop: GraphQLTypes["SegmentLocation"],
+	segments: Array<GraphQLTypes["PathSegment"]>,
 	startTime: string,
 	expectedEndTime: string,
 	['...on ActiveJourney']: Omit<GraphQLTypes["ActiveJourney"], "...on ActiveJourney">
@@ -1536,10 +1545,17 @@ export type GraphQLTypes = {
 	['...on FavoriteConnection']: Omit<GraphQLTypes["FavoriteConnection"], "...on FavoriteConnection">
 };
 	["ActiveJourneyInput"]: {
-		routeIds: Array<GraphQLTypes["ID"]>,
-	lineIds: Array<GraphQLTypes["ID"]>,
-	startStop: GraphQLTypes["SegmentLocationInput"],
-	endStop: GraphQLTypes["SegmentLocationInput"]
+		segments: Array<GraphQLTypes["PathSegmentInput"]>
+};
+	["PathSegmentInput"]: {
+		from: GraphQLTypes["SegmentLocationInput"],
+	to: GraphQLTypes["SegmentLocationInput"],
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
+	duration: number
 };
 	["SegmentLocationInput"]: {
 		stopId: GraphQLTypes["ID"],
@@ -1725,6 +1741,7 @@ export enum ReportStatus {
 type ZEUS_VARIABLES = {
 	["UserRole"]: ValueTypes["UserRole"];
 	["ActiveJourneyInput"]: ValueTypes["ActiveJourneyInput"];
+	["PathSegmentInput"]: ValueTypes["PathSegmentInput"];
 	["SegmentLocationInput"]: ValueTypes["SegmentLocationInput"];
 	["FavoriteConnectionInput"]: ValueTypes["FavoriteConnectionInput"];
 	["IncidentKind"]: ValueTypes["IncidentKind"];

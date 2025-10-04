@@ -13,13 +13,6 @@ export function useUser() {
 }
 
 /**
- * Hook to get active journey from store
- */
-export function useActiveJourney() {
-  return useAppStore((state) => state.activeJourney);
-}
-
-/**
  * Hook to get and set map center
  */
 export function useMapCenter() {
@@ -47,4 +40,20 @@ export function useMapZoom() {
 export function useUserActiveJourney() {
   const user = useAppStore((state) => state.user);
   return user?.activeJourney;
+}
+
+/**
+ * Hook to get user's active journey as MappedRoute for map display
+ */
+export function useUserActiveJourneyMappedRoute() {
+  const user = useAppStore((state) => state.user);
+
+  // Dynamically import to avoid circular dependencies
+  if (!user?.activeJourney?.segments) {
+    return null;
+  }
+
+  // Convert segments to MappedRoute format
+  // This will be done in the component using activeJourneyToMappedRoute
+  return user.activeJourney.segments;
 }

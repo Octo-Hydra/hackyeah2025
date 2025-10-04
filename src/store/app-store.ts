@@ -16,6 +16,18 @@ export interface SegmentLocation {
   };
 }
 
+export interface PathSegment {
+  from: SegmentLocation;
+  to: SegmentLocation;
+  lineId: string;
+  lineName: string;
+  transportType: "BUS" | "RAIL";
+  departureTime: string;
+  arrivalTime: string;
+  duration: number;
+  hasIncident?: boolean;
+}
+
 export interface User {
   id: string;
   name?: string | null;
@@ -23,10 +35,7 @@ export interface User {
   image?: string | null;
   reputation?: number;
   activeJourney?: {
-    routeIds: string[];
-    lineIds: string[];
-    startStop: SegmentLocation;
-    endStop: SegmentLocation;
+    segments: PathSegment[];
     startTime: string;
     expectedEndTime: string;
   };
@@ -85,11 +94,11 @@ export const useAppStore = create<AppState>()(
                 }
               : null,
             mapCenter:
-              activeJourney?.startStop.coordinates.latitude &&
-              activeJourney?.startStop.coordinates.longitude
+              activeJourney?.segments?.[0]?.from.coordinates.latitude &&
+              activeJourney?.segments?.[0]?.from.coordinates.longitude
                 ? [
-                    activeJourney.startStop.coordinates.latitude,
-                    activeJourney.startStop.coordinates.longitude,
+                    activeJourney.segments[0].from.coordinates.latitude,
+                    activeJourney.segments[0].from.coordinates.longitude,
                   ]
                 : undefined,
           }));

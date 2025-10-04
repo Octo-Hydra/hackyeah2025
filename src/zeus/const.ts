@@ -3,8 +3,12 @@
 export const AllTypesProps: Record<string,any> = {
 	UserRole: "enum" as const,
 	ActiveJourneyInput:{
-		startStop:"SegmentLocationInput",
-		endStop:"SegmentLocationInput"
+		segments:"PathSegmentInput"
+	},
+	PathSegmentInput:{
+		from:"SegmentLocationInput",
+		to:"SegmentLocationInput",
+		transportType:"TransportType"
 	},
 	SegmentLocationInput:{
 		coordinates:"CoordinatesInput"
@@ -122,10 +126,7 @@ export const ReturnTypes: Record<string,any> = {
 		updatedAt:"String"
 	},
 	ActiveJourney:{
-		routeIds:"ID",
-		lineIds:"ID",
-		startStop:"SegmentLocation",
-		endStop:"SegmentLocation",
+		segments:"PathSegment",
 		startTime:"String",
 		expectedEndTime:"String"
 	},

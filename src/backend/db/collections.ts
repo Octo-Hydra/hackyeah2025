@@ -9,12 +9,21 @@ export interface SegmentLocation {
   coordinates: Coordinates;
 }
 
+// Journey segment (stored in user's activeJourney)
+export interface JourneySegment {
+  from: SegmentLocation;
+  to: SegmentLocation;
+  lineId: ObjectId | string;
+  lineName: string;
+  transportType: TransportType;
+  departureTime: string;
+  arrivalTime: string;
+  duration: number;
+}
+
 // Active journey that user is currently on
 export interface ActiveJourney {
-  routeIds: Array<ObjectId | string>; // Routes user is taking
-  lineIds: Array<ObjectId | string>; // Lines involved in the journey
-  startStop: SegmentLocation;
-  endStop: SegmentLocation;
+  segments: JourneySegment[];
   startTime: string; // When journey started (HH:mm)
   expectedEndTime: string; // Expected arrival time (HH:mm)
 }

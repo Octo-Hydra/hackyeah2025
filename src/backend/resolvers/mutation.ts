@@ -50,11 +50,19 @@ interface SegmentLocationInput {
   };
 }
 
+interface PathSegmentInput {
+  from: SegmentLocationInput;
+  to: SegmentLocationInput;
+  lineId: string;
+  lineName: string;
+  transportType: "BUS" | "RAIL";
+  departureTime: string;
+  arrivalTime: string;
+  duration: number;
+}
+
 interface ActiveJourneyInput {
-  routeIds: string[];
-  lineIds: string[];
-  startStop: SegmentLocationInput;
-  endStop: SegmentLocationInput;
+  segments: PathSegmentInput[];
 }
 
 interface FavoriteConnectionInput {
@@ -604,26 +612,34 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
-    // Generate times automatically
-    const now = new Date();
-    const startTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    // Estimate 60 minutes for the journey
-    const endDate = new Date(now.getTime() + 60 * 60 * 1000);
-    const expectedEndTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+    // Calculate times from segments
+    const firstSegment = input.segments[0];
+    const lastSegment = input.segments[input.segments.length - 1];
+    const startTime = firstSegment.departureTime;
+    const expectedEndTime = lastSegment.arrivalTime;
+
+    // Convert segments to JourneySegment format with ObjectIds
+    const segments = input.segments.map((seg) => ({
+      from: {
+        stopId: new ObjectId(seg.from.stopId),
+        stopName: seg.from.stopName,
+        coordinates: seg.from.coordinates,
+      },
+      to: {
+        stopId: new ObjectId(seg.to.stopId),
+        stopName: seg.to.stopName,
+        coordinates: seg.to.coordinates,
+      },
+      lineId: new ObjectId(seg.lineId),
+      lineName: seg.lineName,
+      transportType: seg.transportType,
+      departureTime: seg.departureTime,
+      arrivalTime: seg.arrivalTime,
+      duration: seg.duration,
+    }));
 
     const activeJourney: ActiveJourney = {
-      routeIds: input.routeIds.map((id) => new ObjectId(id)),
-      lineIds: input.lineIds.map((id) => new ObjectId(id)),
-      startStop: {
-        stopId: new ObjectId(input.startStop.stopId),
-        stopName: input.startStop.stopName,
-        coordinates: input.startStop.coordinates,
-      },
-      endStop: {
-        stopId: new ObjectId(input.endStop.stopId),
-        stopName: input.endStop.stopName,
-        coordinates: input.endStop.coordinates,
-      },
+      segments,
       startTime,
       expectedEndTime,
     };
@@ -640,28 +656,32 @@ export const Mutation = {
 
     // Return the created ActiveJourney with string IDs for GraphQL
     return {
-      routeIds: activeJourney.routeIds.map((id) =>
-        id instanceof ObjectId ? id.toString() : id,
-      ),
-      lineIds: activeJourney.lineIds.map((id) =>
-        id instanceof ObjectId ? id.toString() : id,
-      ),
-      startStop: {
-        stopId:
-          activeJourney.startStop.stopId instanceof ObjectId
-            ? activeJourney.startStop.stopId.toString()
-            : activeJourney.startStop.stopId,
-        stopName: activeJourney.startStop.stopName,
-        coordinates: activeJourney.startStop.coordinates,
-      },
-      endStop: {
-        stopId:
-          activeJourney.endStop.stopId instanceof ObjectId
-            ? activeJourney.endStop.stopId.toString()
-            : activeJourney.endStop.stopId,
-        stopName: activeJourney.endStop.stopName,
-        coordinates: activeJourney.endStop.coordinates,
-      },
+      segments: activeJourney.segments.map((seg) => ({
+        from: {
+          stopId:
+            seg.from.stopId instanceof ObjectId
+              ? seg.from.stopId.toString()
+              : seg.from.stopId,
+          stopName: seg.from.stopName,
+          coordinates: seg.from.coordinates,
+        },
+        to: {
+          stopId:
+            seg.to.stopId instanceof ObjectId
+              ? seg.to.stopId.toString()
+              : seg.to.stopId,
+          stopName: seg.to.stopName,
+          coordinates: seg.to.coordinates,
+        },
+        lineId:
+          seg.lineId instanceof ObjectId ? seg.lineId.toString() : seg.lineId,
+        lineName: seg.lineName,
+        transportType: seg.transportType,
+        departureTime: seg.departureTime,
+        arrivalTime: seg.arrivalTime,
+        duration: seg.duration,
+        hasIncident: false, // TODO: Check for incidents on this segment
+      })),
       startTime: activeJourney.startTime,
       expectedEndTime: activeJourney.expectedEndTime,
     };
