@@ -81,7 +81,7 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       <div
         className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
       >
-        <div className="text-center">
+        <div className="text-center flex items-center justify-center flex-col gap-2">
           <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Loading map...
