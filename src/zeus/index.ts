@@ -1718,7 +1718,6 @@ export type GraphQLTypes = {
     }
 export enum UserRole {
 	USER = "USER",
-	MODERATOR = "MODERATOR",
 	ADMIN = "ADMIN"
 }
 export enum IncidentKind {

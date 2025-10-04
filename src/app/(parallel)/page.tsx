@@ -88,10 +88,9 @@ export default function HomePage() {
                   <Button asChild variant="outline" size="sm">
                     <Link href="/user">Profil</Link>
                   </Button>
-                  {(session.user?.role === "MODERATOR" ||
-                    session.user?.role === "ADMIN") && (
+                  {session.user?.role === "ADMIN" && (
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/moderator">Moderator</Link>
+                      <Link href="/admin">Admin</Link>
                     </Button>
                   )}
                 </>

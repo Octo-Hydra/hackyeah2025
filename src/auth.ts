@@ -172,7 +172,7 @@ export const authConfig: NextAuthConfig = {
         session.user.name = token.name as string;
         session.user.image = token.picture as string;
         // Add role to session - extend user type
-        const role = token.role as "USER" | "MODERATOR" | "ADMIN" | undefined;
+        const role = token.role as "USER" | "ADMIN" | undefined;
         session.user.role = role || "USER";
       }
       return session;

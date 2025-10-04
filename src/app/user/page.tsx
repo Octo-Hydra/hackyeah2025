@@ -13,7 +13,29 @@ import { isMobileDevice } from "@/lib/user-agent";
 import Link from "next/link";
 import { User, ArrowLeft, Mail, Calendar, Shield } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
-import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profil Użytkownika",
+  description:
+    "Zarządzaj swoim profilem OnTime. Sprawdź swoje statystyki, zarządzaj kontem i zmień ustawienia.",
+  alternates: {
+    canonical: "/user",
+  },
+  openGraph: {
+    title: "Profil Użytkownika | OnTime",
+    description: "Zarządzaj swoim profilem i ustawieniami konta OnTime.",
+    url: "/user",
+  },
+  twitter: {
+    title: "Profil Użytkownika | OnTime",
+    description: "Zarządzaj swoim profilem i ustawieniami konta OnTime.",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function UserProfilePage() {
   const session = await auth();
@@ -45,24 +67,8 @@ export default async function UserProfilePage() {
           </div>
         </header>
 
-        {/* Mobile Header */}
-        <header className="border-b bg-white dark:bg-gray-950 md:hidden">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/apple-touch-icon.png"
-                alt="OnTime"
-                width={28}
-                height={28}
-                className="rounded-lg"
-              />
-              <h1 className="text-lg font-bold">Profil</h1>
-            </div>
-          </div>
-        </header>
-
         {/* Main Content */}
-        <main className="overflow-y-auto max-h-[calc(100vh-6rem)] container mx-auto px-4 py-8">
+        <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 py-8 md:max-h-[calc(100vh-4rem)]">
           <div className="mx-auto max-w-2xl">
             {/* Profile Card */}
             <Card className="mb-6">
@@ -123,16 +129,15 @@ export default async function UserProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {(session.user?.role === "MODERATOR" ||
-                  session.user?.role === "ADMIN") && (
+                {session.user?.role === "ADMIN" && (
                   <Button
                     asChild
                     className="w-full justify-start"
                     variant="outline"
                   >
-                    <Link href="/moderator">
+                    <Link href="/admin">
                       <Shield className="mr-2 h-4 w-4" />
-                      Panel moderatora
+                      Panel administratora
                     </Link>
                   </Button>
                 )}

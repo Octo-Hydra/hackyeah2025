@@ -2,7 +2,7 @@
  * Intelligent Notification System
  *
  * Handles incident notifications based on:
- * - Reporter role (admin/moderator = instant, user = trust-based)
+ * - Reporter role (admin = instant, user = trust-based)
  * - Trust score thresholds
  * - Deduplication (prevents spam)
  * - User's active journey and favorite lines
@@ -10,13 +10,12 @@
  * Uses functions from threshold-algorithm.ts for consistency
  */
 
-import type { Db, ObjectId } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import type { IncidentModel, UserModel } from "@/backend/db/collections";
 import { pubsub, CHANNELS } from "@/backend/resolvers/subscriptions.js";
 import {
   shouldNotifyUser,
   extractActiveJourneyLineIds,
-  extractFavoriteLineIds,
   DEFAULT_THRESHOLD_CONFIG,
 } from "./threshold-algorithm";
 
@@ -103,7 +102,7 @@ function markNotificationDelivered(incidentId: string, userId: string): void {
  */
 async function countSimilarReports(
   db: Db,
-  incident: IncidentModel
+  incident: IncidentModel,
 ): Promise<number> {
   const oneDayAgo = new Date();
   oneDayAgo.setHours(oneDayAgo.getHours() - 24);
@@ -126,7 +125,7 @@ async function countSimilarReports(
  */
 async function getAggregateTrustScore(
   db: Db,
-  incident: IncidentModel
+  incident: IncidentModel,
 ): Promise<number> {
   if (!incident.reportedBy) {
     return 0;
@@ -187,7 +186,7 @@ async function getAggregateTrustScore(
 async function shouldUserReceiveNotification(
   db: Db,
   userId: ObjectId | string,
-  incident: IncidentModel
+  incident: IncidentModel,
 ): Promise<boolean> {
   const user = await db
     .collection<UserModel>("Users")
@@ -198,13 +197,14 @@ async function shouldUserReceiveNotification(
   }
 
   // Extract incident line IDs
-  const incidentLineIds = (incident.lineIds || []).map((id: any) =>
-    id ? id.toString() : null
+  const incidentLineIds = (incident.lineIds || []).map((id) =>
+    id ? id.toString() : null,
   );
 
   // Extract user's active journey line IDs
-  const activeJourneyLineIds = extractActiveJourneyLineIds(user.activeJourney);
-
+  const activeJourneyLineIds = extractActiveJourneyLineIds({
+    lineIds: user.activeJourney?.segments.map((seg) => seg.lineId) || [],
+  });
   // For favorites, we need to check if incident affects routes between saved stops
   // For now, we'll consider a user affected if they have any favorites (simplified)
   const hasFavorites =
@@ -215,7 +215,7 @@ async function shouldUserReceiveNotification(
     incidentLineIds,
     activeJourneyLineIds.length > 0 ? activeJourneyLineIds : undefined,
     hasFavorites ? [] : undefined, // Simplified: no specific favorite line IDs for now
-    undefined // No incident class in current IncidentModel
+    undefined, // No incident class in current IncidentModel
   );
 
   return decision.shouldNotify;
@@ -227,7 +227,7 @@ async function shouldUserReceiveNotification(
 export async function processIncidentNotifications(
   db: Db,
   incident: IncidentModel,
-  reporterRole: "USER" | "MODERATOR" | "ADMIN"
+  reporterRole: "USER" | "ADMIN",
 ): Promise<void> {
   const incidentId = incident._id?.toString();
   if (!incidentId) {
@@ -235,10 +235,10 @@ export async function processIncidentNotifications(
     return;
   }
 
-  // 1. INSTANT NOTIFICATIONS for admin/moderator reports
-  if (reporterRole === "ADMIN" || reporterRole === "MODERATOR") {
+  // 1. INSTANT NOTIFICATIONS for admin reports
+  if (reporterRole === "ADMIN") {
     console.log(
-      `📢 INSTANT notification: ${incident.title} (by ${reporterRole})`
+      `📢 INSTANT notification: ${incident.title} (by ${reporterRole})`,
     );
 
     // Publish to all relevant channels
@@ -304,7 +304,7 @@ export async function processIncidentNotifications(
     const shouldReceive = await shouldUserReceiveNotification(
       db,
       user._id!,
-      incident
+      incident,
     );
     if (!shouldReceive) {
       continue;
@@ -321,7 +321,7 @@ export async function processIncidentNotifications(
   pubsub.publish(CHANNELS.MY_LINES_INCIDENTS, incident);
 
   console.log(
-    `   📤 Sent: ${notificationsSent}, Skipped (duplicates): ${notificationsSkipped}`
+    `   📤 Sent: ${notificationsSent}, Skipped (duplicates): ${notificationsSkipped}`,
   );
 }
 
