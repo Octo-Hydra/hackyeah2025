@@ -1,0 +1,151 @@
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+type User {
+  id: ID!
+  createdAt: String!
+  updatedAt: String!
+  name: String!
+  email: String!
+  role: UserRole!
+  twoFactorEnabled: Boolean!
+}
+
+type TwoFactorSetup {
+  secret: String!
+  qrCode: String!
+}
+
+type TwoFactorStatus {
+  requires2FA: Boolean!
+  userExists: Boolean!
+}
+
+type TwoFactorResult {
+  success: Boolean!
+  message: String
+}
+
+type Query {
+  me: User
+  check2FAStatus(username: String!): TwoFactorStatus!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type RegisterResult {
+  success: Boolean!
+  message: String!
+  userId: String
+}
+
+type VerifyEmailResult {
+  success: Boolean!
+  message: String!
+}
+
+type ResendVerificationResult {
+  success: Boolean!
+  message: String!
+}
+
+type Mutation {
+  register(input: RegisterInput!): RegisterResult!
+  verifyEmail(token: String!): VerifyEmailResult!
+  resendVerificationEmail(email: String!): ResendVerificationResult!
+  setup2FA: TwoFactorSetup!
+  verify2FA(token: String!, secret: String!): TwoFactorResult!
+  disable2FA: TwoFactorResult!
+  carrierMutations: carrierMutation 
+}
+
+type carrierMutation {
+  createReport(input: CreateReportInput!): Incident!
+  saveDraft(input: CreateReportInput!): Incident!
+  updateReport(id: ID!, input: UpdateReportInput!): Incident!
+  deleteReport(id: ID!): DeleteResult!
+  publishReport(id: ID!): Incident!
+}
+
+enum IncidentKind {
+  INCIDENT
+  NETWORK_FAILURE
+  VEHICLE_FAILURE
+  PEDESTRIAN_ACCIDENT
+  TRAFFIC_JAM
+  PLATFORM_CHANGES
+}
+
+enum TransportType {
+  BUS
+  RAIL
+}
+
+enum IncidentClass {
+  CLASS_1
+  CLASS_2
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+  RESOLVED
+}
+
+type Incident {
+  id: ID!
+  title: String!
+  description: String
+  kind: IncidentKind!
+  incidentClass: IncidentClass!
+  status: ReportStatus!
+  lines: [Line!]
+  createdBy: User
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Line {
+  id: ID!
+  name: String!
+  transportType: TransportType!
+}
+
+input CreateReportInput {
+  title: String!
+  description: String
+  kind: IncidentKind!
+  status: ReportStatus
+  lineIds: [ID!]
+}
+
+input UpdateReportInput {
+  title: String
+  description: String
+  kind: IncidentKind
+  status: ReportStatus
+  lineIds: [ID!]
+}
+
+type DeleteResult {
+  success: Boolean!
+  message: String
+}
+
+type UserQuery {
+    dupa: String!
+}
+
+extend type Query {
+  userQuery: UserQuery
+}
+type Subscription {
+  _empty: String
+}

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextZeusPlugin from "./zeus-plugin";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -42,4 +43,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withNextZeus = createNextZeusPlugin({
+  input: "./src/backend/schema.graphql",
+  output: "./src",
+  args: ["--td"],
+});
+
+export default withNextZeus(nextConfig);
