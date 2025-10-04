@@ -69,6 +69,17 @@ export async function fetchUserForStore(): Promise<User | null> {
         : undefined,
     };
   } catch (error) {
+    // Suppress expected "Dynamic server usage" errors during build
+    // These occur when Next.js tries to pre-render pages that use auth()
+    if (
+      error instanceof Error &&
+      error.message.includes("Dynamic server usage")
+    ) {
+      // This is expected - pages with auth cannot be statically rendered
+      return null;
+    }
+    
+    // Log only unexpected errors
     console.error("Error fetching user for store:", error);
     return null;
   }

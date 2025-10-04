@@ -26,13 +26,18 @@ const typeDefs = fs.readFileSync(sdlPath, "utf-8");
 
 // resolvers imported from src/backend/resolvers
 
-// @ts-expect-error - Type mismatch between GraphQLContext and Yoga context
 const yoga = createYoga({
   graphqlEndpoint,
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  schema: createSchema({
+  schema: createSchema<{
+    session: {
+      user: { email: string; name: string; image: string };
+      expires: string;
+    } | null;
+    request: Request;
+  }>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,
@@ -42,7 +47,7 @@ const yoga = createYoga({
     // Get session from NextAuth JWT cookie
     const cookieHeader = request.headers.get("cookie");
     let session = null;
-    
+
     if (cookieHeader) {
       // Parse NextAuth session token from cookie
       const cookies = cookieHeader.split(";").reduce(

@@ -28,6 +28,10 @@ export default function InterceptedSignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Bind OAuth sign-in actions to return to root
+  const handleGoogleSignInWithReturn = handleGoogleSignIn.bind(null, "/");
+  const handleFacebookSignInWithReturn = handleFacebookSignIn.bind(null, "/");
+
   // Zamknij modal po udanym zalogowaniu
   useEffect(() => {
     if (status === "authenticated" && session) {
@@ -164,7 +168,7 @@ export default function InterceptedSignInPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -193,7 +197,7 @@ export default function InterceptedSignInPage() {
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -282,7 +286,7 @@ export default function InterceptedSignInPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -311,7 +315,7 @@ export default function InterceptedSignInPage() {
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
