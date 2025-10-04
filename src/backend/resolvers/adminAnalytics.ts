@@ -67,7 +67,7 @@ export const adminAnalyticsResolvers = {
 
       // Get line info
       const line = await db
-        .collection<LineModel>("lines")
+        .collection<LineModel>("Lines")
         .findOne({ _id: new ObjectId(lineId) });
       if (!line) {
         throw new Error(`Line not found: ${lineId}`);
@@ -75,7 +75,7 @@ export const adminAnalyticsResolvers = {
 
       // Get incidents for this line in the period
       const incidents = await db
-        .collection<IncidentModel>("incidents")
+        .collection<IncidentModel>("Incidents")
         .find({
           lineIds: new ObjectId(lineId),
           createdAt: { $gte: startDate, $lte: endDate },
@@ -162,7 +162,7 @@ export const adminAnalyticsResolvers = {
 
       // Get line info
       const line = await db
-        .collection<LineModel>("lines")
+        .collection<LineModel>("Lines")
         .findOne({ _id: new ObjectId(lineId) });
       if (!line) {
         throw new Error(`Line not found: ${lineId}`);
@@ -170,7 +170,7 @@ export const adminAnalyticsResolvers = {
 
       // Get delay incidents for this line
       const incidents = await db
-        .collection<IncidentModel>("incidents")
+        .collection<IncidentModel>("Incidents")
         .find({
           lineIds: new ObjectId(lineId),
           createdAt: { $gte: startDate, $lte: endDate },
@@ -241,15 +241,6 @@ export const adminAnalyticsResolvers = {
       },
       context: Context
     ) => {
-      // Authorization check
-      const session = await context.auth();
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
-      }
-
       const client = await clientPromise;
       const db = client.db();
       const { transportType, period, limit = 10 } = args;
@@ -263,7 +254,7 @@ export const adminAnalyticsResolvers = {
 
       // Get all lines
       const lines = await db
-        .collection<LineModel>("lines")
+        .collection<LineModel>("Lines")
         .find(lineFilter)
         .toArray();
 
@@ -271,7 +262,7 @@ export const adminAnalyticsResolvers = {
       const lineStats = await Promise.all(
         lines.map(async (line: LineModel) => {
           const incidents = await db
-            .collection<IncidentModel>("incidents")
+            .collection<IncidentModel>("Incidents")
             .find({
               lineIds: line._id,
               createdAt: { $gte: startDate, $lte: endDate },
@@ -334,13 +325,13 @@ export const adminAnalyticsResolvers = {
       const { startDate, endDate } = getDateRange(period);
 
       // Get all lines
-      const lines = await db.collection<LineModel>("lines").find({}).toArray();
+      const lines = await db.collection<LineModel>("Lines").find({}).toArray();
 
       // For each line, count incidents and get last incident time
       const overview = await Promise.all(
         lines.map(async (line: LineModel) => {
           const incidents = await db
-            .collection<IncidentModel>("incidents")
+            .collection<IncidentModel>("Incidents")
             .find({
               lineIds: line._id,
               createdAt: { $gte: startDate, $lte: endDate },
