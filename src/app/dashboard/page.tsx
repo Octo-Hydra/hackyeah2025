@@ -13,7 +13,6 @@ import { MobileLayout } from "@/components/mobile-layout";
 import { isMobileDevice } from "@/lib/user-agent";
 import { LayoutDashboard, User, Mail, Calendar } from "lucide-react";
 import Image from "next/image";
-import { DashboardFAB } from "@/components/dashboard-fab";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -102,7 +101,7 @@ export default async function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <Card>
-                <CardContent className="pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-blue-600">12</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -112,7 +111,7 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-green-600">5</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -147,9 +146,6 @@ export default async function DashboardPage() {
             </Card>
           </div>
         </main>
-
-        {/* Floating Action Button (FAB) - Mobile only */}
-        <DashboardFAB />
       </div>
     </MobileLayout>
   );

@@ -94,7 +94,7 @@ export default function InterceptedSignInPage() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto pt-10 sm:max-w-[500px]">
+      <DialogContent className="max-h-[95vh] overflow-y-auto pt-10 sm:max-w-[500px]">
         <DialogTitle className="sr-only">Logowanie</DialogTitle>
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">

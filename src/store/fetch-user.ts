@@ -78,7 +78,7 @@ export async function fetchUserForStore(): Promise<User | null> {
       // This is expected - pages with auth cannot be statically rendered
       return null;
     }
-    
+
     // Log only unexpected errors
     console.error("Error fetching user for store:", error);
     return null;

@@ -63,7 +63,10 @@ export default function HomePage() {
         {/* Desktop Header - Hidden on mobile */}
         <header className="z-10 hidden border-b bg-white shadow-sm dark:bg-gray-950 md:block">
           <div className="flex h-16 items-center justify-between px-4">
-            <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
               <Image
                 src="/apple-touch-icon.png"
                 alt="OnTime"
@@ -72,7 +75,7 @@ export default function HomePage() {
                 className="rounded-lg"
               />
               <h1 className="text-xl font-bold">OnTime</h1>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-2">
               {status === "loading" ? (
@@ -85,9 +88,12 @@ export default function HomePage() {
                   <Button asChild variant="outline" size="sm">
                     <Link href="/user">Profil</Link>
                   </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/moderator">Moderator</Link>
-                  </Button>
+                  {(session.user?.role === "MODERATOR" ||
+                    session.user?.role === "ADMIN") && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/moderator">Moderator</Link>
+                    </Button>
+                  )}
                 </>
               ) : (
                 <Button asChild size="sm">
@@ -101,7 +107,10 @@ export default function HomePage() {
         {/* Mobile Header - Compact */}
         <header className="z-10 border-b bg-white shadow-sm dark:bg-gray-950 md:hidden">
           <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
               <Image
                 src="/apple-touch-icon.png"
                 alt="OnTime"
@@ -110,7 +119,7 @@ export default function HomePage() {
                 className="rounded-lg"
               />
               <h1 className="text-lg font-bold">OnTime</h1>
-            </div>
+            </Link>
           </div>
         </header>
 

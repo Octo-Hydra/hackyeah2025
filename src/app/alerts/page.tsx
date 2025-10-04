@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Bell, Plus, MapPin } from "lucide-react";
 import Image from "next/image";
-import { AlertsFAB } from "@/components/alerts-fab";
 
 export default async function AlertsPage() {
   const session = await auth();
@@ -78,9 +77,9 @@ export default async function AlertsPage() {
         <main className="overflow-y-auto max-h-[calc(100vh-2rem)] container mx-auto px-4 py-6 pb-24 md:pb-6">
           <div className="mx-auto max-w-2xl">
             {/* Stats */}
-            <div className="mb-6 grid grid-cols-3 gap-3 md:gap-4">
+            <div className="mb-6 grid grid-cols-2 gap-3 md:gap-4">
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600 md:text-3xl">
                       3
@@ -92,7 +91,7 @@ export default async function AlertsPage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600 md:text-3xl">
                       12
@@ -104,7 +103,7 @@ export default async function AlertsPage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600 md:text-3xl">
                       45
@@ -186,9 +185,6 @@ export default async function AlertsPage() {
             )}
           </div>
         </main>
-
-        {/* Floating Action Button (FAB) - Mobile only */}
-        <AlertsFAB />
       </div>
     </MobileLayout>
   );

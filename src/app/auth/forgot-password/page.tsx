@@ -53,7 +53,12 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">OnTime</h1>
+          <Link
+            href="/"
+            className="inline-block hover:opacity-80 transition-opacity"
+          >
+            <h1 className="text-3xl font-bold">OnTime</h1>
+          </Link>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Resetowanie hasła
           </p>
