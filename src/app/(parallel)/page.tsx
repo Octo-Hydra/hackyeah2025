@@ -123,21 +123,6 @@ export default function HomePage() {
               <AddEventDialog />
             </div>
           )}
-
-          {/* Welcome Card - Mobile only, shows when not authenticated */}
-          {!session && (
-            <div className="absolute bottom-20 left-4 right-4 z-[1000] rounded-lg border bg-white/95 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden">
-              <h2 className="mb-2 text-base font-semibold">
-                Welcome to OnTime! 👋
-              </h2>
-              <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                No more waiting, just on-time arrivals!
-              </p>
-              <Button asChild className="w-full" size="sm">
-                <Link href="/auth/signin">Sign in to get started</Link>
-              </Button>
-            </div>
-          )}
         </main>
       </div>
     </MobileLayout>
