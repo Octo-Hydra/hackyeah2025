@@ -3,6 +3,7 @@
 import { Map } from "@/components/map";
 import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/mobile-layout";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,10 +29,10 @@ const AddJourneyDialog = dynamic(
 
 export default function HomePage() {
   const { data: session, status } = useSession();
+  const { isMobile } = useIsMobile();
 
   // Prevent body scroll on mobile
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
     if (!isMobile) return;
 
     // Save original styles
@@ -54,10 +55,10 @@ export default function HomePage() {
       document.body.style.height = originalHeight;
       document.body.style.touchAction = "";
     };
-  }, []);
+  }, [isMobile]);
 
   return (
-    <MobileLayout className="h-screen-mobile no-overscroll">
+    <MobileLayout className="h-screen-mobile no-overscroll" isMobile={isMobile}>
       <div className="flex h-full flex-col overflow-hidden">
         {/* Desktop Header - Hidden on mobile */}
         <header className="z-10 hidden border-b bg-white shadow-sm dark:bg-gray-950 md:block">
@@ -82,7 +83,7 @@ export default function HomePage() {
                     {session.user?.email}
                   </span>
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/user">Profile</Link>
+                    <Link href="/user">Profil</Link>
                   </Button>
                   <Button asChild variant="outline" size="sm">
                     <Link href="/moderator">Moderator</Link>
@@ -90,7 +91,7 @@ export default function HomePage() {
                 </>
               ) : (
                 <Button asChild size="sm">
-                  <Link href="/auth/signin">Sign In</Link>
+                  <Link href="/auth/signin">Zaloguj</Link>
                 </Button>
               )}
             </div>
@@ -110,11 +111,6 @@ export default function HomePage() {
               />
               <h1 className="text-lg font-bold">OnTime</h1>
             </div>
-            {!session && (
-              <Button asChild size="sm" variant="ghost">
-                <Link href="/auth/signin">Sign In</Link>
-              </Button>
-            )}
           </div>
         </header>
 
@@ -126,7 +122,7 @@ export default function HomePage() {
 
           {/* Action Buttons - Only show when logged in */}
           {session && (
-            <div className="absolute bottom-20 right-6 z-[1000] flex flex-col gap-3 md:bottom-6">
+            <div className="absolute bottom-8 right-6 z-[1000] flex flex-col gap-3 md:bottom-6">
               <AddJourneyDialog />
               <AddEventDialog />
             </div>

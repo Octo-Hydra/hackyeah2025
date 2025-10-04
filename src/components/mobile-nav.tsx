@@ -16,24 +16,24 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    name: "Home",
+    name: "Strona główna",
     href: "/",
     icon: Home,
   },
   {
-    name: "Alerts",
+    name: "Alerty",
     href: "/alerts",
     icon: Bell,
     requireAuth: true,
   },
   {
-    name: "Dashboard",
+    name: "Panel",
     href: "/dashboard",
     icon: LayoutDashboard,
     requireAuth: true,
   },
   {
-    name: "Profile",
+    name: "Profil",
     href: "/user",
     icon: User,
     requireAuth: true,
@@ -49,12 +49,12 @@ const navItems: NavItem[] = [
 
 const guestNavItems: NavItem[] = [
   {
-    name: "Home",
+    name: "Strona główna",
     href: "/",
     icon: Home,
   },
   {
-    name: "Login",
+    name: "Zaloguj",
     href: "/auth/signin",
     icon: LogIn,
   },
@@ -74,14 +74,11 @@ export function MobileNav() {
     >
       <div className="flex h-16 items-center justify-around px-2">
         {items.map((item) => {
-          // Skip auth-required items if not logged in
           if (item.requireAuth && !session) {
             return null;
           }
-
           const isActive = pathname === item.href;
           const Icon = item.icon;
-
           return (
             <Link
               key={item.name}

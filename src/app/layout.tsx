@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
+import { AppStoreProvider } from "@/store/app-store-provider";
+import { fetchUserForStore } from "@/store/fetch-user";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,11 +26,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "OnTime",
-  description: "OnTime - No more waiting, just on-time arrivals!",
+  description: "OnTime - Koniec z czekaniem, zawsze na czas!",
   generator: "Next.js",
   applicationName: "OnTime",
   manifest: "/manifest.json",
-  keywords: ["communication", "travel", "utilities"],
+  keywords: ["komunikacja", "podróże", "narzędzia"],
   authors: [{ name: "Hydra Tech" }],
   icons: [
     { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
@@ -47,13 +49,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch user data on server-side for initial store state
+  const user = await fetchUserForStore();
+
   return (
-    <html lang="en">
+    <html lang="pl">
       <head>
         {/* iOS Splash Screens */}
         <link
@@ -85,7 +90,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AppStoreProvider user={user}>{children}</AppStoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );

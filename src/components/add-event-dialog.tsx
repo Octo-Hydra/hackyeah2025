@@ -21,20 +21,20 @@ export function AddEventDialog() {
         <Button
           size="lg"
           className="h-14 w-14 rounded-full shadow-lg"
-          aria-label="Add route event"
+          aria-label="Dodaj zdarzenie na trasie"
         >
           <AlertTriangle className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Route Event</DialogTitle>
+          <DialogTitle>Dodaj zdarzenie na trasie</DialogTitle>
           <DialogDescription>
-            Report a new traffic event or road condition
+            Zgłoś nowe zdarzenie drogowe lub warunki na drodze
           </DialogDescription>
         </DialogHeader>
         <div className="py-6 text-center text-muted-foreground">
-          Add route event here
+          Tutaj dodaj zdarzenie na trasie
         </div>
       </DialogContent>
     </Dialog>
