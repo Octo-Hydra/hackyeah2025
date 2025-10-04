@@ -1,0 +1,237 @@
+# Gotowe zapytania GraphQL do testowania
+# Skopiuj do GraphiQL: http://localhost:3000/api/graphql
+
+# ========================================
+# 1. SPRAWDŹ WSZYSTKIE PRZYSTANKI BUS
+# ========================================
+query GetAllBusStops {
+  busStops: stops(transportType: "BUS") {
+    id
+    name
+    coordinates {
+      latitude
+      longitude
+    }
+    transportType
+  }
+}
+
+# ========================================
+# 2. SPRAWDŹ WSZYSTKIE PRZYSTANKI RAIL
+# ========================================
+query GetAllRailStops {
+  railStops: stops(transportType: "RAIL") {
+    id
+    name
+    coordinates {
+      latitude
+      longitude
+    }
+    transportType
+  }
+}
+
+# ========================================
+# 3. TEST FINDPATH - PODSTAWOWY
+# ========================================
+query TestBasicPath {
+  findPath(
+    input: {
+      from: { latitude: 50.0647, longitude: 19.9450 }
+      to: { latitude: 50.0767, longitude: 19.9478 }
+      departureTime: "2024-10-04T10:00:00Z"
+    }
+  ) {
+    segments {
+      from {
+        stopName
+        coordinates {
+          latitude
+          longitude
+        }
+      }
+      to {
+        stopName
+        coordinates {
+          latitude
+          longitude
+        }
+      }
+      lineId
+      lineName
+      transportType
+      departureTime
+      arrivalTime
+      duration
+      hasIncident
+    }
+    totalDuration
+    departureTime
+    arrivalTime
+    warnings
+    hasIncidents
+  }
+}
+
+# ========================================
+# 4. TEST SEGMENT FORMAT - Sprawdź czy zwraca [{FROM, TO}, {FROM, TO}]
+# ========================================
+query CheckSegmentFormat {
+  findPath(
+    input: {
+      from: { latitude: 50.06, longitude: 19.94 }
+      to: { latitude: 50.08, longitude: 19.96 }
+    }
+  ) {
+    segments {
+      # ← To jest array segmentów
+      from {
+        # ← Początek segmentu
+        stopName
+      }
+      to {
+        # ← Koniec segmentu
+        stopName
+      }
+      transportType
+      lineName
+    }
+  }
+}
+
+# ========================================
+# 5. TEST RAIL Z WIELOMA PRZYSTANKAMI
+# ========================================
+query TestRailMultipleStops {
+  findPath(
+    input: {
+      from: { latitude: 50.0, longitude: 19.9 }
+      to: { latitude: 50.1, longitude: 20.0 }
+    }
+  ) {
+    segments {
+      from {
+        stopName
+      }
+      to {
+        stopName
+      }
+      transportType
+      lineName
+    }
+    # WAŻNE: Tutaj zobaczysz wszystkie przystanki pośrednie!
+    warnings
+  }
+}
+
+# ========================================
+# 6. TEST BUS + RAIL (dwa osobne zapytania)
+# ========================================
+query TestMultiModalSeparate {
+  busRoute: findPath(
+    input: {
+      from: { latitude: 50.06, longitude: 19.94 }
+      to: { latitude: 50.07, longitude: 19.95 }
+    }
+  ) {
+    segments {
+      from {
+        stopName
+      }
+      to {
+        stopName
+      }
+      transportType
+      lineName
+    }
+  }
+
+  railRoute: findPath(
+    input: {
+      from: { latitude: 50.07, longitude: 19.95 }
+      to: { latitude: 50.08, longitude: 19.96 }
+    }
+  ) {
+    segments {
+      from {
+        stopName
+      }
+      to {
+        stopName
+      }
+      transportType
+      lineName
+    }
+  }
+}
+
+# ========================================
+# 7. PEŁNY FORMAT - Wszystkie pola
+# ========================================
+query FullPathDetails {
+  findPath(
+    input: {
+      from: { latitude: 50.0647, longitude: 19.9450 }
+      to: { latitude: 50.0767, longitude: 19.9478 }
+      departureTime: "2024-10-04T10:00:00Z"
+    }
+  ) {
+    # Array segmentów - format [{from, to}, {from, to}]
+    segments {
+      # Segment 1
+      from {
+        stopName
+        coordinates {
+          latitude
+          longitude
+        }
+      }
+      to {
+        stopName
+        coordinates {
+          latitude
+          longitude
+        }
+      }
+      lineId
+      lineName
+      transportType # BUS lub RAIL
+      departureTime
+      arrivalTime
+      duration
+      hasIncident
+    }
+
+    # Podsumowanie całej trasy
+    totalDuration
+    departureTime
+    arrivalTime
+    hasIncidents
+
+    # Lista wszystkich przystanków na trasie (włącznie z pośrednimi)
+    warnings
+  }
+}
+
+# ========================================
+# 8. SPRAWDŹ CZY SEGMENTS JEST ARRAY
+# ========================================
+query VerifySegmentsArray {
+  findPath(
+    input: {
+      from: { latitude: 50.06, longitude: 19.94 }
+      to: { latitude: 50.08, longitude: 19.96 }
+    }
+  ) {
+    segments {
+      # Jeśli dostaniesz wiele obiektów tutaj,
+      # to znaczy że format jest poprawny: [{...}, {...}, ...]
+      from {
+        stopName
+      }
+      to {
+        stopName
+      }
+    }
+  }
+}

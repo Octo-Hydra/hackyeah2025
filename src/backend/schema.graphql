@@ -77,7 +77,7 @@ type Mutation {
   updateReport(id: ID!, input: UpdateReportInput!): Incident!
   deleteReport(id: ID!): Boolean!
   publishReport(id: ID!): Incident!
-
+  resolveReport(id: ID!, isFake: Boolean): Incident! # Close incident as resolved or fake
   # User journey mutations
   setActiveJourney(input: ActiveJourneyInput!): Boolean!
   clearActiveJourney: Boolean!
@@ -86,12 +86,12 @@ type Mutation {
 }
 
 enum IncidentKind {
-  INCIDENT
-  NETWORK_FAILURE
-  VEHICLE_FAILURE
-  ACCIDENT
-  TRAFFIC_JAM
-  PLATFORM_CHANGES
+  INCIDENT # Generic incident (MODERATOR/ADMIN only)
+  NETWORK_FAILURE # Infrastructure issues (MODERATOR/ADMIN only)
+  VEHICLE_FAILURE # Vehicle breakdown (MODERATOR/ADMIN only)
+  ACCIDENT # User can report
+  TRAFFIC_JAM # User can report
+  PLATFORM_CHANGES # Platform/schedule changes (MODERATOR/ADMIN only)
 }
 
 enum TransportType {
@@ -113,6 +113,8 @@ type Incident {
   status: ReportStatus!
   lines: [Line!]
   affectedSegment: IncidentSegment
+  isFake: Boolean # True if admin/moderator marked as fake
+  reportedBy: ID # User ID who reported (for reputation tracking)
   createdAt: String!
 }
 
@@ -129,16 +131,14 @@ type Line {
 }
 
 input CreateReportInput {
-  title: String!
   description: String
   kind: IncidentKind!
   status: ReportStatus
   lineIds: [ID!]
-  reporterLocation: CoordinatesInput # User's location when reporting
+  reporterLocation: CoordinatesInput # REQUIRED for regular users (USER role), optional for MODERATOR/ADMIN
 }
 
 input UpdateReportInput {
-  title: String
   description: String
   kind: IncidentKind
   status: ReportStatus

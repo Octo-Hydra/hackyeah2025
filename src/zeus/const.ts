@@ -47,6 +47,9 @@ export const AllTypesProps: Record<string,any> = {
 		publishReport:{
 
 		},
+		resolveReport:{
+
+		},
 		setActiveJourney:{
 			input:"ActiveJourneyInput"
 		},
@@ -142,6 +145,7 @@ export const ReturnTypes: Record<string,any> = {
 		updateReport:"Incident",
 		deleteReport:"Boolean",
 		publishReport:"Incident",
+		resolveReport:"Incident",
 		setActiveJourney:"Boolean",
 		clearActiveJourney:"Boolean",
 		addFavoriteConnection:"ID",
@@ -155,6 +159,8 @@ export const ReturnTypes: Record<string,any> = {
 		status:"ReportStatus",
 		lines:"Line",
 		affectedSegment:"IncidentSegment",
+		isFake:"Boolean",
+		reportedBy:"ID",
 		createdAt:"String"
 	},
 	IncidentSegment:{

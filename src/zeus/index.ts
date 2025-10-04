@@ -978,6 +978,7 @@ createReport?: [{	input: ValueTypes["CreateReportInput"] | Variable<any, string>
 updateReport?: [{	id: ValueTypes["ID"] | Variable<any, string>,	input: ValueTypes["UpdateReportInput"] | Variable<any, string>},ValueTypes["Incident"]],
 deleteReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
 publishReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
+resolveReport?: [{	id: ValueTypes["ID"] | Variable<any, string>,	isFake?: boolean | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
 setActiveJourney?: [{	input: ValueTypes["ActiveJourneyInput"] | Variable<any, string>},boolean | `@${string}`],
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},boolean | `@${string}`],
@@ -996,6 +997,8 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	status?:boolean | `@${string}`,
 	lines?:ValueTypes["Line"],
 	affectedSegment?:ValueTypes["IncidentSegment"],
+	isFake?:boolean | `@${string}`,
+	reportedBy?:boolean | `@${string}`,
 	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on Incident']?: Omit<ValueTypes["Incident"], "...on Incident">
@@ -1015,7 +1018,6 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	['...on Line']?: Omit<ValueTypes["Line"], "...on Line">
 }>;
 	["CreateReportInput"]: {
-	title: string | Variable<any, string>,
 	description?: string | undefined | null | Variable<any, string>,
 	kind: ValueTypes["IncidentKind"] | Variable<any, string>,
 	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
@@ -1023,7 +1025,6 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	reporterLocation?: ValueTypes["CoordinatesInput"] | undefined | null | Variable<any, string>
 };
 	["UpdateReportInput"]: {
-	title?: string | undefined | null | Variable<any, string>,
 	description?: string | undefined | null | Variable<any, string>,
 	kind?: ValueTypes["IncidentKind"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
@@ -1159,6 +1160,7 @@ createReport?: [{	input: ResolverInputTypes["CreateReportInput"]},ResolverInputT
 updateReport?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["UpdateReportInput"]},ResolverInputTypes["Incident"]],
 deleteReport?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
 publishReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+resolveReport?: [{	id: ResolverInputTypes["ID"],	isFake?: boolean | undefined | null},ResolverInputTypes["Incident"]],
 setActiveJourney?: [{	input: ResolverInputTypes["ActiveJourneyInput"]},boolean | `@${string}`],
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ResolverInputTypes["FavoriteConnectionInput"]},boolean | `@${string}`],
@@ -1176,6 +1178,8 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 	status?:boolean | `@${string}`,
 	lines?:ResolverInputTypes["Line"],
 	affectedSegment?:ResolverInputTypes["IncidentSegment"],
+	isFake?:boolean | `@${string}`,
+	reportedBy?:boolean | `@${string}`,
 	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -1192,7 +1196,6 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 		__typename?: boolean | `@${string}`
 }>;
 	["CreateReportInput"]: {
-	title: string,
 	description?: string | undefined | null,
 	kind: ResolverInputTypes["IncidentKind"],
 	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
@@ -1200,7 +1203,6 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 	reporterLocation?: ResolverInputTypes["CoordinatesInput"] | undefined | null
 };
 	["UpdateReportInput"]: {
-	title?: string | undefined | null,
 	description?: string | undefined | null,
 	kind?: ResolverInputTypes["IncidentKind"] | undefined | null,
 	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
@@ -1330,6 +1332,7 @@ export type ModelTypes = {
 	updateReport: ModelTypes["Incident"],
 	deleteReport: boolean,
 	publishReport: ModelTypes["Incident"],
+	resolveReport: ModelTypes["Incident"],
 	setActiveJourney: boolean,
 	clearActiveJourney: boolean,
 	addFavoriteConnection: ModelTypes["ID"],
@@ -1346,6 +1349,8 @@ export type ModelTypes = {
 	status: ModelTypes["ReportStatus"],
 	lines?: Array<ModelTypes["Line"]> | undefined | null,
 	affectedSegment?: ModelTypes["IncidentSegment"] | undefined | null,
+	isFake?: boolean | undefined | null,
+	reportedBy?: ModelTypes["ID"] | undefined | null,
 	createdAt: string
 };
 	["IncidentSegment"]: {
@@ -1359,7 +1364,6 @@ export type ModelTypes = {
 	transportType: ModelTypes["TransportType"]
 };
 	["CreateReportInput"]: {
-	title: string,
 	description?: string | undefined | null,
 	kind: ModelTypes["IncidentKind"],
 	status?: ModelTypes["ReportStatus"] | undefined | null,
@@ -1367,7 +1371,6 @@ export type ModelTypes = {
 	reporterLocation?: ModelTypes["CoordinatesInput"] | undefined | null
 };
 	["UpdateReportInput"]: {
-	title?: string | undefined | null,
 	description?: string | undefined | null,
 	kind?: ModelTypes["IncidentKind"] | undefined | null,
 	status?: ModelTypes["ReportStatus"] | undefined | null,
@@ -1510,6 +1513,7 @@ export type GraphQLTypes = {
 	updateReport: GraphQLTypes["Incident"],
 	deleteReport: boolean,
 	publishReport: GraphQLTypes["Incident"],
+	resolveReport: GraphQLTypes["Incident"],
 	setActiveJourney: boolean,
 	clearActiveJourney: boolean,
 	addFavoriteConnection: GraphQLTypes["ID"],
@@ -1528,6 +1532,8 @@ export type GraphQLTypes = {
 	status: GraphQLTypes["ReportStatus"],
 	lines?: Array<GraphQLTypes["Line"]> | undefined | null,
 	affectedSegment?: GraphQLTypes["IncidentSegment"] | undefined | null,
+	isFake?: boolean | undefined | null,
+	reportedBy?: GraphQLTypes["ID"] | undefined | null,
 	createdAt: string,
 	['...on Incident']: Omit<GraphQLTypes["Incident"], "...on Incident">
 };
@@ -1546,16 +1552,14 @@ export type GraphQLTypes = {
 	['...on Line']: Omit<GraphQLTypes["Line"], "...on Line">
 };
 	["CreateReportInput"]: {
-		title: string,
-	description?: string | undefined | null,
+		description?: string | undefined | null,
 	kind: GraphQLTypes["IncidentKind"],
 	status?: GraphQLTypes["ReportStatus"] | undefined | null,
 	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
 	reporterLocation?: GraphQLTypes["CoordinatesInput"] | undefined | null
 };
 	["UpdateReportInput"]: {
-		title?: string | undefined | null,
-	description?: string | undefined | null,
+		description?: string | undefined | null,
 	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
 	status?: GraphQLTypes["ReportStatus"] | undefined | null,
 	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null
