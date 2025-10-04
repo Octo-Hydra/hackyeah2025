@@ -47,7 +47,6 @@ const yoga = createYoga({
     async (req: IncomingMessage, res: ServerResponse) => {
       try {
         const url = parse(req.url ?? "", true);
-
         if (url.pathname?.startsWith(graphqlEndpoint)) {
           await yoga(req, res);
         } else {
