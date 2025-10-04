@@ -79,12 +79,11 @@ export const Query = {
     const query: Partial<IncidentModel> = {
       lineIds: [new ObjectId(lineId)],
       status: "PUBLISHED",
-      isFake: { $ne: true }, // Hide fake incidents from users
     };
 
     const incidents = await db
       .collection<IncidentModel>("Incidents")
-      .find(query)
+      .find({ ...query, isFake: { $ne: true } })
       .toArray();
 
     return incidents.map((doc) => ({

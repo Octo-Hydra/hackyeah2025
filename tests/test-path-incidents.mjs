@@ -1,12 +1,13 @@
 /**
  * Test Path Finding with Incident Warnings
- * 
+ *
  * Usage: node test-path-incidents.mjs
  */
 
 import { MongoClient, ObjectId } from "mongodb";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ontime";
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/ontime";
 
 async function testPathWithIncidents() {
   console.log("=== Path Finding with Incident Warnings Test ===\n");
@@ -22,7 +23,7 @@ async function testPathWithIncidents() {
     // 1. Find some stops to test
     console.log("📍 Finding test stops...");
     const stops = await db.collection("Stops").find().limit(5).toArray();
-    
+
     if (stops.length < 2) {
       console.log("❌ Need at least 2 stops in database");
       return;
@@ -51,56 +52,64 @@ async function testPathWithIncidents() {
       for (const incident of activeIncidents.slice(0, 5)) {
         console.log(`   - ${incident.title} (${incident.kind})`);
         console.log(`     Status: ${incident.status}`);
-        
+
         if (incident.lineIds && incident.lineIds.length > 0) {
           const lines = await db
             .collection("Lines")
             .find({
               _id: {
                 $in: incident.lineIds.map((id) =>
-                  typeof id === "string" ? new ObjectId(id) : id
+                  typeof id === "string" ? new ObjectId(id) : id,
                 ),
               },
             })
             .toArray();
-          
+
           console.log(`     Lines: ${lines.map((l) => l.name).join(", ")}`);
         }
-        
+
         if (incident.description) {
           console.log(`     Description: ${incident.description}`);
         }
         console.log();
       }
     } else {
-      console.log("   ℹ️  No active incidents - create some to test warnings\n");
+      console.log(
+        "   ℹ️  No active incidents - create some to test warnings\n",
+      );
     }
 
     // 3. Test pathfinding
     console.log("🛤️  Testing path finding...\n");
-    
+
     // Simple test: find path between first two stops
     const fromStop = stops[0];
     const toStop = stops[1];
 
     console.log(`From: ${fromStop.name}`);
-    console.log(`  Coordinates: ${fromStop.coordinates.latitude}, ${fromStop.coordinates.longitude}`);
+    console.log(
+      `  Coordinates: ${fromStop.coordinates.latitude}, ${fromStop.coordinates.longitude}`,
+    );
     console.log(`To: ${toStop.name}`);
-    console.log(`  Coordinates: ${toStop.coordinates.latitude}, ${toStop.coordinates.longitude}\n`);
+    console.log(
+      `  Coordinates: ${toStop.coordinates.latitude}, ${toStop.coordinates.longitude}\n`,
+    );
 
     // 4. Find routes connecting these stops
     console.log("🔎 Finding routes...");
     const routes = await db.collection("Routes").find({}).toArray();
-    
+
     let foundRoute = null;
     for (const route of routes) {
       const hasFrom = route.stops.some((s) => {
-        const stopId = typeof s.stopId === "string" ? s.stopId : s.stopId.toString();
+        const stopId =
+          typeof s.stopId === "string" ? s.stopId : s.stopId.toString();
         return stopId === fromStop._id.toString();
       });
-      
+
       const hasTo = route.stops.some((s) => {
-        const stopId = typeof s.stopId === "string" ? s.stopId : s.stopId.toString();
+        const stopId =
+          typeof s.stopId === "string" ? s.stopId : s.stopId.toString();
         return stopId === toStop._id.toString();
       });
 
@@ -112,12 +121,13 @@ async function testPathWithIncidents() {
 
     if (foundRoute) {
       console.log(`   ✅ Found route: ${foundRoute._id}`);
-      
+
       // Get line info
-      const lineId = typeof foundRoute.lineId === "string" 
-        ? new ObjectId(foundRoute.lineId) 
-        : foundRoute.lineId;
-      
+      const lineId =
+        typeof foundRoute.lineId === "string"
+          ? new ObjectId(foundRoute.lineId)
+          : foundRoute.lineId;
+
       const line = await db.collection("Lines").findOne({ _id: lineId });
       if (line) {
         console.log(`   Line: ${line.name} (${line.transportType})`);
@@ -134,9 +144,13 @@ async function testPathWithIncidents() {
         .toArray();
 
       if (lineIncidents.length > 0) {
-        console.log(`\n   ⚠️  ${lineIncidents.length} incident(s) on this route:`);
+        console.log(
+          `\n   ⚠️  ${lineIncidents.length} incident(s) on this route:`,
+        );
         lineIncidents.forEach((inc) => {
-          console.log(`      - ${inc.title}: ${inc.description || "No description"}`);
+          console.log(
+            `      - ${inc.title}: ${inc.description || "No description"}`,
+          );
         });
       } else {
         console.log(`\n   ✅ No incidents on this route`);
@@ -149,7 +163,7 @@ async function testPathWithIncidents() {
 
     // 5. Simulate what warnings would look like
     console.log("📢 Expected warnings format:\n");
-    
+
     const sampleWarnings = [
       "⚠️ AWARIA SIECI na linii Metro M1",
       "🚦 KOREK na linii Bus 175",
@@ -174,9 +188,11 @@ async function testPathWithIncidents() {
         status: { $in: ["PUBLISHED", "DRAFT"] },
         isFake: { $ne: true },
       }),
-      incidentLocations: await db.collection("IncidentLocations").countDocuments({
-        active: true,
-      }),
+      incidentLocations: await db
+        .collection("IncidentLocations")
+        .countDocuments({
+          active: true,
+        }),
     };
 
     console.log(`   Stops: ${stats.stops}`);
@@ -189,7 +205,7 @@ async function testPathWithIncidents() {
 
     // 7. Recommendations
     console.log("💡 Testing Recommendations:\n");
-    
+
     if (stats.activeIncidents === 0) {
       console.log("   ℹ️  Create test incidents using GraphQL:");
       console.log(`
@@ -226,7 +242,6 @@ async function testPathWithIncidents() {
    }
       `);
     }
-
   } catch (error) {
     console.error("❌ Error:", error);
   } finally {

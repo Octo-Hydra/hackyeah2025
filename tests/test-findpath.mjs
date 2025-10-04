@@ -48,7 +48,7 @@ async function testGetStops() {
   if (data.busStops?.length > 0) {
     console.log(`   Przykład: ${data.busStops[0].name}`);
     console.log(
-      `   Współrzędne: ${data.busStops[0].coordinates.latitude}, ${data.busStops[0].coordinates.longitude}`
+      `   Współrzędne: ${data.busStops[0].coordinates.latitude}, ${data.busStops[0].coordinates.longitude}`,
     );
   }
 
@@ -56,7 +56,7 @@ async function testGetStops() {
   if (data.railStops?.length > 0) {
     console.log(`   Przykład: ${data.railStops[0].name}`);
     console.log(
-      `   Współrzędne: ${data.railStops[0].coordinates.latitude}, ${data.railStops[0].coordinates.longitude}`
+      `   Współrzędne: ${data.railStops[0].coordinates.latitude}, ${data.railStops[0].coordinates.longitude}`,
     );
   }
 
@@ -144,19 +144,20 @@ async function main() {
     const stopsData = await testGetStops();
 
     // Test 2: If we have stops, test findPath
-    if (
-      stopsData?.busStops?.length > 0 ||
-      stopsData?.railStops?.length > 0
-    ) {
+    if (stopsData?.busStops?.length > 0 || stopsData?.railStops?.length > 0) {
       let fromCoords, toCoords;
 
       // Use real coordinates from stops
       if (stopsData.busStops?.length >= 2) {
         fromCoords = stopsData.busStops[0].coordinates;
-        toCoords = stopsData.busStops[Math.min(1, stopsData.busStops.length - 1)].coordinates;
+        toCoords =
+          stopsData.busStops[Math.min(1, stopsData.busStops.length - 1)]
+            .coordinates;
       } else if (stopsData.railStops?.length >= 2) {
         fromCoords = stopsData.railStops[0].coordinates;
-        toCoords = stopsData.railStops[Math.min(1, stopsData.railStops.length - 1)].coordinates;
+        toCoords =
+          stopsData.railStops[Math.min(1, stopsData.railStops.length - 1)]
+            .coordinates;
       } else {
         // Fallback to hardcoded coordinates
         fromCoords = { latitude: 50.0647, longitude: 19.945 };

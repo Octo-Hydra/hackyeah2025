@@ -2,9 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "OnTime",
+    name: "OnTime - Inteligentna nawigacja miejska w czasie rzeczywistym",
     short_name: "OnTime",
-    description: "OnTime - Koniec z czekaniem, zawsze na czas!",
+    description:
+      "OnTime to aplikacja PWA do śledzenia transportu publicznego w czasie rzeczywistym. Otrzymuj alerty o opóźnieniach, planuj trasy autobusem, tramwajem i pociągiem. Zawsze na czas!",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -12,6 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#ffffff",
     theme_color: "#0066FF",
     orientation: "portrait-primary",
+    lang: "pl",
+    dir: "ltr",
     icons: [
       {
         src: "/android-chrome-192x192.png",
@@ -44,13 +47,14 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
     ],
-    categories: ["communication", "travel", "utilities"],
+    categories: ["travel", "utilities", "navigation", "productivity"],
     screenshots: [
       {
         src: "/screenshot-mobile.png",
         sizes: "390x844",
         type: "image/png",
         form_factor: "narrow",
+        label: "Mapa z alertami w czasie rzeczywistym",
       },
     ],
     shortcuts: [

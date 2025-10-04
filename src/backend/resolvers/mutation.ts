@@ -77,7 +77,7 @@ interface FavoriteConnectionInput {
 async function notifyAffectedUsers(
   doc: IncidentModel,
   incidentId: string,
-  db: any
+  db: Db,
 ) {
   // Simplified notification - just log for now
   // TODO: Implement proper user notification based on active journeys and favorites
@@ -143,7 +143,7 @@ async function updateUserReputation(
           .collection<UserModel>("Users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
-            { $set: { reputation: newReputation } }
+            { $set: { reputation: newReputation } },
           );
       }
     }
@@ -311,7 +311,7 @@ export const Mutation = {
         affectedSegment.lineId = detectedLineId;
       }
     }
-    // For moderators/admins: Optional geolocation detection
+    // For admins: Optional geolocation detection
     else if (!isRegularUser && input.reporterLocation) {
       console.log(
         `📍 STAFF report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`
@@ -406,7 +406,9 @@ export const Mutation = {
     };
 
     // Intelligent notification system (with deduplication and trust score)
-    await processIncidentNotifications(db, doc, user.role);
+    // Map MODERATOR role to USER for backwards compatibility
+    const mappedRole = user.role === "MODERATOR" ? "USER" : user.role;
+    await processIncidentNotifications(db, doc, mappedRole as "USER" | "ADMIN");
     // Notify affected users
     await notifyAffectedUsers(doc, incidentId, db);
 
@@ -543,9 +545,9 @@ export const Mutation = {
       throw new Error("User not found");
     }
 
-    // Only MODERATOR or ADMIN can resolve reports
-    if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
-      throw new Error("Only moderators and administrators can resolve reports");
+    // Only ADMIN can resolve reports
+    if (user.role !== "ADMIN") {
+      throw new Error("Only administrators can resolve reports");
     }
 
     // Fetch the incident to resolve
@@ -751,7 +753,7 @@ export const Mutation = {
       .collection<UserModel>("users")
       .updateOne(
         { email: userEmail },
-        { $pull: { favoriteConnections: { id } as any } }
+        { $pull: { favoriteConnections: { id } } },
       );
 
     return result.modifiedCount > 0;

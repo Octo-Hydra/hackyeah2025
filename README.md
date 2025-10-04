@@ -1,6 +1,12 @@
 # OnTime - Progressive Web App
 
-**No more waiting, just on-time arrivals!**
+**No more waiting, just on## 📱 Mobile PWA Guide
+
+**NEW!** Check out our comprehensive mobile PWA documentation:
+- 📘 **[README_MOBILE_PWA.md](./README_MOBILE_PWA.md)** - Complete implementation guide
+- 📱 **[docs/MOBILE_PWA.md](./docs/MOBILE_PWA.md)** - Mobile features overview
+- 🎨 **[docs/PWA_INSTALLATION.md](./docs/PWA_INSTALLATION.md)** - Installation & splash screens
+- 🔍 **[docs/SEO_IMPLEMENTATION.md](./docs/SEO_IMPLEMENTATION.md)** - 🆕 SEO & metadata guidearrivals!**
 
 A modern mobile-first PWA built with Next.js 15, featuring real-time navigation, push notifications, native app experience, and beautiful UI.
 
@@ -48,6 +54,14 @@ Visit: **https://localhost:3000**
 - ✅ **TypeScript** - Full type safety
 - ✅ **shadcn/ui** - Premium UI components
 
+### 🔍 SEO Optimized
+- ✅ **Metadata API** - Comprehensive Next.js 15 metadata
+- ✅ **Open Graph Images** - Dynamic OG image generation
+- ✅ **Structured Data** - JSON-LD for rich snippets
+- ✅ **Sitemap & Robots** - Automated XML sitemap
+- ✅ **PWA SEO** - Enhanced manifest for search engines
+- ✅ **Canonical URLs** - Proper URL canonicalization
+
 ## � Mobile PWA Guide
 
 **NEW!** Check out our comprehensive mobile PWA documentation:
@@ -68,21 +82,34 @@ Visit: **https://localhost:3000**
 │   └── QUICKSTART.md         # NextAuth quick start
 ├── src/
 │   ├── app/
-│   │   ├── manifest.ts       # PWA manifest (Next.js 15 native)
+│   │   ├── layout.tsx        # Root layout with SEO metadata
+│   │   ├── manifest.ts       # PWA manifest (SEO-enhanced)
+│   │   ├── robots.ts         # 🆕 Robots.txt configuration
+│   │   ├── sitemap.ts        # 🆕 XML sitemap generator
+│   │   ├── opengraph-image.tsx  # 🆕 Dynamic OG image
+│   │   ├── twitter-image.tsx    # 🆕 Twitter card image
 │   │   ├── page.tsx          # Home page
 │   │   ├── pwa/page.tsx      # PWA demo page
-│   │   ├── auth/signin/      # Authentication pages
-│   │   ├── dashboard/        # Protected routes
+│   │   ├── auth/
+│   │   │   ├── layout.tsx    # Auth group metadata
+│   │   │   └── signin/
+│   │   │       ├── layout.tsx  # 🆕 Signin metadata
+│   │   │       └── page.tsx    # Signin page
+│   │   ├── alerts/page.tsx   # Alerts with metadata
+│   │   ├── user/page.tsx     # User profile (noindex)
+│   │   ├── moderator/page.tsx  # Moderator (noindex)
 │   │   ├── actions/
 │   │   │   ├── auth.ts       # Auth server actions
 │   │   │   └── notifications.ts  # Push notifications (MongoDB)
 │   │   └── api/auth/[...nextauth]/  # NextAuth API routes
 │   ├── components/
+│   │   ├── json-ld.tsx       # 🆕 Structured data component
 │   │   ├── install-prompt.tsx        # PWA install UI
 │   │   ├── push-notification-manager.tsx  # Notification UI
 │   │   ├── auth-provider.tsx         # Session provider
 │   │   └── ui/               # Shadcn UI components
 │   ├── lib/
+│   │   ├── seo.ts            # 🆕 SEO helper functions
 │   │   ├── mongodb.ts        # MongoDB client (singleton)
 │   │   └── auth-utils.ts     # User registration utilities
 │   ├── auth.ts               # NextAuth configuration

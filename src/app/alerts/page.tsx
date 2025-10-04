@@ -11,7 +11,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Bell, Plus, MapPin } from "lucide-react";
-import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Moje Alerty",
+  description:
+    "Zarządzaj swoimi alertami o opóźnieniach transportu publicznego. Przeglądaj aktywne powiadomienia i twórz nowe alerty dla swojej trasy.",
+  alternates: {
+    canonical: "/alerts",
+  },
+  openGraph: {
+    title: "Moje Alerty | OnTime",
+    description:
+      "Zarządzaj swoimi alertami o opóźnieniach transportu publicznego w czasie rzeczywistym.",
+    url: "/alerts",
+  },
+  twitter: {
+    title: "Moje Alerty | OnTime",
+    description:
+      "Zarządzaj swoimi alertami o opóźnieniach transportu publicznego w czasie rzeczywistym.",
+  },
+};
 
 export default async function AlertsPage() {
   const session = await auth();
@@ -52,29 +72,22 @@ export default async function AlertsPage() {
   return (
     <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Mobile Header */}
-        <header className="border-b bg-white dark:bg-gray-950">
-          <div className="flex h-14 items-center justify-between px-4 md:h-16">
+        {/* Desktop Header */}
+        <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
+          <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-2">
-              <Image
-                src="/apple-touch-icon.png"
-                alt="OnTime"
-                width={28}
-                height={28}
-                className="rounded-lg md:hidden"
-              />
-              <Bell className="hidden h-6 w-6 text-blue-600 md:block" />
-              <h1 className="text-lg font-bold md:text-xl">Alerty</h1>
+              <Bell className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold">Alerty</h1>
             </div>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Nowy alert</span>
+              Nowy alert
             </Button>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="overflow-y-auto max-h-[calc(100vh-2rem)] container mx-auto px-4 py-6 pb-24 md:pb-6">
+        <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 py-6 pb-24 md:max-h-[calc(100vh-4rem)] md:pb-6">
           <div className="mx-auto max-w-2xl">
             {/* Stats */}
             <div className="mb-6 grid grid-cols-2 gap-3 md:gap-4">
