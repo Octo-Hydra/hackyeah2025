@@ -31,6 +31,9 @@ export async function handleGoogleSignIn() {
   await signIn("google", { redirectTo: "/" });
 }
 
+export async function handleFacebookSignIn() {
+  await signIn("facebook", { redirectTo: "/" });
+}
 export async function handleRegister(data: RegisterData) {
   try {
     const result = await registerUser(data);
