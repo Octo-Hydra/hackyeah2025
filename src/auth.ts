@@ -85,8 +85,8 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    redirect({ url, baseUrl }) {
-      const actualBaseUrl = baseUrl || BASE_URL;
+    redirect({ url }) {
+      const actualBaseUrl = BASE_URL;
       console.log("Redirecting to:", url, "from baseUrl:", actualBaseUrl);
       if (url.startsWith("/")) {
         return `${actualBaseUrl}${url}`;
