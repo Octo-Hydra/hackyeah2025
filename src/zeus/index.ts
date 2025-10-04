@@ -1499,14 +1499,14 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Generic result type for operations;
-	// Incidents by line (moved from nested UserQuery);
-	// Transit queries;
-	// Auth mutations;
-	// Incident mutations;
-	// User journey mutations;
-	// Geographic coordinates;
-	// Smart notifications with deduplication and trust-based filtering;
+    // Generic result type for operations;
+	// Incidents by line (moved from nested UserQuery);
+	// Transit queries;
+	// Auth mutations;
+	// Incident mutations;
+	// User journey mutations;
+	// Geographic coordinates;
+	// Smart notifications with deduplication and trust-based filtering;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
