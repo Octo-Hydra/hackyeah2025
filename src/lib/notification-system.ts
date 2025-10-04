@@ -10,13 +10,12 @@
  * Uses functions from threshold-algorithm.ts for consistency
  */
 
-import type { Db, ObjectId } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import type { IncidentModel, UserModel } from "@/backend/db/collections";
 import { pubsub, CHANNELS } from "@/backend/resolvers/subscriptions.js";
 import {
   shouldNotifyUser,
   extractActiveJourneyLineIds,
-  extractFavoriteLineIds,
   DEFAULT_THRESHOLD_CONFIG,
 } from "./threshold-algorithm";
 
@@ -203,8 +202,9 @@ async function shouldUserReceiveNotification(
   );
 
   // Extract user's active journey line IDs
-  const activeJourneyLineIds = extractActiveJourneyLineIds(user.activeJourney);
-
+  const activeJourneyLineIds = extractActiveJourneyLineIds({
+    lineIds: user.activeJourney?.segments.map((seg) => seg.lineId) || [],
+  });
   // For favorites, we need to check if incident affects routes between saved stops
   // For now, we'll consider a user affected if they have any favorites (simplified)
   const hasFavorites =
