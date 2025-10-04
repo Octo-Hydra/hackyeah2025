@@ -28,7 +28,7 @@ export async function requestPasswordReset(formData: FormData) {
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.errors[0].message,
+        error: validation.error.message,
       };
     }
 
@@ -50,7 +50,7 @@ export async function requestPasswordReset(formData: FormData) {
     // Utwórz token resetowania hasła
     const token = await createVerificationToken(email, "password-reset");
 
-    // Wyślij email
+    // Wyślij email (symulacja dla MVP)
     const emailResult = await sendPasswordResetEmail(email, token);
 
     if (!emailResult.success) {
@@ -63,7 +63,7 @@ export async function requestPasswordReset(formData: FormData) {
     return {
       success: true,
       message:
-        "Jeśli konto o tym adresie email istnieje, wysłaliśmy link do resetowania hasła.",
+        "📧 MVP: W wersji produkcyjnej tutaj zostałby wysłany email z linkiem do resetowania hasła. Sprawdź logi serwera aby zobaczyć link resetowania.",
     };
   } catch (error) {
     console.error("Błąd przy resetowaniu hasła:", error);
@@ -83,7 +83,7 @@ export async function resetPassword(formData: FormData) {
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.errors[0].message,
+        error: validation.error.message,
       };
     }
 
@@ -166,7 +166,7 @@ export async function resendVerificationEmail(email: string) {
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.errors[0].message,
+        error: validation.error.message,
       };
     }
 
@@ -193,7 +193,7 @@ export async function resendVerificationEmail(email: string) {
     // Utwórz nowy token weryfikacyjny
     const token = await createVerificationToken(email, "email-verification");
 
-    // Wyślij email
+    // Wyślij email (symulacja dla MVP)
     const emailResult = await sendVerificationEmail(email, token);
 
     if (!emailResult.success) {
@@ -205,7 +205,8 @@ export async function resendVerificationEmail(email: string) {
 
     return {
       success: true,
-      message: "Email weryfikacyjny został wysłany ponownie.",
+      message:
+        "📧 MVP: W wersji produkcyjnej tutaj zostałby wysłany email weryfikacyjny. Sprawdź logi serwera aby zobaczyć link weryfikacyjny.",
     };
   } catch (error) {
     console.error("Błąd przy ponownym wysyłaniu emaila:", error);

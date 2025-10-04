@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { Lock, Loader2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { resetPassword } from "@/app/actions/password";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -92,7 +92,12 @@ export default function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">OnTime</h1>
+          <Link
+            href="/"
+            className="inline-block hover:opacity-80 transition-opacity"
+          >
+            <h1 className="text-3xl font-bold">OnTime</h1>
+          </Link>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Ustaw nowe hasło
           </p>
@@ -187,5 +192,19 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

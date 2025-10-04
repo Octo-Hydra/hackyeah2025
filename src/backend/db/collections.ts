@@ -2,12 +2,19 @@ import type { ObjectId } from "mongodb";
 
 // Types for MongoDB collections
 
+// Segment location with full stop information
+export interface SegmentLocation {
+  stopId: ObjectId | string;
+  stopName: string;
+  coordinates: Coordinates;
+}
+
 // Active journey that user is currently on
 export interface ActiveJourney {
   routeIds: Array<ObjectId | string>; // Routes user is taking
   lineIds: Array<ObjectId | string>; // Lines involved in the journey
-  startStopId: ObjectId | string;
-  endStopId: ObjectId | string;
+  startStop: SegmentLocation;
+  endStop: SegmentLocation;
   startTime: string; // When journey started (HH:mm)
   expectedEndTime: string; // Expected arrival time (HH:mm)
 }

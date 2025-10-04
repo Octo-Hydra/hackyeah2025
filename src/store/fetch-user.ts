@@ -33,13 +33,26 @@ export async function fetchUserForStore(): Promise<User | null> {
         id: true,
         name: true,
         email: true,
-        image: true,
         reputation: true,
         activeJourney: {
           routeIds: true,
           lineIds: true,
-          startStopId: true,
-          endStopId: true,
+          startStop: {
+            stopId: true,
+            stopName: true,
+            coordinates: {
+              latitude: true,
+              longitude: true,
+            },
+          },
+          endStop: {
+            stopId: true,
+            stopName: true,
+            coordinates: {
+              latitude: true,
+              longitude: true,
+            },
+          },
           startTime: true,
           expectedEndTime: true,
         },
@@ -54,14 +67,32 @@ export async function fetchUserForStore(): Promise<User | null> {
       id: result.me.id || "",
       name: result.me.name ?? null,
       email: result.me.email ?? null,
-      image: (result.me.image as string | null | undefined) ?? null,
+      image: null, // Image is not in the User schema, set to null
       reputation: result.me.reputation || 0,
       activeJourney: result.me.activeJourney
         ? {
             routeIds: (result.me.activeJourney.routeIds as string[]) || [],
             lineIds: (result.me.activeJourney.lineIds as string[]) || [],
-            startStopId: (result.me.activeJourney.startStopId as string) || "",
-            endStopId: (result.me.activeJourney.endStopId as string) || "",
+            startStop: {
+              stopId: result.me.activeJourney.startStop.stopId || "",
+              stopName: result.me.activeJourney.startStop.stopName || "",
+              coordinates: {
+                latitude:
+                  result.me.activeJourney.startStop.coordinates.latitude || 0,
+                longitude:
+                  result.me.activeJourney.startStop.coordinates.longitude || 0,
+              },
+            },
+            endStop: {
+              stopId: result.me.activeJourney.endStop.stopId || "",
+              stopName: result.me.activeJourney.endStop.stopName || "",
+              coordinates: {
+                latitude:
+                  result.me.activeJourney.endStop.coordinates.latitude || 0,
+                longitude:
+                  result.me.activeJourney.endStop.coordinates.longitude || 0,
+              },
+            },
             startTime: (result.me.activeJourney.startTime as string) || "",
             expectedEndTime:
               (result.me.activeJourney.expectedEndTime as string) || "",
@@ -69,6 +100,17 @@ export async function fetchUserForStore(): Promise<User | null> {
         : undefined,
     };
   } catch (error) {
+    // Suppress expected "Dynamic server usage" errors during build
+    // These occur when Next.js tries to pre-render pages that use auth()
+    if (
+      error instanceof Error &&
+      error.message.includes("Dynamic server usage")
+    ) {
+      // This is expected - pages with auth cannot be statically rendered
+      return null;
+    }
+
+    // Log only unexpected errors
     console.error("Error fetching user for store:", error);
     return null;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { verifyEmail } from "@/app/actions/password";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -61,7 +61,12 @@ export default function VerifyEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">OnTime</h1>
+          <Link
+            href="/"
+            className="inline-block hover:opacity-80 transition-opacity"
+          >
+            <h1 className="text-3xl font-bold">OnTime</h1>
+          </Link>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Weryfikacja adresu email
           </p>
@@ -121,5 +126,19 @@ export default function VerifyEmailPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

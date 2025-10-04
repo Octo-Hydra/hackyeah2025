@@ -123,16 +123,19 @@ export default async function UserProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button
-                  asChild
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Link href="/moderator">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Panel moderatora
-                  </Link>
-                </Button>
+                {(session.user?.role === "MODERATOR" ||
+                  session.user?.role === "ADMIN") && (
+                  <Button
+                    asChild
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <Link href="/moderator">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Panel moderatora
+                    </Link>
+                  </Button>
+                )}
                 <Button className="w-full justify-start" variant="outline">
                   Edytuj profil
                 </Button>

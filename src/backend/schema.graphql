@@ -26,8 +26,8 @@ type TrustScoreBreakdown {
 type ActiveJourney {
   routeIds: [ID!]!
   lineIds: [ID!]!
-  startStopId: ID!
-  endStopId: ID!
+  startStop: SegmentLocation!
+  endStop: SegmentLocation!
   startTime: String!
   expectedEndTime: String!
 }
@@ -42,8 +42,14 @@ type FavoriteConnection {
 input ActiveJourneyInput {
   routeIds: [ID!]!
   lineIds: [ID!]!
-  startStopId: ID!
-  endStopId: ID!
+  startStop: SegmentLocationInput!
+  endStop: SegmentLocationInput!
+}
+
+input SegmentLocationInput {
+  stopId: ID!
+  stopName: String!
+  coordinates: CoordinatesInput!
 }
 
 input FavoriteConnectionInput {
@@ -89,7 +95,7 @@ type Mutation {
   publishReport(id: ID!): Incident!
   resolveReport(id: ID!, isFake: Boolean): Incident! # Close incident as resolved or fake
   # User journey mutations
-  setActiveJourney(input: ActiveJourneyInput!): Boolean!
+  setActiveJourney(input: ActiveJourneyInput!): ActiveJourney
   clearActiveJourney: Boolean!
   addFavoriteConnection(input: FavoriteConnectionInput!): ID!
   removeFavoriteConnection(id: ID!): Boolean!
@@ -175,6 +181,7 @@ type Stop {
 }
 
 type SegmentLocation {
+  stopId: ID!
   stopName: String!
   coordinates: Coordinates!
 }

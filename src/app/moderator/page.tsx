@@ -21,6 +21,12 @@ export default async function ModeratorPage() {
     redirect("/auth/signin?callbackUrl=/moderator");
   }
 
+  // Check if user has moderator or admin role
+  const userRole = session.user?.role;
+  if (userRole !== "MODERATOR" && userRole !== "ADMIN") {
+    redirect("/?error=unauthorized");
+  }
+
   const isMobile = await isMobileDevice();
 
   return (

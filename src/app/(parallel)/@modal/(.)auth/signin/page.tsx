@@ -28,6 +28,10 @@ export default function InterceptedSignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Bind OAuth sign-in actions to return to root
+  const handleGoogleSignInWithReturn = handleGoogleSignIn.bind(null, "/");
+  const handleFacebookSignInWithReturn = handleFacebookSignIn.bind(null, "/");
+
   // Zamknij modal po udanym zalogowaniu
   useEffect(() => {
     if (status === "authenticated" && session) {
@@ -90,7 +94,7 @@ export default function InterceptedSignInPage() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto pt-10 sm:max-w-[500px]">
+      <DialogContent className="max-h-[95vh] overflow-y-auto pt-10 sm:max-w-[500px]">
         <DialogTitle className="sr-only">Logowanie</DialogTitle>
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -164,7 +168,7 @@ export default function InterceptedSignInPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -193,7 +197,7 @@ export default function InterceptedSignInPage() {
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -282,7 +286,7 @@ export default function InterceptedSignInPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -311,7 +315,7 @@ export default function InterceptedSignInPage() {
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"

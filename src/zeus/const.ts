@@ -3,7 +3,11 @@
 export const AllTypesProps: Record<string,any> = {
 	UserRole: "enum" as const,
 	ActiveJourneyInput:{
-
+		startStop:"SegmentLocationInput",
+		endStop:"SegmentLocationInput"
+	},
+	SegmentLocationInput:{
+		coordinates:"CoordinatesInput"
 	},
 	FavoriteConnectionInput:{
 
@@ -120,8 +124,8 @@ export const ReturnTypes: Record<string,any> = {
 	ActiveJourney:{
 		routeIds:"ID",
 		lineIds:"ID",
-		startStopId:"ID",
-		endStopId:"ID",
+		startStop:"SegmentLocation",
+		endStop:"SegmentLocation",
 		startTime:"String",
 		expectedEndTime:"String"
 	},
@@ -158,7 +162,7 @@ export const ReturnTypes: Record<string,any> = {
 		deleteReport:"Boolean",
 		publishReport:"Incident",
 		resolveReport:"Incident",
-		setActiveJourney:"Boolean",
+		setActiveJourney:"ActiveJourney",
 		clearActiveJourney:"Boolean",
 		addFavoriteConnection:"ID",
 		removeFavoriteConnection:"Boolean"
@@ -197,6 +201,7 @@ export const ReturnTypes: Record<string,any> = {
 		transportType:"TransportType"
 	},
 	SegmentLocation:{
+		stopId:"ID",
 		stopName:"String",
 		coordinates:"Coordinates"
 	},

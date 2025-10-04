@@ -9,6 +9,7 @@ import path from "path";
 import resolvers from "./src/backend/resolvers";
 import { decode } from "next-auth/jwt";
 import { startTrustScoreCron } from "./src/backend/cron/trust-score-cron.js";
+import { DB } from "./src/backend/db/client.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -32,7 +33,13 @@ const yoga = createYoga({
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  schema: createSchema({
+  schema: createSchema<{
+    session: {
+      user: { email: string; name: string; image: string };
+      expires: string;
+    } | null;
+    request: Request;
+  }>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,
@@ -54,12 +61,24 @@ const yoga = createYoga({
         {} as Record<string, string>
       );
 
+      console.log("🍪 Available cookies:", Object.keys(cookies));
+
       const sessionToken =
+        cookies["authjs.session-token"] ||
+        cookies["__Secure-authjs.session-token"] ||
         cookies["next-auth.session-token"] ||
         cookies["__Secure-next-auth.session-token"];
 
+      console.log("🔑 Session token found:", sessionToken ? "YES" : "NO");
+
       if (sessionToken) {
         try {
+          console.log("🔓 Attempting to decode token...");
+          console.log(
+            "🔐 NEXTAUTH_SECRET exists:",
+            !!process.env.NEXTAUTH_SECRET
+          );
+
           const decoded = await decode({
             token: sessionToken,
             secret: process.env.NEXTAUTH_SECRET!,
@@ -75,14 +94,24 @@ const yoga = createYoga({
               },
               expires: new Date((decoded.exp as number) * 1000).toISOString(),
             };
+            console.log("✅ Session decoded successfully:", {
+              email: decoded.email,
+              name: decoded.name,
+            });
           }
         } catch (error) {
-          console.error("Error decoding session token:", error);
+          console.error("❌ Error decoding session token:", error);
         }
+      } else {
+        console.log("⚠️ No session token found in cookies");
       }
     }
 
+    // Get database connection
+    const db = await DB();
+
     return {
+      db,
       session,
       request,
     };

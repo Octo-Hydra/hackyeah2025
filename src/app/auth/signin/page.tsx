@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +20,9 @@ import {
   handleRegister,
 } from "@/app/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
-export default function SignInPage() {
+function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function SignInPage() {
   const handleGoogleSignInWithReturn = handleGoogleSignIn.bind(null, returnUrl);
   const handleFacebookSignInWithReturn = handleFacebookSignIn.bind(
     null,
-    returnUrl
+    returnUrl,
   );
 
   const handleSignInSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -55,14 +55,14 @@ export default function SignInPage() {
   };
 
   const handleRejestracjaSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.FormEvent<HTMLFormElement>,
   ) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const result = await handleRejestracja({
+    const result = await handleRegister({
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       password: formData.get("password") as string,
@@ -81,7 +81,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900">
       <div className="w-full max-w-md">
         {/* Return Button */}
         <Button
@@ -222,7 +222,7 @@ export default function SignInPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                <form onSubmit={handleRejestracjaSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="register-name">Imię i nazwisko</Label>
                     <Input
@@ -281,7 +281,10 @@ export default function SignInPage() {
                   </div>
                 </div>
                 <div className="w-full space-y-2">
-                  <form action={handleGoogleSignInWithReturn} className="w-full">
+                  <form
+                    action={handleGoogleSignInWithReturn}
+                    className="w-full"
+                  >
                     <Button
                       type="submit"
                       variant="outline"
@@ -310,7 +313,10 @@ export default function SignInPage() {
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignInWithReturn} className="w-full">
+                  <form
+                    action={handleFacebookSignInWithReturn}
+                    className="w-full"
+                  >
                     <Button
                       type="submit"
                       variant="outline"
@@ -334,5 +340,19 @@ export default function SignInPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
+      <SignInForm />
+    </Suspense>
   );
 }

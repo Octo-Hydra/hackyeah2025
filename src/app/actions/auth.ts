@@ -6,7 +6,7 @@ import { AuthError } from "next-auth";
 
 export async function handleCredentialsSignIn(
   formData: FormData,
-  redirectTo?: string
+  redirectTo?: string,
 ) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;

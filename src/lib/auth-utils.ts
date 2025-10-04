@@ -34,14 +34,14 @@ export async function registerUser(data: RegisterData) {
       throw new Error("User with this email already exists");
     }
 
-    // Create user
+    // Create user with email already verified (MVP mode)
     const result = await db.collection("users").insertOne({
       name: validatedData.name,
       email: validatedData.email,
       password: hashedPassword,
       role: "USER",
       reputation: 100, // Starting reputation
-      emailVerified: null,
+      emailVerified: new Date(), // Auto-verify for MVP
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
