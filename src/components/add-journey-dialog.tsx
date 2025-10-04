@@ -16,7 +16,9 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
 import type { SearchResult as GeoSearchResult } from "leaflet-geosearch/dist/providers/provider.js";
-import { Query } from "@/lib/graphql_request";
+import { Query, Mutation } from "@/lib/graphql_request";
+import { mapSegmentsToRoute } from "@/lib/map-utils";
+import { useAppStore } from "@/store/app-store";
 
 interface LocationPoint {
   address: string;
@@ -25,12 +27,27 @@ interface LocationPoint {
 }
 
 export function AddJourneyDialog() {
+  const setActiveJourney = useAppStore((state) => state.setActiveJourney);
+  const setUser = useAppStore((state) => state.setUser);
   const [open, setOpen] = useState(false);
-  const [startPoint, setStartPoint] = useState<LocationPoint | null>(null);
-  const [endPoint, setEndPoint] = useState<LocationPoint | null>(null);
+  const [startPoint, setStartPoint] = useState<LocationPoint | null>({
+    address: "Kraków, województwo małopolskie, Polska",
+    lat: 50.0683947,
+    lon: 19.9475035,
+  });
+  const [endPoint, setEndPoint] = useState<LocationPoint | null>({
+    address:
+      "Wieliczka, gmina Wieliczka, powiat wielicki, województwo małopolskie, 32-020, Polska",
+    lat: 49.985686,
+    lon: 20.056641,
+  });
 
-  const [startInput, setStartInput] = useState("");
-  const [endInput, setEndInput] = useState("");
+  const [startInput, setStartInput] = useState(
+    "Kraków, województwo małopolskie, Polska",
+  );
+  const [endInput, setEndInput] = useState(
+    "Wieliczka, gmina Wieliczka, powiat wielicki, województwo małopolskie, 32-020, Polska",
+  );
 
   const [startSuggestions, setStartSuggestions] = useState<GeoSearchResult[]>(
     [],
@@ -53,72 +70,72 @@ export function AddJourneyDialog() {
   }, []);
 
   // Debounced search for start point
-  useEffect(() => {
-    if (startInput.length < 3) {
-      setStartSuggestions([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (startInput.length < 3) {
+  //     setStartSuggestions([]);
+  //     return;
+  //   }
 
-    if (startTimeoutRef.current) {
-      clearTimeout(startTimeoutRef.current);
-    }
+  //   if (startTimeoutRef.current) {
+  //     clearTimeout(startTimeoutRef.current);
+  //   }
 
-    startTimeoutRef.current = setTimeout(async () => {
-      setIsLoadingStart(true);
-      try {
-        if (providerRef.current) {
-          const results = await providerRef.current.search({
-            query: startInput,
-          });
-          setStartSuggestions(results as GeoSearchResult[]);
-          setShowStartSuggestions(true);
-        }
-      } catch (error) {
-        console.error("Error fetching start suggestions:", error);
-      } finally {
-        setIsLoadingStart(false);
-      }
-    }, 300);
+  //   startTimeoutRef.current = setTimeout(async () => {
+  //     setIsLoadingStart(true);
+  //     try {
+  //       if (providerRef.current) {
+  //         const results = await providerRef.current.search({
+  //           query: startInput,
+  //         });
+  //         setStartSuggestions(results as GeoSearchResult[]);
+  //         setShowStartSuggestions(true);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching start suggestions:", error);
+  //     } finally {
+  //       setIsLoadingStart(false);
+  //     }
+  //   }, 300);
 
-    return () => {
-      if (startTimeoutRef.current) {
-        clearTimeout(startTimeoutRef.current);
-      }
-    };
-  }, [startInput]);
+  //   return () => {
+  //     if (startTimeoutRef.current) {
+  //       clearTimeout(startTimeoutRef.current);
+  //     }
+  //   };
+  // }, [startInput]);
 
   // Debounced search for end point
-  useEffect(() => {
-    if (endInput.length < 3) {
-      setEndSuggestions([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (endInput.length < 3) {
+  //     setEndSuggestions([]);
+  //     return;
+  //   }
 
-    if (endTimeoutRef.current) {
-      clearTimeout(endTimeoutRef.current);
-    }
+  //   if (endTimeoutRef.current) {
+  //     clearTimeout(endTimeoutRef.current);
+  //   }
 
-    endTimeoutRef.current = setTimeout(async () => {
-      setIsLoadingEnd(true);
-      try {
-        if (providerRef.current) {
-          const results = await providerRef.current.search({ query: endInput });
-          setEndSuggestions(results as GeoSearchResult[]);
-          setShowEndSuggestions(true);
-        }
-      } catch (error) {
-        console.error("Error fetching end suggestions:", error);
-      } finally {
-        setIsLoadingEnd(false);
-      }
-    }, 300);
+  //   endTimeoutRef.current = setTimeout(async () => {
+  //     setIsLoadingEnd(true);
+  //     try {
+  //       if (providerRef.current) {
+  //         const results = await providerRef.current.search({ query: endInput });
+  //         setEndSuggestions(results as GeoSearchResult[]);
+  //         setShowEndSuggestions(true);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching end suggestions:", error);
+  //     } finally {
+  //       setIsLoadingEnd(false);
+  //     }
+  //   }, 300);
 
-    return () => {
-      if (endTimeoutRef.current) {
-        clearTimeout(endTimeoutRef.current);
-      }
-    };
-  }, [endInput]);
+  //   return () => {
+  //     if (endTimeoutRef.current) {
+  //       clearTimeout(endTimeoutRef.current);
+  //     }
+  //   };
+  // }, [endInput]);
 
   const handleStartSelect = (suggestion: GeoSearchResult) => {
     setStartPoint({
@@ -158,21 +175,20 @@ export function AddJourneyDialog() {
         findPath: [
           {
             input: {
-              startCoordinates: {
+              from: {
                 latitude: startPoint.lat,
                 longitude: startPoint.lon,
               },
-              endCoordinates: {
+              to: {
                 latitude: endPoint.lat,
                 longitude: endPoint.lon,
               },
             },
           },
           {
+            totalDuration: true,
             segments: {
-              segmentType: true,
               from: {
-                stopId: true,
                 stopName: true,
                 coordinates: {
                   latitude: true,
@@ -180,27 +196,19 @@ export function AddJourneyDialog() {
                 },
               },
               to: {
-                stopId: true,
                 stopName: true,
                 coordinates: {
                   latitude: true,
                   longitude: true,
                 },
               },
-              lineId: true,
               lineName: true,
+              lineId: true,
               transportType: true,
               departureTime: true,
               arrivalTime: true,
               duration: true,
-              distance: true,
-              platformNumber: true,
-              warnings: true,
             },
-            totalDuration: true,
-            totalTransfers: true,
-            departureTime: true,
-            arrivalTime: true,
             warnings: true,
           },
         ],
@@ -219,16 +227,130 @@ export function AddJourneyDialog() {
           result.findPath.totalDuration,
           "minutes",
         );
-        console.log("Total Transfers:", result.findPath.totalTransfers);
-        console.log("Departure:", result.findPath.departureTime);
-        console.log("Arrival:", result.findPath.arrivalTime);
         console.log("Segments:", result.findPath.segments);
         console.log("Warnings:", result.findPath.warnings);
+
+        // Map segments to route format for map display
+        const mappedRoute = mapSegmentsToRoute(result.findPath);
+
+        if (mappedRoute) {
+          console.log("\n=== Mapped Route for Map Display ===");
+          console.log("Total Points:", mappedRoute.allPoints.length);
+          console.log("Total Segments:", mappedRoute.segments.length);
+          console.log("Bounds:", mappedRoute.bounds);
+          console.log("\nAll Route Points:");
+          mappedRoute.allPoints.forEach((point, idx) => {
+            console.log(
+              `  ${idx + 1}. ${point.stopName || "Point"} [${point.lat}, ${point.lon}]${point.isTransfer ? " (Transfer)" : ""}`,
+            );
+          });
+          console.log("\nRoute Segments:");
+          mappedRoute.segments.forEach((segment, idx) => {
+            console.log(
+              `  ${idx + 1}. ${segment.transportType} ${segment.lineName}`,
+            );
+            console.log(
+              `     From: ${segment.from.stopName} [${segment.from.lat}, ${segment.from.lon}]`,
+            );
+            console.log(
+              `     To: ${segment.to.stopName} [${segment.to.lat}, ${segment.to.lon}]`,
+            );
+            if (segment.departureTime && segment.arrivalTime) {
+              console.log(
+                `     Time: ${segment.departureTime} → ${segment.arrivalTime} (${segment.duration} min)`,
+              );
+            }
+          });
+
+          // Extract route and line IDs from the path
+          const routeIds = [
+            ...new Set(
+              result.findPath.segments?.map((s) => s.lineId).filter(Boolean) ||
+                [],
+            ),
+          ];
+          const lineIds = routeIds; // In this case, they're the same
+
+          // Get stop IDs from the first and last segments
+          const firstSegment = result.findPath.segments?.[0];
+          const lastSegment =
+            result.findPath.segments?.[result.findPath.segments.length - 1];
+
+          if (firstSegment && lastSegment) {
+            // Call GraphQL mutation to set active journey
+            const mutation = Mutation();
+            await mutation({
+              setActiveJourney: [
+                {
+                  input: {
+                    routeIds: routeIds as string[],
+                    lineIds: lineIds as string[],
+                    startStopId: `stop-start-${Date.now()}`, // Generate IDs based on coordinates
+                    endStopId: `stop-end-${Date.now()}`,
+                  },
+                },
+                true,
+              ],
+            });
+
+            // Fetch updated user with active journey
+            const userQuery = Query();
+            const userData = await userQuery({
+              me: {
+                id: true,
+                name: true,
+                email: true,
+                reputation: true,
+                activeJourney: {
+                  routeIds: true,
+                  lineIds: true,
+                  startStopId: true,
+                  endStopId: true,
+                  startTime: true,
+                  expectedEndTime: true,
+                },
+              },
+            });
+
+            // Update user in Zustand store
+            if (userData.me) {
+              setUser({
+                id: userData.me.id || "",
+                name: userData.me.name ?? null,
+                email: userData.me.email ?? null,
+                image: null,
+                reputation: userData.me.reputation || 0,
+              });
+            }
+
+            // Also save to local store for map display
+            setActiveJourney({
+              id: `journey-${Date.now()}`,
+              startPoint: {
+                address: startPoint.address,
+                lat: startPoint.lat,
+                lon: startPoint.lon,
+              },
+              endPoint: {
+                address: endPoint.address,
+                lat: endPoint.lat,
+                lon: endPoint.lon,
+              },
+              route: mappedRoute,
+              startedAt: new Date().toISOString(),
+              totalDuration: result.findPath.totalDuration || undefined,
+              warnings: result.findPath.warnings || undefined,
+            });
+
+            console.log("\n✅ Journey saved to backend and Zustand store!");
+            console.log("✅ User data updated with active journey");
+          }
+        } else {
+          console.log("Could not map route for display");
+        }
       } else {
         console.log("No path found");
       }
-
-      // TODO: Display route on map
     } catch (error) {
       console.error("Error fetching journey path:", error);
       alert("Nie udało się pobrać trasy podróży. Spróbuj ponownie.");
@@ -320,10 +442,11 @@ export function AddJourneyDialog() {
                 type="text"
                 placeholder="Wprowadź adres początkowy..."
                 value={startInput}
-                onChange={(e) => setStartInput(e.target.value)}
-                onFocus={() =>
-                  setShowStartSuggestions(startSuggestions.length > 0)
-                }
+                disabled
+                // onChange={(e) => setStartInput(e.target.value)}
+                // onFocus={() =>
+                //   setShowStartSuggestions(startSuggestions.length > 0)
+                // }
                 className="pr-10"
                 required
               />
@@ -338,7 +461,7 @@ export function AddJourneyDialog() {
                     <button
                       key={`start-${index}`}
                       type="button"
-                      onClick={() => handleStartSelect(suggestion)}
+                      // onClick={() => handleStartSelect(suggestion)}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:hover:bg-gray-800 dark:focus:bg-gray-800"
                     >
                       {suggestion.label}
@@ -352,7 +475,7 @@ export function AddJourneyDialog() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => handleUseCurrentLocation("start")}
+              // onClick={() => handleUseCurrentLocation("start")}
               disabled={isLoadingStart}
               className="w-full"
             >
@@ -370,8 +493,9 @@ export function AddJourneyDialog() {
                 type="text"
                 placeholder="Wprowadź adres docelowy..."
                 value={endInput}
-                onChange={(e) => setEndInput(e.target.value)}
-                onFocus={() => setShowEndSuggestions(endSuggestions.length > 0)}
+                disabled
+                // onChange={(e) => setEndInput(e.target.value)}
+                // onFocus={() => setShowEndSuggestions(endSuggestions.length > 0)}
                 className="pr-10"
                 required
               />
@@ -386,7 +510,7 @@ export function AddJourneyDialog() {
                     <button
                       key={`end-${index}`}
                       type="button"
-                      onClick={() => handleEndSelect(suggestion)}
+                      // onClick={() => handleEndSelect(suggestion)}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:hover:bg-gray-800 dark:focus:bg-gray-800"
                     >
                       {suggestion.label}

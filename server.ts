@@ -1,12 +1,13 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { WebSocketServer } from "ws";
-import { createYoga, createSchema, YogaInitialContext } from "graphql-yoga";
+import { createYoga, createSchema } from "graphql-yoga";
 import { useServer } from "graphql-ws/use/ws";
 import { parse } from "url";
 import next from "next";
 import fs from "fs";
 import path from "path";
 import resolvers from "./src/backend/resolvers";
+import { decode } from "next-auth/jwt";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -25,6 +26,7 @@ const typeDefs = fs.readFileSync(sdlPath, "utf-8");
 
 // resolvers imported from src/backend/resolvers
 
+// @ts-expect-error - Type mismatch between GraphQLContext and Yoga context
 const yoga = createYoga({
   graphqlEndpoint,
   graphiql: {
@@ -36,6 +38,55 @@ const yoga = createYoga({
     `,
     resolvers,
   }),
+  context: async ({ request }) => {
+    // Get session from NextAuth JWT cookie
+    const cookieHeader = request.headers.get("cookie");
+    let session = null;
+    
+    if (cookieHeader) {
+      // Parse NextAuth session token from cookie
+      const cookies = cookieHeader.split(";").reduce(
+        (acc, cookie) => {
+          const [key, value] = cookie.trim().split("=");
+          acc[key] = value;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      const sessionToken =
+        cookies["next-auth.session-token"] ||
+        cookies["__Secure-next-auth.session-token"];
+
+      if (sessionToken) {
+        try {
+          const decoded = await decode({
+            token: sessionToken,
+            secret: process.env.NEXTAUTH_SECRET!,
+            salt: "authjs.session-token",
+          });
+
+          if (decoded) {
+            session = {
+              user: {
+                email: decoded.email as string,
+                name: decoded.name as string,
+                image: decoded.picture as string,
+              },
+              expires: new Date((decoded.exp as number) * 1000).toISOString(),
+            };
+          }
+        } catch (error) {
+          console.error("Error decoding session token:", error);
+        }
+      }
+    }
+
+    return {
+      session,
+      request,
+    };
+  },
 });
 
 (async () => {
