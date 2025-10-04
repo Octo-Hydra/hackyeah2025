@@ -119,7 +119,7 @@ async function getAllSubscriptions(): Promise<PushSubscription[]> {
  */
 export async function sendNotification(
   message: string,
-  title: string = "HackYeah Notification",
+  title: string = "OneTime Notification",
   url: string = "/",
 ) {
   try {

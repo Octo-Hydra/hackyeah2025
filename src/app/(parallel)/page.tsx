@@ -5,18 +5,60 @@ import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Navigation, User, Shield } from "lucide-react";
-import { AddEventDialog } from "@/components/add-event-dialog";
-import { AddJourneyDialog } from "@/components/add-journey-dialog";
-import { Plus } from "lucide-react";
 import Image from "next/image";
+import { useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// Load dialogs only on client side to avoid SSR issues with leaflet-geosearch
+const AddEventDialog = dynamic(
+  () =>
+    import("@/components/add-event-dialog").then((mod) => ({
+      default: mod.AddEventDialog,
+    })),
+  { ssr: false },
+);
+
+const AddJourneyDialog = dynamic(
+  () =>
+    import("@/components/add-journey-dialog").then((mod) => ({
+      default: mod.AddJourneyDialog,
+    })),
+  { ssr: false },
+);
 
 export default function HomePage() {
   const { data: session, status } = useSession();
 
+  // Prevent body scroll on mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
+    // Save original styles
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const originalPosition = window.getComputedStyle(document.body).position;
+    const originalHeight = window.getComputedStyle(document.body).height;
+
+    // Lock scroll on mount for mobile
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.height = "100dvh";
+    document.body.style.touchAction = "none";
+
+    // Restore on unmount
+    return () => {
+      document.body.style.overflow = originalStyle;
+      document.body.style.position = originalPosition;
+      document.body.style.width = "";
+      document.body.style.height = originalHeight;
+      document.body.style.touchAction = "";
+    };
+  }, []);
+
   return (
-    <MobileLayout>
-      <div className="flex h-screen flex-col">
+    <MobileLayout className="h-screen-mobile no-overscroll">
+      <div className="flex h-full flex-col overflow-hidden">
         {/* Desktop Header - Hidden on mobile */}
         <header className="z-10 hidden border-b bg-white shadow-sm dark:bg-gray-950 md:block">
           <div className="flex h-16 items-center justify-between px-4">
@@ -77,29 +119,16 @@ export default function HomePage() {
         </header>
 
         {/* Map */}
-        <main className="relative flex-1">
-          <Map className="h-full w-full" />
+        <main className="relative flex-1 overflow-hidden touch-ui">
+          <div className="absolute inset-0">
+            <Map className="h-full w-full" />
+          </div>
 
           {/* Action Buttons - Only show when logged in */}
           {session && (
-            <div className="absolute bottom-6 right-6 z-[1000] flex flex-col gap-3">
+            <div className="absolute bottom-20 right-6 z-[1000] flex flex-col gap-3 md:bottom-6">
               <AddJourneyDialog />
               <AddEventDialog />
-            </div>
-          )}
-
-          {/* Welcome Card - Mobile only, shows when not authenticated */}
-          {!session && (
-            <div className="absolute bottom-20 left-4 right-4 z-[1000] rounded-lg border bg-white/95 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden">
-              <h2 className="mb-2 text-base font-semibold">
-                Welcome to OnTime! 👋
-              </h2>
-              <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                No more waiting, just on-time arrivals!
-              </p>
-              <Button asChild className="w-full" size="sm">
-                <Link href="/auth/signin">Sign in to get started</Link>
-              </Button>
             </div>
           )}
         </main>

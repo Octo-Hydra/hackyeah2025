@@ -156,4 +156,44 @@
       scrollbar-width: none;
     }
   }
+
+  /* Prevent overscroll/bounce on mobile map view */
+  .no-overscroll {
+    overscroll-behavior: none;
+    overflow: hidden;
+  }
+
+  /* Fix for mobile viewport height (accounts for browser chrome) */
+  .h-screen-mobile {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100); /* Use custom viewport height */
+    height: 100dvh; /* Dynamic viewport height - new standard */
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific fix */
+    .h-screen-mobile {
+      height: -webkit-fill-available;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+  }
+
+  /* Ensure fixed elements stay in place on mobile */
+  @media (max-width: 768px) {
+    html, body {
+      position: fixed;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+
+    .fixed {
+      position: fixed !important;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+  }
 }
