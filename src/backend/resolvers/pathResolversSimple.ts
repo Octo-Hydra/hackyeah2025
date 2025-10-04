@@ -37,8 +37,12 @@ async function findNearestStop(
 ): Promise<StopModel | null> {
   const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
-  console.log(`🔍 Finding nearest stop to (${coordinates.latitude}, ${coordinates.longitude})`);
-  console.log(`   Checking ${stops.length} stops, max distance: ${(maxDistance / 1000).toFixed(1)}km`);
+  console.log(
+    `🔍 Finding nearest stop to (${coordinates.latitude}, ${coordinates.longitude})`
+  );
+  console.log(
+    `   Checking ${stops.length} stops, max distance: ${(maxDistance / 1000).toFixed(1)}km`
+  );
 
   let nearest: StopModel | null = null;
   let minDistance = Infinity;
@@ -46,14 +50,17 @@ async function findNearestStop(
 
   for (const stop of stops) {
     const distance = calculateDistance(coordinates, stop.coordinates);
-    
+
     // Keep track of top 5 closest for debugging
-    if (candidates.length < 5 || distance < candidates[candidates.length - 1].distance) {
+    if (
+      candidates.length < 5 ||
+      distance < candidates[candidates.length - 1].distance
+    ) {
       candidates.push({ stop, distance });
       candidates.sort((a, b) => a.distance - b.distance);
       if (candidates.length > 5) candidates.pop();
     }
-    
+
     if (distance < minDistance) {
       minDistance = distance;
       nearest = stop;
@@ -63,16 +70,22 @@ async function findNearestStop(
   // Show top 5 candidates
   console.log(`   📍 Top 5 nearest stops:`);
   candidates.forEach((c, i) => {
-    console.log(`      ${i + 1}. "${c.stop.name}" - ${(c.distance / 1000).toFixed(2)}km`);
+    console.log(
+      `      ${i + 1}. "${c.stop.name}" - ${(c.distance / 1000).toFixed(2)}km`
+    );
   });
 
   // Check if within maxDistance
   if (nearest && minDistance <= maxDistance) {
-    console.log(`   ✅ SELECTED: "${nearest.name}" at ${(minDistance / 1000).toFixed(2)}km`);
+    console.log(
+      `   ✅ SELECTED: "${nearest.name}" at ${(minDistance / 1000).toFixed(2)}km`
+    );
     return nearest;
   }
 
-  console.log(`   ❌ No stop within ${(maxDistance / 1000).toFixed(1)}km (nearest: ${(minDistance / 1000).toFixed(2)}km)`);
+  console.log(
+    `   ❌ No stop within ${(maxDistance / 1000).toFixed(1)}km (nearest: ${(minDistance / 1000).toFixed(2)}km)`
+  );
   return null;
 }
 
@@ -87,15 +100,11 @@ export const pathResolvers = {
     { input }: { input: FindPathInput }
   ): Promise<JourneyPath> {
     const db = await DB();
-    const {
-      startCoordinates,
-      endCoordinates,
-      departureTime = getCurrentTime(),
-    } = input;
+    const { from, to, departureTime = getCurrentTime() } = input;
 
     // Find nearest stops (50km radius)
-    const startStop = await findNearestStop(db, startCoordinates, 50000);
-    const endStop = await findNearestStop(db, endCoordinates, 50000);
+    const startStop = await findNearestStop(db, from, 50000);
+    const endStop = await findNearestStop(db, to, 50000);
 
     if (!startStop || !endStop) {
       return {
@@ -110,7 +119,9 @@ export const pathResolvers = {
 
     // Check if start and end are the same
     if (startStop._id?.toString() === endStop._id?.toString()) {
-      console.log(`⚠️  WARNING: Start and end are the same stop: ${startStop.name}`);
+      console.log(
+        `⚠️  WARNING: Start and end are the same stop: ${startStop.name}`
+      );
       return {
         segments: [],
         totalDuration: 0,

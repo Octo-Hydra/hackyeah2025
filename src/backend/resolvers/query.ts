@@ -1,18 +1,39 @@
-import pathResolvers from "./pathResolversSimple";
-import type { GraphQLContext, LineModel } from "../db/collections";
+import pathResolvers from "./pathResolvers.js";
+import type {
+  GraphQLContext,
+  LineModel,
+  IncidentModel,
+} from "../db/collections";
+import { DB } from "../db/client.js";
+import { ObjectId } from "mongodb";
 
 export const Query = {
   me: () => null,
-  check2FAStatus: (_: unknown, { username }: { username: string }) => ({
-    requires2FA: false,
-    userExists: false,
-  }),
-  async lines(
+
+  // Moved from userQuery.ts
+  async incidentsByLine(
     _: unknown,
-    { transportType }: { transportType?: string },
-    ctx: GraphQLContext
+    { lineId, transportType }: { lineId: string; transportType?: string }
   ) {
-    const db = ctx.db;
+    const db = await DB();
+    const query: any = {
+      lineIds: new ObjectId(lineId),
+      status: "PUBLISHED",
+    };
+
+    const incidents = await db
+      .collection<IncidentModel>("Incidents")
+      .find(query)
+      .toArray();
+
+    return incidents.map((doc) => ({
+      id: doc._id?.toString() ?? "",
+      ...doc,
+    }));
+  },
+
+  async lines(_: unknown, { transportType }: { transportType?: string }) {
+    const db = await DB();
     const q: Partial<LineModel> = {};
     if (transportType) {
       q.transportType = transportType as "BUS" | "RAIL";
@@ -23,6 +44,7 @@ export const Query = {
       ...d,
     }));
   },
+
   findPath: pathResolvers.findPath,
   stops: pathResolvers.stops,
 };

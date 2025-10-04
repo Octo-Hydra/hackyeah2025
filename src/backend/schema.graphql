@@ -12,6 +12,55 @@ type User {
   email: String!
   role: UserRole!
   twoFactorEnabled: Boolean!
+  reputation: Int
+  activeJourney: ActiveJourney
+  favoriteConnections: [FavoriteConnection!]
+}
+
+type ActiveJourney {
+  routeIds: [ID!]!
+  lineIds: [ID!]!
+  startStopId: ID!
+  endStopId: ID!
+  startTime: String!
+  expectedEndTime: String!
+  notifiedIncidentIds: [ID!]
+}
+
+type FavoriteConnection {
+  id: ID!
+  name: String!
+  routeIds: [ID!]!
+  lineIds: [ID!]!
+  startStopId: ID!
+  endStopId: ID!
+  notifyAlways: Boolean!
+  createdAt: String!
+}
+
+input ActiveJourneyInput {
+  routeIds: [ID!]!
+  lineIds: [ID!]!
+  startStopId: ID!
+  endStopId: ID!
+  startTime: String!
+  expectedEndTime: String!
+}
+
+input FavoriteConnectionInput {
+  name: String!
+  routeIds: [ID!]!
+  lineIds: [ID!]!
+  startStopId: ID!
+  endStopId: ID!
+  notifyAlways: Boolean
+}
+
+# Generic result type for operations
+type OperationResult {
+  success: Boolean!
+  message: String
+  data: String # Generic data field (userId, token, etc.)
 }
 
 type TwoFactorSetup {
@@ -19,68 +68,40 @@ type TwoFactorSetup {
   qrCode: String!
 }
 
-type TwoFactorStatus {
-  requires2FA: Boolean!
-  userExists: Boolean!
-}
-
-type TwoFactorResult {
-  success: Boolean!
-  message: String
-}
-
 type Query {
   me: User
-  check2FAStatus(username: String!): TwoFactorStatus!
-  userQuery: UserQuery
+  # Incidents by line (moved from nested UserQuery)
+  incidentsByLine(lineId: ID!, transportType: TransportType): [Incident!]!
+  # Transit queries
   lines(transportType: TransportType): [Line!]!
-  findPath(input: FindPathInput!): JourneyPath
   stops(transportType: TransportType): [Stop!]!
-}
-
-input RegisterInput {
-  name: String!
-  email: String!
-  password: String!
-}
-
-type RegisterResult {
-  success: Boolean!
-  message: String!
-  userId: String
-}
-
-type VerifyEmailResult {
-  success: Boolean!
-  message: String!
-}
-
-type ResendVerificationResult {
-  success: Boolean!
-  message: String!
+  findPath(input: FindPathInput!): JourneyPath
 }
 
 type Mutation {
-  register(input: RegisterInput!): RegisterResult!
-  verifyEmail(token: String!): VerifyEmailResult!
-  resendVerificationEmail(email: String!): ResendVerificationResult!
+  # Auth mutations
+  register(name: String!, email: String!, password: String!): OperationResult!
+  verifyEmail(token: String!): OperationResult!
+  resendVerificationEmail(email: String!): OperationResult!
   setup2FA: TwoFactorSetup!
-  verify2FA(token: String!, secret: String!): TwoFactorResult!
-  disable2FA: TwoFactorResult!
-  carrierMutations: carrierMutation
-  userMutations: userMutation
-}
+  verify2FA(token: String!, secret: String!): OperationResult!
+  disable2FA: OperationResult!
 
-type carrierMutation {
+  # Incident mutations (combined carrier + user)
   createReport(input: CreateReportInput!): Incident!
-  saveDraft(input: CreateReportInput!): Incident!
   updateReport(id: ID!, input: UpdateReportInput!): Incident!
-  deleteReport(id: ID!): DeleteResult!
+  deleteReport(id: ID!): OperationResult!
   publishReport(id: ID!): Incident!
-}
 
-type userMutation {
-  createReport(input: CreateReportInput!): Incident!
+  # User journey mutations
+  setActiveJourney(input: ActiveJourneyInput!): User!
+  clearActiveJourney: User!
+  addFavoriteConnection(input: FavoriteConnectionInput!): FavoriteConnection!
+  removeFavoriteConnection(id: ID!): OperationResult!
+  updateFavoriteConnection(
+    id: ID!
+    input: FavoriteConnectionInput!
+  ): FavoriteConnection!
 }
 
 enum IncidentKind {
@@ -116,9 +137,24 @@ type Incident {
   incidentClass: IncidentClass!
   status: ReportStatus!
   lines: [Line!]
+  reporterLocation: Coordinates
+  affectedSegment: IncidentSegment
   createdBy: User
   createdAt: String!
   updatedAt: String!
+}
+
+type IncidentSegment {
+  startStopId: ID!
+  endStopId: ID!
+  lineId: ID
+  confidence: SegmentConfidence!
+}
+
+enum SegmentConfidence {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 type Line {
@@ -133,6 +169,7 @@ input CreateReportInput {
   kind: IncidentKind!
   status: ReportStatus
   lineIds: [ID!]
+  reporterLocation: CoordinatesInput # User's location when reporting
 }
 
 input UpdateReportInput {
@@ -141,15 +178,6 @@ input UpdateReportInput {
   kind: IncidentKind
   status: ReportStatus
   lineIds: [ID!]
-}
-
-type DeleteResult {
-  success: Boolean!
-  message: String
-}
-
-type UserQuery {
-  incidentsByLine(lineId: ID!, transportType: TransportType): [Incident!]!
 }
 
 # Geographic coordinates
@@ -163,19 +191,12 @@ input CoordinatesInput {
   longitude: Float!
 }
 
-# Stop/Station with location
 type Stop {
   id: ID!
   name: String!
   coordinates: Coordinates!
   transportType: TransportType!
   platformNumbers: [String!]
-}
-
-# Path segment type
-enum SegmentType {
-  WALK
-  TRANSIT
 }
 
 # Location info for segment endpoints
@@ -187,7 +208,6 @@ type SegmentLocation {
 
 # Single segment of a journey
 type PathSegment {
-  segmentType: SegmentType!
   from: SegmentLocation!
   to: SegmentLocation!
   lineId: ID!
@@ -198,7 +218,15 @@ type PathSegment {
   duration: Int!
   distance: Int
   platformNumber: String
-  warnings: [String!]
+  hasIncident: Boolean! # Does this segment have an active incident?
+  incidentWarning: String # Warning message if incident exists
+  incidentSeverity: IncidentSeverity # Severity level
+}
+
+enum IncidentSeverity {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 # Complete journey path
@@ -209,40 +237,25 @@ type JourneyPath {
   departureTime: String!
   arrivalTime: String!
   warnings: [String!]!
+  hasIncidents: Boolean! # Does any segment have incidents?
+  affectedSegments: [Int!]! # Indices of segments with incidents
 }
 
 # Input for finding a path
 input FindPathInput {
-  startCoordinates: CoordinatesInput!
-  endCoordinates: CoordinatesInput!
+  from: CoordinatesInput!
+  to: CoordinatesInput!
   departureTime: String
-  maxWalkingDistance: Int
 }
 
 type Subscription {
-  # Real-time incident updates
+  # General incident updates
   incidentCreated(transportType: TransportType): Incident!
   incidentUpdated(transportType: TransportType): Incident!
-  incidentResolved(transportType: TransportType): Incident!
 
   # Line-specific incident updates
   lineIncidentUpdates(lineId: ID!): Incident!
 
-  # All incidents for specific lines (user subscribes to favorite lines)
+  # User's subscribed lines
   myLinesIncidents(lineIds: [ID!]!): Incident!
-
-  # Journey path updates (when incidents affect the route)
-  pathAffectedByIncident(
-    startCoordinates: CoordinatesInput!
-    endCoordinates: CoordinatesInput!
-  ): PathAffectedPayload!
-}
-
-# Payload when a journey path is affected by an incident
-type PathAffectedPayload {
-  incident: Incident!
-  affectedLines: [Line!]!
-  message: String!
-  originalPath: JourneyPath
-  alternativePath: JourneyPath
 }

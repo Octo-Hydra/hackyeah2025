@@ -1,15 +1,14 @@
 import { Repeater } from "@repeaterjs/repeater";
 import type { GraphQLContext, IncidentModel } from "../db/collections";
 import { ObjectId } from "mongodb";
+import { DB } from "../db/client.js";
 
 // PubSub channels
 export const CHANNELS = {
   INCIDENT_CREATED: "INCIDENT_CREATED",
   INCIDENT_UPDATED: "INCIDENT_UPDATED",
-  INCIDENT_RESOLVED: "INCIDENT_RESOLVED",
   LINE_INCIDENT_UPDATES: "LINE_INCIDENT_UPDATES",
   MY_LINES_INCIDENTS: "MY_LINES_INCIDENTS",
-  PATH_AFFECTED: "PATH_AFFECTED",
 } as const;
 
 // In-memory event emitter for subscriptions
@@ -56,7 +55,7 @@ export const subscriptionResolvers = {
             async (incident: IncidentModel) => {
               // Filter by transport type if specified
               if (transportType && incident.lineIds) {
-                const db = ctx.db;
+                const db = await DB();
                 const lines = await db
                   .collection("Lines")
                   .find({
@@ -97,7 +96,7 @@ export const subscriptionResolvers = {
             CHANNELS.INCIDENT_UPDATED,
             async (incident: IncidentModel) => {
               if (transportType && incident.lineIds) {
-                const db = ctx.db;
+                const db = await DB();
                 const lines = await db
                   .collection("Lines")
                   .find({
@@ -124,47 +123,6 @@ export const subscriptionResolvers = {
         });
       },
       resolve: (payload: any) => payload.incidentUpdated,
-    },
-
-    // Incident resolved
-    incidentResolved: {
-      subscribe: (
-        _: unknown,
-        { transportType }: { transportType?: string },
-        ctx: GraphQLContext
-      ) => {
-        return new Repeater(async (push, stop) => {
-          const unsubscribe = pubsub.subscribe(
-            CHANNELS.INCIDENT_RESOLVED,
-            async (incident: IncidentModel) => {
-              if (transportType && incident.lineIds) {
-                const db = ctx.db;
-                const lines = await db
-                  .collection("Lines")
-                  .find({
-                    _id: {
-                      $in: incident.lineIds.filter(
-                        (id): id is ObjectId => id !== null
-                      ),
-                    },
-                    transportType,
-                  })
-                  .toArray();
-
-                if (lines.length > 0) {
-                  push({ incidentResolved: incident });
-                }
-              } else {
-                push({ incidentResolved: incident });
-              }
-            }
-          );
-
-          await stop;
-          unsubscribe();
-        });
-      },
-      resolve: (payload: any) => payload.incidentResolved,
     },
 
     // Line-specific incident updates
@@ -225,50 +183,6 @@ export const subscriptionResolvers = {
         });
       },
       resolve: (payload: any) => payload.myLinesIncidents,
-    },
-
-    // Path affected by incident
-    pathAffectedByIncident: {
-      subscribe: (
-        _: unknown,
-        args: {
-          startCoordinates: { latitude: number; longitude: number };
-          endCoordinates: { latitude: number; longitude: number };
-        },
-        ctx: GraphQLContext
-      ) => {
-        return new Repeater(async (push, stop) => {
-          const unsubscribe = pubsub.subscribe(
-            CHANNELS.PATH_AFFECTED,
-            async (data: {
-              incident: IncidentModel;
-              affectedLineIds: ObjectId[];
-            }) => {
-              // TODO: Implement path finding to check if incident affects route
-              // For now, just push the incident
-              const db = ctx.db;
-              const affectedLines = await db
-                .collection("Lines")
-                .find({ _id: { $in: data.affectedLineIds } })
-                .toArray();
-
-              push({
-                pathAffectedByIncident: {
-                  incident: data.incident,
-                  affectedLines,
-                  message: `Incident on ${affectedLines.map((l) => l.name).join(", ")}`,
-                  originalPath: null,
-                  alternativePath: null,
-                },
-              });
-            }
-          );
-
-          await stop;
-          unsubscribe();
-        });
-      },
-      resolve: (payload: any) => payload.pathAffectedByIncident,
     },
   },
 };

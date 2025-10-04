@@ -2,6 +2,29 @@ import type { ObjectId } from "mongodb";
 
 // Types for MongoDB collections
 
+// Active journey that user is currently on
+export interface ActiveJourney {
+  routeIds: Array<ObjectId | string>; // Routes user is taking
+  lineIds: Array<ObjectId | string>; // Lines involved in the journey
+  startStopId: ObjectId | string;
+  endStopId: ObjectId | string;
+  startTime: string; // When journey started (ISO)
+  expectedEndTime: string; // Expected arrival time (ISO)
+  notifiedIncidentIds?: Array<ObjectId | string>; // Incidents user was already notified about
+}
+
+// Favorite connection saved by user
+export interface FavoriteConnection {
+  id: string; // Unique ID for this favorite
+  name: string; // User-defined name (e.g., "Home to Work")
+  routeIds: Array<ObjectId | string>;
+  lineIds: Array<ObjectId | string>;
+  startStopId: ObjectId | string;
+  endStopId: ObjectId | string;
+  notifyAlways: boolean; // Send notifications even when not traveling
+  createdAt: string;
+}
+
 export interface UserModel {
   _id?: ObjectId | string;
   id?: string;
@@ -11,6 +34,9 @@ export interface UserModel {
   email: string;
   role: "USER" | "MODERATOR" | "ADMIN";
   twoFactorEnabled: boolean;
+  reputation?: number; // User's reputation for reporting accuracy
+  activeJourney?: ActiveJourney | null; // Current active journey
+  favoriteConnections?: FavoriteConnection[]; // Saved favorite routes
 }
 
 export type IncidentClass = "CLASS_1" | "CLASS_2";
@@ -34,9 +60,29 @@ export interface IncidentModel {
   status: ReportStatus;
   lineIds?: Array<ObjectId | string | null> | null;
   vehicleIds?: Array<ObjectId | string | null> | null;
+  reporterLocation?: Coordinates | null; // User's location when reporting
+  affectedSegment?: {
+    // Detected segment between two stops
+    startStopId: ObjectId | string;
+    endStopId: ObjectId | string;
+    lineId?: ObjectId | string | null; // Which line is affected
+  } | null;
   createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// Incident location - tracks which segments have incidents
+export interface IncidentLocationModel {
+  _id?: ObjectId | string;
+  incidentId: ObjectId | string; // Reference to incident
+  lineId: ObjectId | string; // Which line is affected
+  startStopId: ObjectId | string; // Start of affected segment
+  endStopId: ObjectId | string; // End of affected segment
+  severity: "HIGH" | "MEDIUM" | "LOW"; // Based on incidentClass
+  active: boolean; // Is incident still active (not RESOLVED)
+  createdAt: string;
+  resolvedAt?: string | null;
 }
 
 export interface LineModel {
@@ -103,6 +149,9 @@ export interface PathSegment {
   distance?: number; // meters for walking
   platformNumber?: string;
   warnings?: string[]; // Incidents affecting this segment
+  hasIncident?: boolean; // Whether this segment has active incidents
+  incidentWarning?: string; // Human-readable incident warning
+  incidentSeverity?: "HIGH" | "MEDIUM" | "LOW"; // Severity of incident
 }
 
 // Complete journey path
@@ -113,6 +162,8 @@ export interface JourneyPath {
   departureTime: string;
   arrivalTime: string;
   warnings: string[]; // Overall journey warnings
+  hasIncidents?: boolean; // Whether any segment has incidents
+  affectedSegments?: number[]; // Indices of segments with incidents
 }
 
 // NextAuth Session type
@@ -135,10 +186,9 @@ export interface GraphQLContext {
 
 // Input types for path finding
 export interface FindPathInput {
-  startCoordinates: Coordinates;
-  endCoordinates: Coordinates;
+  from: Coordinates;
+  to: Coordinates;
   departureTime?: string;
-  maxWalkingDistance?: number;
 }
 
 // Connecting route result
@@ -154,6 +204,7 @@ export interface ConnectingRoute {
 export const COLLECTIONS = {
   USERS: "Users",
   INCIDENTS: "Incidents",
+  INCIDENT_LOCATIONS: "IncidentLocations",
   LINES: "Lines",
   STOPS: "Stops",
   ROUTES: "Routes",

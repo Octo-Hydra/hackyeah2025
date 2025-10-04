@@ -1,16 +1,10 @@
-import Query from "./query";
-import Mutation from "./mutation";
-import carrierMutation from "./carrierMutation";
-import UserQuery from "./userQuery";
-import userMutation from "./userMutation";
-import { subscriptionResolvers } from "./subscriptions";
+import Query from "./query.js";
+import Mutation from "./mutation.js";
+import { subscriptionResolvers } from "./subscriptions.js";
 
 const resolvers = {
   Query,
   Mutation,
-  carrierMutation,
-  userMutation,
-  UserQuery,
   ...subscriptionResolvers,
 };
 

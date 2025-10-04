@@ -1,22 +1,19 @@
-import { Db, ObjectId, WithId, Document } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import type {
   StopModel,
   RouteModel,
-  IncidentModel,
+  LineModel,
   Coordinates,
   PathSegment,
   JourneyPath,
-  GraphQLContext,
+  IncidentLocationModel,
   FindPathInput,
-  ConnectingRoute,
-  LineModel,
-  ScheduleStopModel,
 } from "../db/collections";
 import { DB } from "../db/client.js";
 
-// Calculate distance between two coordinates (Haversine formula) in meters
+// Haversine distance in meters
 function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
-  const R = 6371000; // Earth radius in meters
+  const R = 6371000;
   const lat1 = (coord1.latitude * Math.PI) / 180;
   const lat2 = (coord2.latitude * Math.PI) / 180;
   const deltaLat = ((coord2.latitude - coord1.latitude) * Math.PI) / 180;
@@ -33,13 +30,40 @@ function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
   return R * c;
 }
 
-// Find nearest stop to given coordinates
+// Check for active incidents on a specific segment
+async function getActiveIncidentsForSegment(
+  db: Db,
+  lineId: ObjectId,
+  stopId1: ObjectId,
+  stopId2: ObjectId
+): Promise<IncidentLocationModel | null> {
+  // Check both directions: stop1->stop2 and stop2->stop1
+  const incident = await db
+    .collection<IncidentLocationModel>("IncidentLocations")
+    .findOne({
+      active: true,
+      lineId,
+      $or: [
+        { startStopId: stopId1, endStopId: stopId2 },
+        { startStopId: stopId2, endStopId: stopId1 },
+      ],
+    });
+
+  return incident;
+}
+
+// Find nearest stop
 async function findNearestStop(
   db: Db,
   coordinates: Coordinates,
-  maxDistance: number = 50000 // Default 50km
+  maxDistance: number = 50000
 ): Promise<StopModel | null> {
   const stops = await db.collection<StopModel>("Stops").find({}).toArray();
+
+  console.log(
+    `  📍 Searching for nearest stop to (${coordinates.latitude}, ${coordinates.longitude})`
+  );
+  console.log(`  📊 Total stops in database: ${stops.length}`);
 
   let nearest: StopModel | null = null;
   let minDistance = Infinity;
@@ -69,6 +93,9 @@ async function findNearestStop(
     if (distance < minDistance) {
       minDistance = distance;
       nearest = stop;
+      console.log(
+        `    ✓ Found closer stop: ${stop.name} (${(distance / 1000).toFixed(2)}km)`
+      );
     }
   }
 
@@ -102,124 +129,34 @@ async function findNearestStop(
   return nearest;
 }
 
-// Calculate time in minutes between two HH:mm time strings
-function calculateTimeDifference(time1: string, time2: string): number {
-  const [h1, m1] = time1.split(":").map(Number);
-  const [h2, m2] = time2.split(":").map(Number);
-  return h2 * 60 + m2 - (h1 * 60 + m1);
-}
-
-// Add minutes to HH:mm time string
-function addMinutes(time: string, minutes: number): string {
-  const [h, m] = time.split(":").map(Number);
-  const totalMinutes = h * 60 + m + minutes;
-  const newHours = Math.floor(totalMinutes / 60) % 24;
-  const newMinutes = totalMinutes % 60;
-  return `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
-}
-
-// Get current time as HH:mm
 function getCurrentTime(): string {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
-// Find routes connecting two stops
-async function findConnectingRoutes(
-  db: Db,
-  fromStopId: string,
-  toStopId: string,
-  departureTime: string
-): Promise<ConnectingRoute[]> {
-  const routes = await db.collection<RouteModel>("Routes").find({}).toArray();
-  const connectingRoutes: ConnectingRoute[] = [];
-
-  for (const route of routes) {
-    let fromIndex = -1;
-    let toIndex = -1;
-
-    for (let i = 0; i < route.stops.length; i++) {
-      const stopId = route.stops[i].stopId;
-      const stopIdStr = typeof stopId === "string" ? stopId : stopId.toString();
-
-      if (stopIdStr === fromStopId) {
-        fromIndex = i;
-      }
-      if (stopIdStr === toStopId && fromIndex !== -1) {
-        toIndex = i;
-        break;
-      }
-    }
-
-    if (fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex) {
-      const departureStop = route.stops[fromIndex];
-      const arrivalStop = route.stops[toIndex];
-
-      // Check if departure time is after requested time
-      if (departureStop.departureTime >= departureTime) {
-        connectingRoutes.push({
-          route,
-          fromIndex,
-          toIndex,
-          departureStop,
-          arrivalStop,
-        });
-      }
-    }
-  }
-
-  return connectingRoutes.sort((a, b) =>
-    a.departureStop.departureTime.localeCompare(b.departureStop.departureTime)
-  );
-}
-
-async function getIncidentWarnings(db: Db, lineId: string): Promise<string[]> {
-  const incidents = await db
-    .collection<IncidentModel>("Incidents")
-    .find({
-      lineIds: new ObjectId(lineId),
-      status: { $in: ["PUBLISHED"] },
-    })
-    .toArray();
-
-  return incidents.map((inc) => `${inc.kind}: ${inc.title}`);
-}
-
 export const pathResolvers = {
-  async findPath(
-    _: unknown,
-    { input }: { input: FindPathInput }
-  ): Promise<JourneyPath> {
+  async findPath(_: unknown, { input }: { input: FindPathInput }) {
     const db = await DB();
-    const {
-      startCoordinates,
-      endCoordinates,
-      departureTime = getCurrentTime(),
-      maxWalkingDistance = 50000, // 50km - znajdź dowolny przystanek
-    } = input;
+    const { from, to } = input;
+    const departureTime = input.departureTime || getCurrentTime();
 
-    console.log("\n" + "=".repeat(80));
-    console.log("🚀 FINDPATH RESOLVER CALLED");
-    console.log("=".repeat(80));
-    console.log(`📍 START coordinates: ${JSON.stringify(startCoordinates)}`);
-    console.log(`📍 END coordinates: ${JSON.stringify(endCoordinates)}`);
-    console.log(`⏰ Departure time: ${departureTime}`);
-    console.log(`🚶 Max walking distance: ${maxWalkingDistance}m (${(maxWalkingDistance / 1000).toFixed(1)}km)`);
-    console.log("=".repeat(80) + "\n");
-
-    // Find nearest stops
-    console.log("🔍 STEP 1: Finding START stop...");
-    const startStop = await findNearestStop(
-      db,
-      startCoordinates,
-      maxWalkingDistance
+    console.log(`\n🎯 FINDPATH CALLED`);
+    console.log(
+      `FROM coordinates: lat=${from.latitude}, lon=${from.longitude}`
     );
-    
-    console.log("\n🔍 STEP 2: Finding END stop...");
-    const endStop = await findNearestStop(
-      db,
-      endCoordinates,
-      maxWalkingDistance
+    console.log(`TO coordinates: lat=${to.latitude}, lon=${to.longitude}`);
+
+    // Find nearest stops (50km radius)
+    console.log(`\n🔍 Finding nearest START stop...`);
+    const startStop = await findNearestStop(db, from, 50000);
+    console.log(
+      `✅ START stop found: ${startStop?.name || "NONE"} (ID: ${startStop?._id})`
+    );
+
+    console.log(`\n🔍 Finding nearest END stop...`);
+    const endStop = await findNearestStop(db, to, 50000);
+    console.log(
+      `✅ END stop found: ${endStop?.name || "NONE"} (ID: ${endStop?._id})`
     );
 
     if (!startStop || !endStop) {
@@ -229,58 +166,61 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: ["No stops found - database might be empty"],
+        warnings: ["❌ No stops found in database"],
+        hasIncidents: false,
+        affectedSegments: [],
       };
     }
 
-    const segments: PathSegment[] = [];
-    const warnings: string[] = [];
+    // Check if start and end are the same stop
+    if (startStop._id!.toString() === endStop._id!.toString()) {
+      return {
+        segments: [],
+        totalDuration: 0,
+        totalTransfers: 0,
+        departureTime,
+        arrivalTime: departureTime,
+        warnings: [
+          "⚠️ Start and end points are at the same stop. Please select different locations.",
+        ],
+        hasIncidents: false,
+        affectedSegments: [],
+      };
+    }
 
-    // Get all routes from database
+    console.log(`\n🔍 PATH FINDING`);
+    console.log(`START: ${startStop.name} (${startStop.transportType})`);
+    console.log(`END: ${endStop.name} (${endStop.transportType})`);
+
+    // Get ALL routes
     const allRoutes = await db
       .collection<RouteModel>("Routes")
       .find({})
       .toArray();
-
-    console.log(
-      `🔍 Searching for path from ${startStop.name} to ${endStop.name}`
-    );
     console.log(`📊 Total routes in DB: ${allRoutes.length}`);
 
-    // Find routes that contain BOTH stops
-    const validRoutes: Array<{
-      route: RouteModel;
-      line: LineModel;
-      fromIndex: number;
-      toIndex: number;
-      stopsOnPath: Array<{
-        name: string;
-        arrivalTime: string;
-        departureTime: string;
-        coordinates: Coordinates;
-      }>;
-    }> = [];
+    const segments: PathSegment[] = [];
+    const warnings: string[] = [];
 
+    // Find routes containing BOTH stops (ignore time)
     for (const route of allRoutes) {
       let fromIndex = -1;
       let toIndex = -1;
 
-      // Find indexes of start and end stops
+      // Find stop indexes
       for (let i = 0; i < route.stops.length; i++) {
         const stopId = route.stops[i].stopId;
         const stopIdStr =
           typeof stopId === "string" ? stopId : stopId.toString();
 
-        if (stopIdStr === startStop._id!.toString()) {
-          fromIndex = i;
-        }
+        if (stopIdStr === startStop._id!.toString()) fromIndex = i;
         if (stopIdStr === endStop._id!.toString() && fromIndex !== -1) {
           toIndex = i;
           break;
         }
       }
 
-      // If both stops found and in correct order
+      // Valid route found
       if (fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex) {
         const lineId =
           typeof route.lineId === "string"
@@ -290,139 +230,142 @@ export const pathResolvers = {
         const line = await db
           .collection<LineModel>("Lines")
           .findOne({ _id: lineId });
-
         if (!line) continue;
 
-        // Get all stops on this path segment
-        const stopsOnPath = [];
+        console.log(`✅ FOUND: ${line.name} (${line.transportType})`);
+
+        // Get all stops on path and check for incidents
+        const stopsOnPath: string[] = [];
+        let totalDistance = 0;
+        let hasSegmentIncidents = false;
+        const incidentWarnings: string[] = [];
+
         for (let i = fromIndex; i <= toIndex; i++) {
-          const stopId =
-            typeof route.stops[i].stopId === "string"
-              ? new ObjectId(route.stops[i].stopId)
-              : route.stops[i].stopId;
+          const stopIdValue = route.stops[i].stopId;
+          const stopId: ObjectId =
+            typeof stopIdValue === "string"
+              ? new ObjectId(stopIdValue)
+              : stopIdValue;
 
           const stop = await db
             .collection<StopModel>("Stops")
             .findOne({ _id: stopId });
-
           if (stop) {
-            stopsOnPath.push({
-              name: stop.name,
-              arrivalTime: route.stops[i].arrivalTime,
-              departureTime: route.stops[i].departureTime,
-              coordinates: stop.coordinates,
-            });
+            stopsOnPath.push(stop.name);
+
+            // Calculate distance to next stop and check for incidents
+            if (i < toIndex) {
+              const nextStopIdValue = route.stops[i + 1].stopId;
+              const nextStopId: ObjectId =
+                typeof nextStopIdValue === "string"
+                  ? new ObjectId(nextStopIdValue)
+                  : nextStopIdValue;
+              const nextStop = await db
+                .collection<StopModel>("Stops")
+                .findOne({ _id: nextStopId });
+              if (nextStop) {
+                totalDistance += calculateDistance(
+                  stop.coordinates,
+                  nextStop.coordinates
+                );
+
+                // Check for incidents on this segment
+                const incident = await getActiveIncidentsForSegment(
+                  db,
+                  lineId,
+                  stopId,
+                  nextStopId
+                );
+
+                if (incident) {
+                  hasSegmentIncidents = true;
+                  const severityEmoji =
+                    incident.severity === "HIGH"
+                      ? "🚨"
+                      : incident.severity === "MEDIUM"
+                        ? "⚠️"
+                        : "ℹ️";
+                  incidentWarnings.push(
+                    `${severityEmoji} Incident between ${stop.name} and ${nextStop.name}`
+                  );
+                }
+              }
+            }
           }
         }
 
-        validRoutes.push({
-          route,
-          line,
-          fromIndex,
-          toIndex,
-          stopsOnPath,
+        // Create segment with incident information
+        segments.push({
+          segmentType: "TRANSIT",
+          from: {
+            stopId: startStop._id!.toString(),
+            stopName: startStop.name,
+            coordinates: startStop.coordinates,
+          },
+          to: {
+            stopId: endStop._id!.toString(),
+            stopName: endStop.name,
+            coordinates: endStop.coordinates,
+          },
+          lineId: line._id!.toString(),
+          lineName: line.gtfsId || line.name,
+          transportType: line.transportType,
+          departureTime: route.stops[fromIndex].departureTime || "N/A",
+          arrivalTime: route.stops[toIndex].arrivalTime || "N/A",
+          duration: Math.round(totalDistance / 500), // Estimate: 30km/h avg
+          distance: Math.round(totalDistance),
+          warnings: [
+            `📍 ${stopsOnPath.length} stops on route:`,
+            ...stopsOnPath.map((name, idx) => `  ${idx + 1}. ${name}`),
+            ...(hasSegmentIncidents
+              ? ["", "⚠️ INCIDENTS ON THIS ROUTE:", ...incidentWarnings]
+              : []),
+          ],
+          hasIncident: hasSegmentIncidents,
+          incidentWarning: hasSegmentIncidents
+            ? incidentWarnings.join(" | ")
+            : undefined,
+          incidentSeverity: hasSegmentIncidents ? "HIGH" : undefined,
         });
 
-        console.log(
-          `✅ Found route: ${line.name} with ${stopsOnPath.length} stops`
-        );
+        console.log(`   Distance: ${Math.round(totalDistance)}m`);
+        console.log(`   Stops: ${stopsOnPath.length}`);
+
+        // Only return first found route
+        break;
       }
     }
 
-    console.log(`📍 Found ${validRoutes.length} valid routes`);
-
-    if (validRoutes.length > 0) {
-      // Use the first valid route
-      const selectedRoute = validRoutes[0];
-
-      // Calculate total distance
-      let totalDistance = 0;
-      for (let i = 0; i < selectedRoute.stopsOnPath.length - 1; i++) {
-        totalDistance += calculateDistance(
-          selectedRoute.stopsOnPath[i].coordinates,
-          selectedRoute.stopsOnPath[i + 1].coordinates
-        );
-      }
-
-      const departureStop = selectedRoute.route.stops[selectedRoute.fromIndex];
-      const arrivalStop = selectedRoute.route.stops[selectedRoute.toIndex];
-
-      const duration = calculateTimeDifference(
-        departureStop.departureTime,
-        arrivalStop.arrivalTime
-      );
-
-      // Create segment with all stops info
-      segments.push({
-        segmentType: "TRANSIT",
-        from: {
-          stopId: startStop._id!.toString(),
-          stopName: startStop.name,
-          coordinates: startStop.coordinates,
-        },
-        to: {
-          stopId: endStop._id!.toString(),
-          stopName: endStop.name,
-          coordinates: endStop.coordinates,
-        },
-        lineId: selectedRoute.line._id!.toString(),
-        lineName: selectedRoute.line.name,
-        transportType: selectedRoute.line.transportType,
-        departureTime: departureStop.departureTime,
-        arrivalTime: arrivalStop.arrivalTime,
-        duration,
-        distance: Math.round(totalDistance),
-        platformNumber: departureStop.platformNumber,
-        warnings: [
-          `Route passes through ${selectedRoute.stopsOnPath.length} stops:`,
-          ...selectedRoute.stopsOnPath.map(
-            (s, idx) =>
-              `  ${idx + 1}. ${s.name} (arr: ${s.arrivalTime}, dep: ${s.departureTime})`
-          ),
-        ],
-      });
-
-      // Add info about alternative routes
-      if (validRoutes.length > 1) {
-        warnings.push(
-          `Found ${validRoutes.length} alternative routes. Showing the first one.`
-        );
-        warnings.push(
-          `Other lines available: ${validRoutes
-            .slice(1)
-            .map((r) => r.line.name)
-            .join(", ")}`
-        );
-      }
-    } else {
+    if (segments.length === 0) {
       warnings.push(
-        `❌ No direct route found between ${startStop.name} and ${endStop.name}`
+        `❌ No route found from ${startStop.name} to ${endStop.name}`
       );
-      warnings.push(
-        `Distance: ${Math.round(calculateDistance(startStop.coordinates, endStop.coordinates))}m`
-      );
-      warnings.push(`Nearest stop to start: ${startStop.name}`);
-      warnings.push(`Nearest stop to end: ${endStop.name}`);
-      warnings.push(
-        `💡 Try checking if routes are imported with stop_times data`
-      );
+      warnings.push(`💡 Check: db.Routes.count() and db.Stops.count()`);
+      console.log(`❌ NO ROUTE FOUND`);
     }
 
-    const totalDuration =
-      segments.length > 0
-        ? segments.reduce((sum, seg) => sum + (seg.duration || 0), 0)
-        : 0;
+    // Calculate which segments have incidents
+    const affectedSegments: number[] = [];
+    let hasIncidents = false;
+    segments.forEach((seg, idx) => {
+      if (seg.hasIncident) {
+        hasIncidents = true;
+        affectedSegments.push(idx);
+      }
+    });
 
     return {
       segments,
-      totalDuration,
+      totalDuration: segments.reduce(
+        (sum, seg) => sum + (seg.duration || 0),
+        0
+      ),
       totalTransfers: 0,
       departureTime,
-      arrivalTime:
-        segments.length > 0
-          ? segments[segments.length - 1].arrivalTime || departureTime
-          : departureTime,
+      arrivalTime: segments[0]?.arrivalTime || departureTime,
       warnings,
+      hasIncidents,
+      affectedSegments,
     };
   },
 

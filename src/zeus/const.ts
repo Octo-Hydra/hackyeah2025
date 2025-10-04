@@ -2,26 +2,29 @@
 
 export const AllTypesProps: Record<string,any> = {
 	UserRole: "enum" as const,
-	Query:{
-		check2FAStatus:{
+	ActiveJourneyInput:{
 
+	},
+	FavoriteConnectionInput:{
+
+	},
+	Query:{
+		incidentsByLine:{
+			transportType:"TransportType"
 		},
 		lines:{
 			transportType:"TransportType"
 		},
-		findPath:{
-			input:"FindPathInput"
-		},
 		stops:{
 			transportType:"TransportType"
+		},
+		findPath:{
+			input:"FindPathInput"
 		}
-	},
-	RegisterInput:{
-
 	},
 	Mutation:{
 		register:{
-			input:"RegisterInput"
+
 		},
 		verifyEmail:{
 
@@ -31,13 +34,8 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		verify2FA:{
 
-		}
-	},
-	carrierMutation:{
-		createReport:{
-			input:"CreateReportInput"
 		},
-		saveDraft:{
+		createReport:{
 			input:"CreateReportInput"
 		},
 		updateReport:{
@@ -48,37 +46,41 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		publishReport:{
 
-		}
-	},
-	userMutation:{
-		createReport:{
-			input:"CreateReportInput"
+		},
+		setActiveJourney:{
+			input:"ActiveJourneyInput"
+		},
+		addFavoriteConnection:{
+			input:"FavoriteConnectionInput"
+		},
+		removeFavoriteConnection:{
+
+		},
+		updateFavoriteConnection:{
+			input:"FavoriteConnectionInput"
 		}
 	},
 	IncidentKind: "enum" as const,
 	TransportType: "enum" as const,
 	IncidentClass: "enum" as const,
 	ReportStatus: "enum" as const,
+	SegmentConfidence: "enum" as const,
 	CreateReportInput:{
 		kind:"IncidentKind",
-		status:"ReportStatus"
+		status:"ReportStatus",
+		reporterLocation:"CoordinatesInput"
 	},
 	UpdateReportInput:{
 		kind:"IncidentKind",
 		status:"ReportStatus"
 	},
-	UserQuery:{
-		incidentsByLine:{
-			transportType:"TransportType"
-		}
-	},
 	CoordinatesInput:{
 
 	},
-	SegmentType: "enum" as const,
+	IncidentSeverity: "enum" as const,
 	FindPathInput:{
-		startCoordinates:"CoordinatesInput",
-		endCoordinates:"CoordinatesInput"
+		from:"CoordinatesInput",
+		to:"CoordinatesInput"
 	},
 	Subscription:{
 		incidentCreated:{
@@ -87,18 +89,11 @@ export const AllTypesProps: Record<string,any> = {
 		incidentUpdated:{
 			transportType:"TransportType"
 		},
-		incidentResolved:{
-			transportType:"TransportType"
-		},
 		lineIncidentUpdates:{
 
 		},
 		myLinesIncidents:{
 
-		},
-		pathAffectedByIncident:{
-			startCoordinates:"CoordinatesInput",
-			endCoordinates:"CoordinatesInput"
 		}
 	},
 	ID: `scalar.ID` as const
@@ -112,60 +107,62 @@ export const ReturnTypes: Record<string,any> = {
 		name:"String",
 		email:"String",
 		role:"UserRole",
-		twoFactorEnabled:"Boolean"
+		twoFactorEnabled:"Boolean",
+		reputation:"Int",
+		activeJourney:"ActiveJourney",
+		favoriteConnections:"FavoriteConnection"
+	},
+	ActiveJourney:{
+		routeIds:"ID",
+		lineIds:"ID",
+		startStopId:"ID",
+		endStopId:"ID",
+		startTime:"String",
+		expectedEndTime:"String",
+		notifiedIncidentIds:"ID"
+	},
+	FavoriteConnection:{
+		id:"ID",
+		name:"String",
+		routeIds:"ID",
+		lineIds:"ID",
+		startStopId:"ID",
+		endStopId:"ID",
+		notifyAlways:"Boolean",
+		createdAt:"String"
+	},
+	OperationResult:{
+		success:"Boolean",
+		message:"String",
+		data:"String"
 	},
 	TwoFactorSetup:{
 		secret:"String",
 		qrCode:"String"
 	},
-	TwoFactorStatus:{
-		requires2FA:"Boolean",
-		userExists:"Boolean"
-	},
-	TwoFactorResult:{
-		success:"Boolean",
-		message:"String"
-	},
 	Query:{
 		me:"User",
-		check2FAStatus:"TwoFactorStatus",
-		userQuery:"UserQuery",
+		incidentsByLine:"Incident",
 		lines:"Line",
-		findPath:"JourneyPath",
-		stops:"Stop"
-	},
-	RegisterResult:{
-		success:"Boolean",
-		message:"String",
-		userId:"String"
-	},
-	VerifyEmailResult:{
-		success:"Boolean",
-		message:"String"
-	},
-	ResendVerificationResult:{
-		success:"Boolean",
-		message:"String"
+		stops:"Stop",
+		findPath:"JourneyPath"
 	},
 	Mutation:{
-		register:"RegisterResult",
-		verifyEmail:"VerifyEmailResult",
-		resendVerificationEmail:"ResendVerificationResult",
+		register:"OperationResult",
+		verifyEmail:"OperationResult",
+		resendVerificationEmail:"OperationResult",
 		setup2FA:"TwoFactorSetup",
-		verify2FA:"TwoFactorResult",
-		disable2FA:"TwoFactorResult",
-		carrierMutations:"carrierMutation",
-		userMutations:"userMutation"
-	},
-	carrierMutation:{
+		verify2FA:"OperationResult",
+		disable2FA:"OperationResult",
 		createReport:"Incident",
-		saveDraft:"Incident",
 		updateReport:"Incident",
-		deleteReport:"DeleteResult",
-		publishReport:"Incident"
-	},
-	userMutation:{
-		createReport:"Incident"
+		deleteReport:"OperationResult",
+		publishReport:"Incident",
+		setActiveJourney:"User",
+		clearActiveJourney:"User",
+		addFavoriteConnection:"FavoriteConnection",
+		removeFavoriteConnection:"OperationResult",
+		updateFavoriteConnection:"FavoriteConnection"
 	},
 	Incident:{
 		id:"ID",
@@ -175,21 +172,22 @@ export const ReturnTypes: Record<string,any> = {
 		incidentClass:"IncidentClass",
 		status:"ReportStatus",
 		lines:"Line",
+		reporterLocation:"Coordinates",
+		affectedSegment:"IncidentSegment",
 		createdBy:"User",
 		createdAt:"String",
 		updatedAt:"String"
+	},
+	IncidentSegment:{
+		startStopId:"ID",
+		endStopId:"ID",
+		lineId:"ID",
+		confidence:"SegmentConfidence"
 	},
 	Line:{
 		id:"ID",
 		name:"String",
 		transportType:"TransportType"
-	},
-	DeleteResult:{
-		success:"Boolean",
-		message:"String"
-	},
-	UserQuery:{
-		incidentsByLine:"Incident"
 	},
 	Coordinates:{
 		latitude:"Float",
@@ -208,7 +206,6 @@ export const ReturnTypes: Record<string,any> = {
 		coordinates:"Coordinates"
 	},
 	PathSegment:{
-		segmentType:"SegmentType",
 		from:"SegmentLocation",
 		to:"SegmentLocation",
 		lineId:"ID",
@@ -219,7 +216,9 @@ export const ReturnTypes: Record<string,any> = {
 		duration:"Int",
 		distance:"Int",
 		platformNumber:"String",
-		warnings:"String"
+		hasIncident:"Boolean",
+		incidentWarning:"String",
+		incidentSeverity:"IncidentSeverity"
 	},
 	JourneyPath:{
 		segments:"PathSegment",
@@ -227,22 +226,15 @@ export const ReturnTypes: Record<string,any> = {
 		totalTransfers:"Int",
 		departureTime:"String",
 		arrivalTime:"String",
-		warnings:"String"
+		warnings:"String",
+		hasIncidents:"Boolean",
+		affectedSegments:"Int"
 	},
 	Subscription:{
 		incidentCreated:"Incident",
 		incidentUpdated:"Incident",
-		incidentResolved:"Incident",
 		lineIncidentUpdates:"Incident",
-		myLinesIncidents:"Incident",
-		pathAffectedByIncident:"PathAffectedPayload"
-	},
-	PathAffectedPayload:{
-		incident:"Incident",
-		affectedLines:"Line",
-		message:"String",
-		originalPath:"JourneyPath",
-		alternativePath:"JourneyPath"
+		myLinesIncidents:"Incident"
 	},
 	ID: `scalar.ID` as const
 }

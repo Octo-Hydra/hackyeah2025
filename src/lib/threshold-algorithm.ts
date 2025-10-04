@@ -36,7 +36,7 @@ export function calculateThreshold(
   reportCount: number,
   totalReputation: number,
   reporterReputations: number[],
-  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG,
+  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG
 ): {
   isOfficial: boolean;
   threshold: number;
@@ -53,14 +53,14 @@ export function calculateThreshold(
 } {
   // Filter out low-reputation users
   const validReputations = reporterReputations.filter(
-    (rep) => rep >= config.minReputationPerUser,
+    (rep) => rep >= config.minReputationPerUser
   );
 
   const validReporterCount = validReputations.length;
 
   // Count high-reputation reporters
   const highReputationReporters = validReputations.filter(
-    (rep) => rep >= config.highReputationThreshold,
+    (rep) => rep >= config.highReputationThreshold
   ).length;
 
   // Calculate average reputation
@@ -75,7 +75,7 @@ export function calculateThreshold(
   // Calculate reputation score (normalized to 0-1)
   let reputationScore = Math.min(
     totalReputation / config.baseReputationRequired,
-    1,
+    1
   );
 
   // Apply bonus for high-reputation reporters
@@ -118,7 +118,7 @@ export function calculateThreshold(
 export function calculateReputationChange(
   wasCorrect: boolean,
   userReputation: number,
-  notificationAge: number, // in minutes
+  notificationAge: number // in minutes
 ): number {
   // Base reward/penalty
   const baseChange = wasCorrect ? 10 : -5;
@@ -146,7 +146,7 @@ export function calculateReputationChange(
  */
 export function canUserReport(
   userReputation: number,
-  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG,
+  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG
 ): {
   canReport: boolean;
   reason?: string;
@@ -168,7 +168,7 @@ export function calculateNotificationProgress(
   reportCount: number,
   totalReputation: number,
   reporterReputations: number[],
-  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG,
+  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG
 ): {
   percentage: number;
   reportsNeeded: number;
@@ -179,19 +179,19 @@ export function calculateNotificationProgress(
     reportCount,
     totalReputation,
     reporterReputations,
-    config,
+    config
   );
 
   const percentage = Math.min(result.currentScore * 100, 100);
 
   const reportsNeeded = Math.max(
     0,
-    config.baseReportCount - result.breakdown.validReporters,
+    config.baseReportCount - result.breakdown.validReporters
   );
 
   const reputationNeeded = Math.max(
     0,
-    config.baseReputationRequired - totalReputation,
+    config.baseReputationRequired - totalReputation
   );
 
   return {
@@ -212,7 +212,7 @@ export function testThresholdAlgorithm() {
   console.log("Test 1: Two low-rep users report");
   const test1 = calculateThreshold(2, 40, [20, 20]);
   console.log(
-    `Official: ${test1.isOfficial} (Score: ${test1.currentScore.toFixed(2)})`,
+    `Official: ${test1.isOfficial} (Score: ${test1.currentScore.toFixed(2)})`
   );
   console.log(`Breakdown:`, test1.breakdown);
 
@@ -220,7 +220,7 @@ export function testThresholdAlgorithm() {
   console.log("\nTest 2: Three low-rep users report");
   const test2 = calculateThreshold(3, 60, [20, 20, 20]);
   console.log(
-    `Official: ${test2.isOfficial} (Score: ${test2.currentScore.toFixed(2)})`,
+    `Official: ${test2.isOfficial} (Score: ${test2.currentScore.toFixed(2)})`
   );
   console.log(`Breakdown:`, test2.breakdown);
 
@@ -228,7 +228,7 @@ export function testThresholdAlgorithm() {
   console.log("\nTest 3: Two high-rep users report");
   const test3 = calculateThreshold(2, 300, [150, 150]);
   console.log(
-    `Official: ${test3.isOfficial} (Score: ${test3.currentScore.toFixed(2)})`,
+    `Official: ${test3.isOfficial} (Score: ${test3.currentScore.toFixed(2)})`
   );
   console.log(`Breakdown:`, test3.breakdown);
 
@@ -236,7 +236,7 @@ export function testThresholdAlgorithm() {
   console.log("\nTest 4: Three medium-rep users report");
   const test4 = calculateThreshold(3, 150, [50, 50, 50]);
   console.log(
-    `Official: ${test4.isOfficial} (Score: ${test4.currentScore.toFixed(2)})`,
+    `Official: ${test4.isOfficial} (Score: ${test4.currentScore.toFixed(2)})`
   );
   console.log(`Breakdown:`, test4.breakdown);
 
@@ -244,7 +244,120 @@ export function testThresholdAlgorithm() {
   console.log("\nTest 5: One very high-rep user reports");
   const test5 = calculateThreshold(1, 200, [200]);
   console.log(
-    `Official: ${test5.isOfficial} (Score: ${test5.currentScore.toFixed(2)})`,
+    `Official: ${test5.isOfficial} (Score: ${test5.currentScore.toFixed(2)})`
   );
   console.log(`Breakdown:`, test5.breakdown);
+}
+
+/**
+ * Checks if incident affects user's active journey or favorite connections
+ */
+export interface NotificationDecision {
+  shouldNotify: boolean;
+  reason: string;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  affectedRoutes?: string[];
+  message?: string;
+}
+
+export function shouldNotifyUser(
+  incidentLineIds: (string | null)[],
+  userActiveJourneyLineIds?: string[],
+  userFavoriteLineIds?: string[],
+  incidentClass?: "CLASS_1" | "CLASS_2"
+): NotificationDecision {
+  const incidentLines = incidentLineIds.filter(
+    (id): id is string => id !== null
+  );
+
+  if (incidentLines.length === 0) {
+    return {
+      shouldNotify: false,
+      reason: "Incident not associated with any lines",
+      priority: "LOW",
+    };
+  }
+
+  // Check active journey (HIGHEST PRIORITY)
+  if (userActiveJourneyLineIds && userActiveJourneyLineIds.length > 0) {
+    const activeAffected = incidentLines.filter((lineId) =>
+      userActiveJourneyLineIds.includes(lineId)
+    );
+
+    if (activeAffected.length > 0) {
+      const priority = incidentClass === "CLASS_1" ? "CRITICAL" : "HIGH";
+      return {
+        shouldNotify: true,
+        reason: "Incident affects your active journey",
+        priority,
+        affectedRoutes: activeAffected,
+        message:
+          incidentClass === "CLASS_1"
+            ? "⚠️ CRITICAL: Your current journey is affected by a serious incident!"
+            : "⚠️ Your current journey may be affected by an incident.",
+      };
+    }
+  }
+
+  // Check favorite connections (MEDIUM PRIORITY)
+  if (userFavoriteLineIds && userFavoriteLineIds.length > 0) {
+    const favoriteAffected = incidentLines.filter((lineId) =>
+      userFavoriteLineIds.includes(lineId)
+    );
+
+    if (favoriteAffected.length > 0) {
+      const priority = incidentClass === "CLASS_1" ? "HIGH" : "MEDIUM";
+      return {
+        shouldNotify: true,
+        reason: "Incident affects your favorite connection",
+        priority,
+        affectedRoutes: favoriteAffected,
+        message:
+          incidentClass === "CLASS_1"
+            ? "⚠️ A serious incident is affecting one of your favorite routes."
+            : "ℹ️ An incident is affecting one of your favorite routes.",
+      };
+    }
+  }
+
+  return {
+    shouldNotify: false,
+    reason: "Incident does not affect user's journeys or favorites",
+    priority: "LOW",
+  };
+}
+
+/**
+ * Extracts line IDs from active journey
+ */
+export function extractActiveJourneyLineIds(
+  activeJourney?: {
+    lineIds?: Array<string | { toString(): string } | null>;
+  } | null
+): string[] {
+  if (!activeJourney?.lineIds) return [];
+  return activeJourney.lineIds
+    .filter((id): id is string | { toString(): string } => id !== null)
+    .map((id) => (typeof id === "string" ? id : id.toString()));
+}
+
+/**
+ * Extracts line IDs from favorite connections
+ */
+export function extractFavoriteLineIds(
+  favoriteConnections?: Array<{
+    lineIds?: Array<string | { toString(): string } | null>;
+    notifyAlways?: boolean;
+  }>
+): string[] {
+  if (!favoriteConnections) return [];
+
+  const allLineIds = favoriteConnections
+    .filter((fav) => fav.notifyAlways !== false) // Only favorites with notifications enabled
+    .flatMap((fav) => fav.lineIds || [])
+    .filter((id): id is string | { toString(): string } => id !== null)
+    .map((id) => (typeof id === "string" ? id : id.toString()));
+
+  // Remove duplicates
+  return Array.from(new Set(allLineIds));
 }
