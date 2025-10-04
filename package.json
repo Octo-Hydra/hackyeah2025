@@ -51,6 +51,7 @@
     "graphql-yoga": "^5.16.0",
     "input-otp": "^1.4.2",
     "leaflet": "^1.9.4",
+    "leaflet-geosearch": "^4.2.2",
     "lucide-react": "^0.544.0",
     "mongodb": "^6.20.0",
     "next": "15.5.4",

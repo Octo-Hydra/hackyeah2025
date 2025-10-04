@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export function AddEventDialog() {
   const [open, setOpen] = useState(false);
@@ -23,7 +23,7 @@ export function AddEventDialog() {
           className="h-14 w-14 rounded-full shadow-lg"
           aria-label="Add route event"
         >
-          <Plus className="h-6 w-6" />
+          <AlertTriangle className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent>

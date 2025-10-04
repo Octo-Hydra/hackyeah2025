@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Navigation, User, Shield } from "lucide-react";
 import { AddEventDialog } from "@/components/add-event-dialog";
+import { AddJourneyDialog } from "@/components/add-journey-dialog";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -54,9 +55,10 @@ export default function HomePage() {
       <main className="relative flex-1">
         <Map className="h-full w-full" />
 
-        {/* Add Event Button - Only show when logged in */}
+        {/* Action Buttons - Only show when logged in */}
         {session && (
-          <div className="absolute bottom-6 right-6 z-[1000]">
+          <div className="absolute bottom-6 right-6 z-[1000] flex flex-col gap-3">
+            <AddJourneyDialog />
             <AddEventDialog />
           </div>
         )}
