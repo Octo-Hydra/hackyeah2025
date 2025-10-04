@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
+import { AppStoreProvider } from "@/store/app-store-provider";
+import { fetchUserForStore } from "@/store/fetch-user";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,11 +49,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch user data on server-side for initial store state
+  const user = await fetchUserForStore();
+
   return (
     <html lang="en">
       <head>
@@ -85,7 +90,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AppStoreProvider user={user}>{children}</AppStoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );
