@@ -50,7 +50,7 @@ export function PushNotificationManager() {
       const sub = await registration.pushManager.getSubscription();
       setSubscription(sub);
     } catch (error) {
-      console.error("Service worker registration failed:", error);
+      console.error("Rejestracja service worker nie powiodła się:", error);
     }
   }
 
@@ -69,7 +69,7 @@ export function PushNotificationManager() {
       const serializedSub = JSON.parse(JSON.stringify(sub));
       await subscribeUser(serializedSub);
     } catch (error) {
-      console.error("Push subscription failed:", error);
+      console.error("Nie udało się zasubskrybować powiadomień:", error);
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export function PushNotificationManager() {
       }
       setSubscription(null);
     } catch (error) {
-      console.error("Unsubscribe failed:", error);
+      console.error("Nie udało się anulować subskrypcji:", error);
     } finally {
       setLoading(false);
     }
@@ -94,10 +94,10 @@ export function PushNotificationManager() {
     if (subscription && message) {
       setLoading(true);
       try {
-        await sendNotification(message, "Test Notification");
+        await sendNotification(message, "Powiadomienie testowe");
         setMessage("");
       } catch (error) {
-        console.error("Send notification failed:", error);
+        console.error("Nie udało się wysłać powiadomienia:", error);
       } finally {
         setLoading(false);
       }
@@ -108,38 +108,38 @@ export function PushNotificationManager() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Push Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-500">
-            Push notifications are not supported in this browser.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Powiadomienia push
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500">
+              Powiadomienia push nie są obsługiwane w tej przeglądarce.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
-          Push Notifications
+          Powiadomienia push
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {subscription ? (
           <>
             <div className="rounded-md bg-green-50 p-3 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-400">
-              ✓ You are subscribed to push notifications
+              ✓ Subskrybujesz powiadomienia push
             </div>
             <div className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Enter notification message"
+                placeholder="Wpisz treść powiadomienia"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -161,13 +161,14 @@ export function PushNotificationManager() {
               className="w-full"
             >
               <BellOff className="mr-2 h-4 w-4" />
-              Unsubscribe
+              Anuluj subskrypcję
             </Button>
           </>
         ) : (
           <>
             <p className="text-sm text-gray-500">
-              Enable notifications to receive real-time alerts and updates.
+              Włącz powiadomienia, aby otrzymywać alerty i aktualizacje w
+              czasie rzeczywistym.
             </p>
             <Button
               onClick={subscribeToPush}
@@ -175,7 +176,7 @@ export function PushNotificationManager() {
               className="w-full"
             >
               <Bell className="mr-2 h-4 w-4" />
-              Enable Notifications
+              Włącz powiadomienia
             </Button>
           </>
         )}

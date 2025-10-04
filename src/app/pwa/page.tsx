@@ -7,10 +7,10 @@ export default function PWADemoPage() {
   return (
     <div className="container mx-auto max-w-4xl space-y-8 py-10">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold">Progressive Web App</h1>
+        <h1 className="text-4xl font-bold">Progressywna aplikacja webowa</h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">
-          Install our app for the best experience with offline support,
-          notifications, and more.
+          Zainstaluj naszą aplikację i korzystaj z obsługi offline,
+          powiadomień oraz dodatkowych funkcji.
         </p>
       </div>
 
@@ -20,19 +20,19 @@ export default function PWADemoPage() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">PWA Features</h2>
+        <h2 className="text-2xl font-bold">Funkcje PWA</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Smartphone className="h-5 w-5" />
-                Install on Device
+                Instalacja na urządzeniu
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Add our app to your home screen for quick access. Works like a
-                native app!
+                Dodaj aplikację do ekranu głównego i korzystaj z niej jak z
+                natywnego programu.
               </p>
             </CardContent>
           </Card>
@@ -41,13 +41,13 @@ export default function PWADemoPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Push Notifications
+                Powiadomienia push
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Receive real-time alerts about traffic, hazards, and events in
-                your area.
+                Otrzymuj alerty o ruchu drogowym, zagrożeniach i wydarzeniach w
+                Twojej okolicy w czasie rzeczywistym.
               </p>
             </CardContent>
           </Card>
@@ -56,13 +56,13 @@ export default function PWADemoPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Geolocation Support
+                Obsługa geolokalizacji
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Get location-based alerts and navigate with real-time GPS
-                tracking.
+                Otrzymuj alerty zależne od lokalizacji i nawiguj dzięki GPS w
+                czasie rzeczywistym.
               </p>
             </CardContent>
           </Card>
@@ -71,13 +71,13 @@ export default function PWADemoPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="h-5 w-5" />
-                Real-time Updates
+                Aktualizacje w czasie rzeczywistym
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                WebSocket support for live traffic data and instant
-                notifications.
+                Obsługa WebSocketów zapewnia bieżące dane o ruchu i natychmiastowe
+                powiadomienia.
               </p>
             </CardContent>
           </Card>
@@ -86,23 +86,23 @@ export default function PWADemoPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Perfect for Yanosik-like Apps</CardTitle>
+          <CardTitle>Idealne dla aplikacji podobnych do Yanosika</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            This PWA setup is ideal for real-time navigation and alert apps like
-            Yanosik:
+            Ta konfiguracja PWA świetnie sprawdza się w aplikacjach nawigacyjnych
+            i ostrzegających, takich jak Yanosik:
           </p>
           <ul className="list-inside list-disc space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <li>📱 Install on mobile devices (iOS & Android)</li>
+            <li>📱 Instalacja na urządzeniach mobilnych (iOS i Android)</li>
             <li>
-              🔔 Push notifications for speed cameras, police, and hazards
+              🔔 Powiadomienia push o fotoradarach, kontrolach i zagrożeniach
             </li>
-            <li>📍 Real-time geolocation tracking</li>
-            <li>🔌 WebSocket support for live data updates</li>
-            <li>🗺️ Maps integration ready</li>
-            <li>⚡ Fast, app-like experience</li>
-            <li>🌐 Works offline with cached data</li>
+            <li>📍 Śledzenie lokalizacji w czasie rzeczywistym</li>
+            <li>🔌 Obsługa WebSocketów dla aktualizacji na żywo</li>
+            <li>🗺️ Integracja z mapami gotowa do użycia</li>
+            <li>⚡ Szybkie działanie jak w aplikacji natywnej</li>
+            <li>🌐 Działa offline dzięki danym w pamięci podręcznej</li>
           </ul>
         </CardContent>
       </Card>

@@ -19,7 +19,7 @@ export function SignOutButton() {
       className="w-full"
       disabled={isLoading}
     >
-      {isLoading ? "Signing out..." : "Sign Out"}
+      {isLoading ? "Wylogowywanie..." : "Wyloguj się"}
     </Button>
   );
 }
