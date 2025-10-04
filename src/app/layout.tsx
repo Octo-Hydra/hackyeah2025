@@ -14,16 +14,39 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HackYeah 2025",
-  description: "HackYeah 2025 Progressive Web Application",
+  title: "OnTime",
+  description: "OnTime - No more waiting, just on-time arrivals!",
   generator: "Next.js",
+  applicationName: "OnTime",
   manifest: "/manifest.json",
-  keywords: ["hackyeah", "pwa", "nextjs"],
-  authors: [{ name: "HackYeah Team" }],
+  keywords: ["communication", "travel", "utilities"],
+  authors: [{ name: "Hydra Tech" }],
   icons: [
-    { rel: "apple-touch-icon", url: "/icons/icon-128x128.png" },
-    { rel: "icon", url: "/icons/icon-128x128.png" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "icon", url: "/favicon.ico" },
   ],
+  appleWebApp: {
+    title: "OnTime",
+    statusBarStyle: "default",
+    capable: true,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -33,16 +56,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <meta name="application-name" content="HackYeah 2025" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="HackYeah" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#000000" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
