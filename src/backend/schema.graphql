@@ -67,9 +67,85 @@ type Mutation {
 }
 
 type carrierMutation {
-    createReport(
-        kind: 
+  createReport(input: CreateReportInput!): Incident!
+  saveDraft(input: CreateReportInput!): Incident!
+  updateReport(id: ID!, input: UpdateReportInput!): Incident!
+  deleteReport(id: ID!): DeleteResult!
+  publishReport(id: ID!): Incident!
+}
 
+enum IncidentKind {
+  INCIDENT
+  NETWORK_FAILURE
+  VEHICLE_FAILURE
+  PEDESTRIAN_ACCIDENT
+  TRAFFIC_JAM
+  PLATFORM_CHANGES
+}
+
+enum TransportType {
+  BUS
+  RAIL
+}
+
+enum IncidentClass {
+  CLASS_1
+  CLASS_2
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+  RESOLVED
+}
+
+type Incident {
+  id: ID!
+  title: String!
+  description: String
+  kind: IncidentKind!
+  incidentClass: IncidentClass!
+  status: ReportStatus!
+  lines: [Line!]
+  createdBy: User
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Line {
+  id: ID!
+  name: String!
+  transportType: TransportType!
+}
+
+input CreateReportInput {
+  title: String!
+  description: String
+  kind: IncidentKind!
+  status: ReportStatus
+  lineIds: [ID!]
+}
+
+input UpdateReportInput {
+  title: String
+  description: String
+  kind: IncidentKind
+  status: ReportStatus
+  lineIds: [ID!]
+}
+
+type DeleteResult {
+  success: Boolean!
+  message: String
+}
+
+type UserQuery {
+    dupa: String!
+}
+
+extend type Query {
+  userQuery: UserQuery
+}
 type Subscription {
   _empty: String
 }

@@ -4,7 +4,9 @@ import { createYoga, createSchema, YogaInitialContext } from "graphql-yoga";
 import { useServer } from "graphql-ws/use/ws";
 import { parse } from "url";
 import next from "next";
-import { setTimeout as setTimeout$ } from "timers/promises";
+import fs from "fs";
+import path from "path";
+import resolvers from "./src/backend/resolvers";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -17,6 +19,12 @@ const app = next({ dev, hostname, port });
 const graphqlEndpoint = "/api/graphql";
 
 // prepare yoga
+// load SDL from file
+const sdlPath = path.join(process.cwd(), "src", "backend", "schema.graphql");
+const typeDefs = fs.readFileSync(sdlPath, "utf-8");
+
+// resolvers imported from src/backend/resolvers
+
 const yoga = createYoga({
   graphqlEndpoint,
   graphiql: {
@@ -24,28 +32,9 @@ const yoga = createYoga({
   },
   schema: createSchema({
     typeDefs: /* GraphQL */ `
-      type Query {
-        hello: String!
-      }
-      type Subscription {
-        clock: String!
-      }
+      ${typeDefs}
     `,
-    resolvers: {
-      Query: {
-        hello: () => "world",
-      },
-      Subscription: {
-        clock: {
-          async *subscribe() {
-            for (let i = 0; i < 5; i++) {
-              yield { clock: new Date().toString() };
-              await setTimeout$(1000);
-            }
-          },
-        },
-      },
-    },
+    resolvers,
   }),
 });
 
@@ -68,7 +57,7 @@ const yoga = createYoga({
         console.error(`Error while handling ${req.url}`, err);
         res.writeHead(500).end();
       }
-    },
+    }
   );
 
   // create websocket server
@@ -115,11 +104,11 @@ const yoga = createYoga({
         return args;
       },
     },
-    wsServer,
+    wsServer
   );
 
   await new Promise<void>((resolve, reject) =>
-    server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
+    server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
   );
 
   console.log(`

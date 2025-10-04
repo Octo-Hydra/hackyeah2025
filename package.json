@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development node --import=tsx/esm --env-file .env server.ts",
+    "dev": "node --import=tsx/esm --env-file .env server.ts",
     "build": "next build --turbopack",
     "start": "NODE_ENV=production node --import=tsx/esm server.ts",
     "lint": "eslint",
@@ -70,11 +70,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.19",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "@types/ws": "^8.18.1",
+    "chokidar": "^4.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "eslint-config-prettier": "^10.1.8",
