@@ -15,6 +15,7 @@ const credentialsSchema = z.object({
 
 export const authConfig: NextAuthConfig = {
   adapter: MongoDBAdapter(clientPromise),
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
