@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { User, ArrowLeft, Mail, Calendar, Shield } from "lucide-react";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export default async function UserProfilePage() {
   const session = await auth();
@@ -128,16 +129,7 @@ export default async function UserProfilePage() {
               <CardTitle>Account Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut({ redirectTo: "/" });
-                }}
-              >
-                <Button type="submit" variant="destructive" className="w-full">
-                  Sign Out
-                </Button>
-              </form>
+              <SignOutButton />
             </CardContent>
           </Card>
         </div>
