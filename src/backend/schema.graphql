@@ -10,7 +10,17 @@ type User {
   email: String!
   role: UserRole!
   reputation: Int
+  trustScore: Float # Dynamic trust score (0.5-2.5), updated by cron
+  trustScoreBreakdown: TrustScoreBreakdown
   activeJourney: ActiveJourney
+}
+
+type TrustScoreBreakdown {
+  baseScore: Float!
+  accuracyBonus: Float!
+  highRepBonus: Float!
+  validationRate: Float!
+  updatedAt: String!
 }
 
 type ActiveJourney {
@@ -126,6 +136,7 @@ type Incident {
   affectedSegment: IncidentSegment
   isFake: Boolean # True if admin/moderator marked as fake
   reportedBy: ID # User ID who reported (for reputation tracking)
+  reporter: User # User who reported (includes dynamic trustScore)
   createdAt: String!
 }
 
@@ -212,4 +223,6 @@ type Subscription {
   incidentUpdated(transportType: TransportType): Incident!
   lineIncidentUpdates(lineId: ID!): Incident!
   myLinesIncidents(lineIds: [ID!]!): Incident!
+  # Smart notifications with deduplication and trust-based filtering
+  smartIncidentNotifications(userId: ID!): Incident!
 }

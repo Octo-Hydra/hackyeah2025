@@ -913,9 +913,20 @@ export type ValueTypes = {
 	email?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	reputation?:boolean | `@${string}`,
+	trustScore?:boolean | `@${string}`,
+	trustScoreBreakdown?:ValueTypes["TrustScoreBreakdown"],
 	activeJourney?:ValueTypes["ActiveJourney"],
 		__typename?: boolean | `@${string}`,
 	['...on User']?: Omit<ValueTypes["User"], "...on User">
+}>;
+	["TrustScoreBreakdown"]: AliasType<{
+	baseScore?:boolean | `@${string}`,
+	accuracyBonus?:boolean | `@${string}`,
+	highRepBonus?:boolean | `@${string}`,
+	validationRate?:boolean | `@${string}`,
+	updatedAt?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on TrustScoreBreakdown']?: Omit<ValueTypes["TrustScoreBreakdown"], "...on TrustScoreBreakdown">
 }>;
 	["ActiveJourney"]: AliasType<{
 	segments?:ValueTypes["PathSegment"],
@@ -1008,6 +1019,7 @@ removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},bool
 	affectedSegment?:ValueTypes["IncidentSegment"],
 	isFake?:boolean | `@${string}`,
 	reportedBy?:boolean | `@${string}`,
+	reporter?:ValueTypes["User"],
 	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on Incident']?: Omit<ValueTypes["Incident"], "...on Incident">
@@ -1097,6 +1109,7 @@ incidentCreated?: [{	transportType?: ValueTypes["TransportType"] | undefined | n
 incidentUpdated?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
 lineIncidentUpdates?: [{	lineId: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
 myLinesIncidents?: [{	lineIds: Array<ValueTypes["ID"]> | Variable<any, string>},ValueTypes["Incident"]],
+smartIncidentNotifications?: [{	userId: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
 		__typename?: boolean | `@${string}`,
 	['...on Subscription']?: Omit<ValueTypes["Subscription"], "...on Subscription">
 }>;
@@ -1111,7 +1124,17 @@ export type ResolverInputTypes = {
 	email?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	reputation?:boolean | `@${string}`,
+	trustScore?:boolean | `@${string}`,
+	trustScoreBreakdown?:ResolverInputTypes["TrustScoreBreakdown"],
 	activeJourney?:ResolverInputTypes["ActiveJourney"],
+		__typename?: boolean | `@${string}`
+}>;
+	["TrustScoreBreakdown"]: AliasType<{
+	baseScore?:boolean | `@${string}`,
+	accuracyBonus?:boolean | `@${string}`,
+	highRepBonus?:boolean | `@${string}`,
+	validationRate?:boolean | `@${string}`,
+	updatedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ActiveJourney"]: AliasType<{
@@ -1199,6 +1222,7 @@ removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string
 	affectedSegment?:ResolverInputTypes["IncidentSegment"],
 	isFake?:boolean | `@${string}`,
 	reportedBy?:boolean | `@${string}`,
+	reporter?:ResolverInputTypes["User"],
 	createdAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -1280,6 +1304,7 @@ incidentCreated?: [{	transportType?: ResolverInputTypes["TransportType"] | undef
 incidentUpdated?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
 lineIncidentUpdates?: [{	lineId: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
 myLinesIncidents?: [{	lineIds: Array<ResolverInputTypes["ID"]>},ResolverInputTypes["Incident"]],
+smartIncidentNotifications?: [{	userId: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["schema"]: AliasType<{
@@ -1299,7 +1324,16 @@ export type ModelTypes = {
 	email: string,
 	role: ModelTypes["UserRole"],
 	reputation?: number | undefined | null,
+	trustScore?: number | undefined | null,
+	trustScoreBreakdown?: ModelTypes["TrustScoreBreakdown"] | undefined | null,
 	activeJourney?: ModelTypes["ActiveJourney"] | undefined | null
+};
+	["TrustScoreBreakdown"]: {
+		baseScore: number,
+	accuracyBonus: number,
+	highRepBonus: number,
+	validationRate: number,
+	updatedAt: string
 };
 	["ActiveJourney"]: {
 		segments: Array<ModelTypes["PathSegment"]>,
@@ -1380,6 +1414,7 @@ export type ModelTypes = {
 	affectedSegment?: ModelTypes["IncidentSegment"] | undefined | null,
 	isFake?: boolean | undefined | null,
 	reportedBy?: ModelTypes["ID"] | undefined | null,
+	reporter?: ModelTypes["User"] | undefined | null,
 	createdAt: string
 };
 	["IncidentSegment"]: {
@@ -1452,7 +1487,8 @@ export type ModelTypes = {
 		incidentCreated: ModelTypes["Incident"],
 	incidentUpdated: ModelTypes["Incident"],
 	lineIncidentUpdates: ModelTypes["Incident"],
-	myLinesIncidents: ModelTypes["Incident"]
+	myLinesIncidents: ModelTypes["Incident"],
+	smartIncidentNotifications: ModelTypes["Incident"]
 };
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
@@ -1463,13 +1499,14 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Generic result type for operations;
-	// Incidents by line (moved from nested UserQuery);
-	// Transit queries;
-	// Auth mutations;
-	// Incident mutations;
-	// User journey mutations;
-	// Geographic coordinates;
+    // Generic result type for operations;
+	// Incidents by line (moved from nested UserQuery);
+	// Transit queries;
+	// Auth mutations;
+	// Incident mutations;
+	// User journey mutations;
+	// Geographic coordinates;
+	// Smart notifications with deduplication and trust-based filtering;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
@@ -1478,8 +1515,19 @@ export type GraphQLTypes = {
 	email: string,
 	role: GraphQLTypes["UserRole"],
 	reputation?: number | undefined | null,
+	trustScore?: number | undefined | null,
+	trustScoreBreakdown?: GraphQLTypes["TrustScoreBreakdown"] | undefined | null,
 	activeJourney?: GraphQLTypes["ActiveJourney"] | undefined | null,
 	['...on User']: Omit<GraphQLTypes["User"], "...on User">
+};
+	["TrustScoreBreakdown"]: {
+	__typename: "TrustScoreBreakdown",
+	baseScore: number,
+	accuracyBonus: number,
+	highRepBonus: number,
+	validationRate: number,
+	updatedAt: string,
+	['...on TrustScoreBreakdown']: Omit<GraphQLTypes["TrustScoreBreakdown"], "...on TrustScoreBreakdown">
 };
 	["ActiveJourney"]: {
 	__typename: "ActiveJourney",
@@ -1573,6 +1621,7 @@ export type GraphQLTypes = {
 	affectedSegment?: GraphQLTypes["IncidentSegment"] | undefined | null,
 	isFake?: boolean | undefined | null,
 	reportedBy?: GraphQLTypes["ID"] | undefined | null,
+	reporter?: GraphQLTypes["User"] | undefined | null,
 	createdAt: string,
 	['...on Incident']: Omit<GraphQLTypes["Incident"], "...on Incident">
 };
@@ -1662,6 +1711,7 @@ export type GraphQLTypes = {
 	incidentUpdated: GraphQLTypes["Incident"],
 	lineIncidentUpdates: GraphQLTypes["Incident"],
 	myLinesIncidents: GraphQLTypes["Incident"],
+	smartIncidentNotifications: GraphQLTypes["Incident"],
 	['...on Subscription']: Omit<GraphQLTypes["Subscription"], "...on Subscription">
 };
 	["ID"]: "scalar" & { name: "ID" }

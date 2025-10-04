@@ -39,6 +39,8 @@ export async function registerUser(data: RegisterData) {
       name: validatedData.name,
       email: validatedData.email,
       password: hashedPassword,
+      role: "USER",
+      reputation: 100, // Starting reputation
       emailVerified: new Date(), // Auto-verify for MVP
       image: null,
       createdAt: new Date(),

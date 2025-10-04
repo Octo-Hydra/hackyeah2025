@@ -99,6 +99,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		myLinesIncidents:{
 
+		},
+		smartIncidentNotifications:{
+
 		}
 	},
 	ID: `scalar.ID` as const
@@ -111,7 +114,16 @@ export const ReturnTypes: Record<string,any> = {
 		email:"String",
 		role:"UserRole",
 		reputation:"Int",
+		trustScore:"Float",
+		trustScoreBreakdown:"TrustScoreBreakdown",
 		activeJourney:"ActiveJourney"
+	},
+	TrustScoreBreakdown:{
+		baseScore:"Float",
+		accuracyBonus:"Float",
+		highRepBonus:"Float",
+		validationRate:"Float",
+		updatedAt:"String"
 	},
 	ActiveJourney:{
 		segments:"PathSegment",
@@ -166,6 +178,7 @@ export const ReturnTypes: Record<string,any> = {
 		affectedSegment:"IncidentSegment",
 		isFake:"Boolean",
 		reportedBy:"ID",
+		reporter:"User",
 		createdAt:"String"
 	},
 	IncidentSegment:{
@@ -216,7 +229,8 @@ export const ReturnTypes: Record<string,any> = {
 		incidentCreated:"Incident",
 		incidentUpdated:"Incident",
 		lineIncidentUpdates:"Incident",
-		myLinesIncidents:"Incident"
+		myLinesIncidents:"Incident",
+		smartIncidentNotifications:"Incident"
 	},
 	ID: `scalar.ID` as const
 }

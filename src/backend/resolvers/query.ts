@@ -79,6 +79,7 @@ export const Query = {
     const query: Partial<IncidentModel> = {
       lineIds: [new ObjectId(lineId)],
       status: "PUBLISHED",
+      isFake: { $ne: true }, // Hide fake incidents from users
     };
 
     const incidents = await db
