@@ -1,0 +1,75 @@
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+type User {
+  id: ID!
+  createdAt: String!
+  updatedAt: String!
+  name: String!
+  email: String!
+  role: UserRole!
+  twoFactorEnabled: Boolean!
+}
+
+type TwoFactorSetup {
+  secret: String!
+  qrCode: String!
+}
+
+type TwoFactorStatus {
+  requires2FA: Boolean!
+  userExists: Boolean!
+}
+
+type TwoFactorResult {
+  success: Boolean!
+  message: String
+}
+
+type Query {
+  me: User
+  check2FAStatus(username: String!): TwoFactorStatus!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type RegisterResult {
+  success: Boolean!
+  message: String!
+  userId: String
+}
+
+type VerifyEmailResult {
+  success: Boolean!
+  message: String!
+}
+
+type ResendVerificationResult {
+  success: Boolean!
+  message: String!
+}
+
+type Mutation {
+  register(input: RegisterInput!): RegisterResult!
+  verifyEmail(token: String!): VerifyEmailResult!
+  resendVerificationEmail(email: String!): ResendVerificationResult!
+  setup2FA: TwoFactorSetup!
+  verify2FA(token: String!, secret: String!): TwoFactorResult!
+  disable2FA: TwoFactorResult!
+  carrierMutations: carrierMutation 
+}
+
+type carrierMutation {
+    createReport(
+        kind: 
+
+type Subscription {
+  _empty: String
+}
