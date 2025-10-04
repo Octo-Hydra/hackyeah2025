@@ -940,6 +940,9 @@ export type ValueTypes = {
 	me?:ValueTypes["User"],
 check2FAStatus?: [{	username: string | Variable<any, string>},ValueTypes["TwoFactorStatus"]],
 	userQuery?:ValueTypes["UserQuery"],
+lines?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Line"]],
+findPath?: [{	input: ValueTypes["FindPathInput"] | Variable<any, string>},ValueTypes["JourneyPath"]],
+stops?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Stop"]],
 		__typename?: boolean | `@${string}`,
 	['...on Query']?: Omit<ValueTypes["Query"], "...on Query">
 }>;
@@ -975,6 +978,7 @@ resendVerificationEmail?: [{	email: string | Variable<any, string>},ValueTypes["
 verify2FA?: [{	token: string | Variable<any, string>,	secret: string | Variable<any, string>},ValueTypes["TwoFactorResult"]],
 	disable2FA?:ValueTypes["TwoFactorResult"],
 	carrierMutations?:ValueTypes["carrierMutation"],
+	userMutations?:ValueTypes["userMutation"],
 		__typename?: boolean | `@${string}`,
 	['...on Mutation']?: Omit<ValueTypes["Mutation"], "...on Mutation">
 }>;
@@ -986,6 +990,11 @@ deleteReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Dele
 publishReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Incident"]],
 		__typename?: boolean | `@${string}`,
 	['...on carrierMutation']?: Omit<ValueTypes["carrierMutation"], "...on carrierMutation">
+}>;
+	["userMutation"]: AliasType<{
+createReport?: [{	input: ValueTypes["CreateReportInput"] | Variable<any, string>},ValueTypes["Incident"]],
+		__typename?: boolean | `@${string}`,
+	['...on userMutation']?: Omit<ValueTypes["userMutation"], "...on userMutation">
 }>;
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
@@ -1033,10 +1042,69 @@ publishReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Inc
 	['...on DeleteResult']?: Omit<ValueTypes["DeleteResult"], "...on DeleteResult">
 }>;
 	["UserQuery"]: AliasType<{
-	dupa?:boolean | `@${string}`,
+incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
 		__typename?: boolean | `@${string}`,
 	['...on UserQuery']?: Omit<ValueTypes["UserQuery"], "...on UserQuery">
 }>;
+	["Coordinates"]: AliasType<{
+	latitude?:boolean | `@${string}`,
+	longitude?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on Coordinates']?: Omit<ValueTypes["Coordinates"], "...on Coordinates">
+}>;
+	["CoordinatesInput"]: {
+	latitude: number | Variable<any, string>,
+	longitude: number | Variable<any, string>
+};
+	["Stop"]: AliasType<{
+	id?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	coordinates?:ValueTypes["Coordinates"],
+	transportType?:boolean | `@${string}`,
+	platformNumbers?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on Stop']?: Omit<ValueTypes["Stop"], "...on Stop">
+}>;
+	["SegmentType"]:SegmentType;
+	["SegmentLocation"]: AliasType<{
+	stopId?:boolean | `@${string}`,
+	stopName?:boolean | `@${string}`,
+	coordinates?:ValueTypes["Coordinates"],
+		__typename?: boolean | `@${string}`,
+	['...on SegmentLocation']?: Omit<ValueTypes["SegmentLocation"], "...on SegmentLocation">
+}>;
+	["PathSegment"]: AliasType<{
+	segmentType?:boolean | `@${string}`,
+	from?:ValueTypes["SegmentLocation"],
+	to?:ValueTypes["SegmentLocation"],
+	lineId?:ValueTypes["id"],
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	duration?:boolean | `@${string}`,
+	distance?:boolean | `@${string}`,
+	platformNumber?:boolean | `@${string}`,
+	warnings?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on PathSegment']?: Omit<ValueTypes["PathSegment"], "...on PathSegment">
+}>;
+	["JourneyPath"]: AliasType<{
+	segments?:ValueTypes["PathSegment"],
+	totalDuration?:boolean | `@${string}`,
+	totalTransfers?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	warnings?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on JourneyPath']?: Omit<ValueTypes["JourneyPath"], "...on JourneyPath">
+}>;
+	["FindPathInput"]: {
+	startCoordinates: ValueTypes["CoordinatesInput"] | Variable<any, string>,
+	endCoordinates: ValueTypes["CoordinatesInput"] | Variable<any, string>,
+	departureTime?: string | undefined | null | Variable<any, string>,
+	maxWalkingDistance?: number | undefined | null | Variable<any, string>
+};
 	["Subscription"]: AliasType<{
 	_empty?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
@@ -1076,6 +1144,9 @@ export type ResolverInputTypes = {
 	me?:ResolverInputTypes["User"],
 check2FAStatus?: [{	username: string},ResolverInputTypes["TwoFactorStatus"]],
 	userQuery?:ResolverInputTypes["UserQuery"],
+lines?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Line"]],
+findPath?: [{	input: ResolverInputTypes["FindPathInput"]},ResolverInputTypes["JourneyPath"]],
+stops?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Stop"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["RegisterInput"]: {
@@ -1107,6 +1178,7 @@ resendVerificationEmail?: [{	email: string},ResolverInputTypes["ResendVerificati
 verify2FA?: [{	token: string,	secret: string},ResolverInputTypes["TwoFactorResult"]],
 	disable2FA?:ResolverInputTypes["TwoFactorResult"],
 	carrierMutations?:ResolverInputTypes["carrierMutation"],
+	userMutations?:ResolverInputTypes["userMutation"],
 		__typename?: boolean | `@${string}`
 }>;
 	["carrierMutation"]: AliasType<{
@@ -1115,6 +1187,10 @@ saveDraft?: [{	input: ResolverInputTypes["CreateReportInput"]},ResolverInputType
 updateReport?: [{	id: ResolverInputTypes["ID"],	input: ResolverInputTypes["UpdateReportInput"]},ResolverInputTypes["Incident"]],
 deleteReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["DeleteResult"]],
 publishReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]],
+		__typename?: boolean | `@${string}`
+}>;
+	["userMutation"]: AliasType<{
+createReport?: [{	input: ResolverInputTypes["CreateReportInput"]},ResolverInputTypes["Incident"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["IncidentKind"]:IncidentKind;
@@ -1160,9 +1236,63 @@ publishReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]]
 		__typename?: boolean | `@${string}`
 }>;
 	["UserQuery"]: AliasType<{
-	dupa?:boolean | `@${string}`,
+incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
 		__typename?: boolean | `@${string}`
 }>;
+	["Coordinates"]: AliasType<{
+	latitude?:boolean | `@${string}`,
+	longitude?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["CoordinatesInput"]: {
+	latitude: number,
+	longitude: number
+};
+	["Stop"]: AliasType<{
+	id?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	coordinates?:ResolverInputTypes["Coordinates"],
+	transportType?:boolean | `@${string}`,
+	platformNumbers?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["SegmentType"]:SegmentType;
+	["SegmentLocation"]: AliasType<{
+	stopId?:boolean | `@${string}`,
+	stopName?:boolean | `@${string}`,
+	coordinates?:ResolverInputTypes["Coordinates"],
+		__typename?: boolean | `@${string}`
+}>;
+	["PathSegment"]: AliasType<{
+	segmentType?:boolean | `@${string}`,
+	from?:ResolverInputTypes["SegmentLocation"],
+	to?:ResolverInputTypes["SegmentLocation"],
+	lineId?:ResolverInputTypes["id"],
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	duration?:boolean | `@${string}`,
+	distance?:boolean | `@${string}`,
+	platformNumber?:boolean | `@${string}`,
+	warnings?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["JourneyPath"]: AliasType<{
+	segments?:ResolverInputTypes["PathSegment"],
+	totalDuration?:boolean | `@${string}`,
+	totalTransfers?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	warnings?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["FindPathInput"]: {
+	startCoordinates: ResolverInputTypes["CoordinatesInput"],
+	endCoordinates: ResolverInputTypes["CoordinatesInput"],
+	departureTime?: string | undefined | null,
+	maxWalkingDistance?: number | undefined | null
+};
 	["Subscription"]: AliasType<{
 	_empty?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -1202,7 +1332,10 @@ export type ModelTypes = {
 	["Query"]: {
 		me?: ModelTypes["User"] | undefined | null,
 	check2FAStatus: ModelTypes["TwoFactorStatus"],
-	userQuery?: ModelTypes["UserQuery"] | undefined | null
+	userQuery?: ModelTypes["UserQuery"] | undefined | null,
+	lines: Array<ModelTypes["Line"]>,
+	findPath?: ModelTypes["JourneyPath"] | undefined | null,
+	stops: Array<ModelTypes["Stop"]>
 };
 	["RegisterInput"]: {
 	name: string,
@@ -1229,7 +1362,8 @@ export type ModelTypes = {
 	setup2FA: ModelTypes["TwoFactorSetup"],
 	verify2FA: ModelTypes["TwoFactorResult"],
 	disable2FA: ModelTypes["TwoFactorResult"],
-	carrierMutations?: ModelTypes["carrierMutation"] | undefined | null
+	carrierMutations?: ModelTypes["carrierMutation"] | undefined | null,
+	userMutations?: ModelTypes["userMutation"] | undefined | null
 };
 	["carrierMutation"]: {
 		createReport: ModelTypes["Incident"],
@@ -1237,6 +1371,9 @@ export type ModelTypes = {
 	updateReport: ModelTypes["Incident"],
 	deleteReport: ModelTypes["DeleteResult"],
 	publishReport: ModelTypes["Incident"]
+};
+	["userMutation"]: {
+		createReport: ModelTypes["Incident"]
 };
 	["IncidentKind"]:IncidentKind;
 	["TransportType"]:TransportType;
@@ -1278,7 +1415,56 @@ export type ModelTypes = {
 	message?: string | undefined | null
 };
 	["UserQuery"]: {
-		dupa: string
+		incidentsByLine: Array<ModelTypes["Incident"]>
+};
+	["Coordinates"]: {
+		latitude: number,
+	longitude: number
+};
+	["CoordinatesInput"]: {
+	latitude: number,
+	longitude: number
+};
+	["Stop"]: {
+		id: ModelTypes["ID"],
+	name: string,
+	coordinates: ModelTypes["Coordinates"],
+	transportType: ModelTypes["TransportType"],
+	platformNumbers?: Array<string> | undefined | null
+};
+	["SegmentType"]:SegmentType;
+	["SegmentLocation"]: {
+		stopId?: ModelTypes["ID"] | undefined | null,
+	stopName?: string | undefined | null,
+	coordinates: ModelTypes["Coordinates"]
+};
+	["PathSegment"]: {
+		segmentType: ModelTypes["SegmentType"],
+	from: ModelTypes["SegmentLocation"],
+	to: ModelTypes["SegmentLocation"],
+	lineId?: ModelTypes["id"] | undefined | null,
+	lineName?: string | undefined | null,
+	transportType?: ModelTypes["TransportType"] | undefined | null,
+	departureTime?: string | undefined | null,
+	arrivalTime?: string | undefined | null,
+	duration: number,
+	distance?: number | undefined | null,
+	platformNumber?: string | undefined | null,
+	warnings?: Array<string> | undefined | null
+};
+	["JourneyPath"]: {
+		segments: Array<ModelTypes["PathSegment"]>,
+	totalDuration: number,
+	totalTransfers: number,
+	departureTime: string,
+	arrivalTime: string,
+	warnings: Array<string>
+};
+	["FindPathInput"]: {
+	startCoordinates: ModelTypes["CoordinatesInput"],
+	endCoordinates: ModelTypes["CoordinatesInput"],
+	departureTime?: string | undefined | null,
+	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: {
 		_empty?: string | undefined | null
@@ -1292,7 +1478,14 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    ["UserRole"]: UserRole;
+    // Geographic coordinates;
+	// Stop/Station with location;
+	// Path segment type;
+	// Location info for segment endpoints;
+	// Single segment of a journey;
+	// Complete journey path;
+	// Input for finding a path;
+	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
 	id: GraphQLTypes["ID"],
@@ -1327,6 +1520,9 @@ export type GraphQLTypes = {
 	me?: GraphQLTypes["User"] | undefined | null,
 	check2FAStatus: GraphQLTypes["TwoFactorStatus"],
 	userQuery?: GraphQLTypes["UserQuery"] | undefined | null,
+	lines: Array<GraphQLTypes["Line"]>,
+	findPath?: GraphQLTypes["JourneyPath"] | undefined | null,
+	stops: Array<GraphQLTypes["Stop"]>,
 	['...on Query']: Omit<GraphQLTypes["Query"], "...on Query">
 };
 	["RegisterInput"]: {
@@ -1362,6 +1558,7 @@ export type GraphQLTypes = {
 	verify2FA: GraphQLTypes["TwoFactorResult"],
 	disable2FA: GraphQLTypes["TwoFactorResult"],
 	carrierMutations?: GraphQLTypes["carrierMutation"] | undefined | null,
+	userMutations?: GraphQLTypes["userMutation"] | undefined | null,
 	['...on Mutation']: Omit<GraphQLTypes["Mutation"], "...on Mutation">
 };
 	["carrierMutation"]: {
@@ -1372,6 +1569,11 @@ export type GraphQLTypes = {
 	deleteReport: GraphQLTypes["DeleteResult"],
 	publishReport: GraphQLTypes["Incident"],
 	['...on carrierMutation']: Omit<GraphQLTypes["carrierMutation"], "...on carrierMutation">
+};
+	["userMutation"]: {
+	__typename: "userMutation",
+	createReport: GraphQLTypes["Incident"],
+	['...on userMutation']: Omit<GraphQLTypes["userMutation"], "...on userMutation">
 };
 	["IncidentKind"]: IncidentKind;
 	["TransportType"]: TransportType;
@@ -1420,8 +1622,67 @@ export type GraphQLTypes = {
 };
 	["UserQuery"]: {
 	__typename: "UserQuery",
-	dupa: string,
+	incidentsByLine: Array<GraphQLTypes["Incident"]>,
 	['...on UserQuery']: Omit<GraphQLTypes["UserQuery"], "...on UserQuery">
+};
+	["Coordinates"]: {
+	__typename: "Coordinates",
+	latitude: number,
+	longitude: number,
+	['...on Coordinates']: Omit<GraphQLTypes["Coordinates"], "...on Coordinates">
+};
+	["CoordinatesInput"]: {
+		latitude: number,
+	longitude: number
+};
+	["Stop"]: {
+	__typename: "Stop",
+	id: GraphQLTypes["ID"],
+	name: string,
+	coordinates: GraphQLTypes["Coordinates"],
+	transportType: GraphQLTypes["TransportType"],
+	platformNumbers?: Array<string> | undefined | null,
+	['...on Stop']: Omit<GraphQLTypes["Stop"], "...on Stop">
+};
+	["SegmentType"]: SegmentType;
+	["SegmentLocation"]: {
+	__typename: "SegmentLocation",
+	stopId?: GraphQLTypes["ID"] | undefined | null,
+	stopName?: string | undefined | null,
+	coordinates: GraphQLTypes["Coordinates"],
+	['...on SegmentLocation']: Omit<GraphQLTypes["SegmentLocation"], "...on SegmentLocation">
+};
+	["PathSegment"]: {
+	__typename: "PathSegment",
+	segmentType: GraphQLTypes["SegmentType"],
+	from: GraphQLTypes["SegmentLocation"],
+	to: GraphQLTypes["SegmentLocation"],
+	lineId?: GraphQLTypes["id"] | undefined | null,
+	lineName?: string | undefined | null,
+	transportType?: GraphQLTypes["TransportType"] | undefined | null,
+	departureTime?: string | undefined | null,
+	arrivalTime?: string | undefined | null,
+	duration: number,
+	distance?: number | undefined | null,
+	platformNumber?: string | undefined | null,
+	warnings?: Array<string> | undefined | null,
+	['...on PathSegment']: Omit<GraphQLTypes["PathSegment"], "...on PathSegment">
+};
+	["JourneyPath"]: {
+	__typename: "JourneyPath",
+	segments: Array<GraphQLTypes["PathSegment"]>,
+	totalDuration: number,
+	totalTransfers: number,
+	departureTime: string,
+	arrivalTime: string,
+	warnings: Array<string>,
+	['...on JourneyPath']: Omit<GraphQLTypes["JourneyPath"], "...on JourneyPath">
+};
+	["FindPathInput"]: {
+		startCoordinates: GraphQLTypes["CoordinatesInput"],
+	endCoordinates: GraphQLTypes["CoordinatesInput"],
+	departureTime?: string | undefined | null,
+	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: {
 	__typename: "Subscription",
@@ -1456,6 +1717,10 @@ export enum ReportStatus {
 	PUBLISHED = "PUBLISHED",
 	RESOLVED = "RESOLVED"
 }
+export enum SegmentType {
+	WALK = "WALK",
+	TRANSIT = "TRANSIT"
+}
 
 type ZEUS_VARIABLES = {
 	["UserRole"]: ValueTypes["UserRole"];
@@ -1466,5 +1731,8 @@ type ZEUS_VARIABLES = {
 	["ReportStatus"]: ValueTypes["ReportStatus"];
 	["CreateReportInput"]: ValueTypes["CreateReportInput"];
 	["UpdateReportInput"]: ValueTypes["UpdateReportInput"];
+	["CoordinatesInput"]: ValueTypes["CoordinatesInput"];
+	["SegmentType"]: ValueTypes["SegmentType"];
+	["FindPathInput"]: ValueTypes["FindPathInput"];
 	["ID"]: ValueTypes["ID"];
 }

@@ -5,6 +5,15 @@ export const AllTypesProps: Record<string,any> = {
 	Query:{
 		check2FAStatus:{
 
+		},
+		lines:{
+			transportType:"TransportType"
+		},
+		findPath:{
+			input:"FindPathInput"
+		},
+		stops:{
+			transportType:"TransportType"
 		}
 	},
 	RegisterInput:{
@@ -41,6 +50,11 @@ export const AllTypesProps: Record<string,any> = {
 
 		}
 	},
+	userMutation:{
+		createReport:{
+			input:"CreateReportInput"
+		}
+	},
 	IncidentKind: "enum" as const,
 	TransportType: "enum" as const,
 	IncidentClass: "enum" as const,
@@ -52,6 +66,19 @@ export const AllTypesProps: Record<string,any> = {
 	UpdateReportInput:{
 		kind:"IncidentKind",
 		status:"ReportStatus"
+	},
+	UserQuery:{
+		incidentsByLine:{
+			transportType:"TransportType"
+		}
+	},
+	CoordinatesInput:{
+
+	},
+	SegmentType: "enum" as const,
+	FindPathInput:{
+		startCoordinates:"CoordinatesInput",
+		endCoordinates:"CoordinatesInput"
 	},
 	ID: `scalar.ID` as const
 }
@@ -81,7 +108,10 @@ export const ReturnTypes: Record<string,any> = {
 	Query:{
 		me:"User",
 		check2FAStatus:"TwoFactorStatus",
-		userQuery:"UserQuery"
+		userQuery:"UserQuery",
+		lines:"Line",
+		findPath:"JourneyPath",
+		stops:"Stop"
 	},
 	RegisterResult:{
 		success:"Boolean",
@@ -103,7 +133,8 @@ export const ReturnTypes: Record<string,any> = {
 		setup2FA:"TwoFactorSetup",
 		verify2FA:"TwoFactorResult",
 		disable2FA:"TwoFactorResult",
-		carrierMutations:"carrierMutation"
+		carrierMutations:"carrierMutation",
+		userMutations:"userMutation"
 	},
 	carrierMutation:{
 		createReport:"Incident",
@@ -111,6 +142,9 @@ export const ReturnTypes: Record<string,any> = {
 		updateReport:"Incident",
 		deleteReport:"DeleteResult",
 		publishReport:"Incident"
+	},
+	userMutation:{
+		createReport:"Incident"
 	},
 	Incident:{
 		id:"ID",
@@ -134,7 +168,45 @@ export const ReturnTypes: Record<string,any> = {
 		message:"String"
 	},
 	UserQuery:{
-		dupa:"String"
+		incidentsByLine:"Incident"
+	},
+	Coordinates:{
+		latitude:"Float",
+		longitude:"Float"
+	},
+	Stop:{
+		id:"ID",
+		name:"String",
+		coordinates:"Coordinates",
+		transportType:"TransportType",
+		platformNumbers:"String"
+	},
+	SegmentLocation:{
+		stopId:"ID",
+		stopName:"String",
+		coordinates:"Coordinates"
+	},
+	PathSegment:{
+		segmentType:"SegmentType",
+		from:"SegmentLocation",
+		to:"SegmentLocation",
+		lineId:"id",
+		lineName:"String",
+		transportType:"TransportType",
+		departureTime:"String",
+		arrivalTime:"String",
+		duration:"Int",
+		distance:"Int",
+		platformNumber:"String",
+		warnings:"String"
+	},
+	JourneyPath:{
+		segments:"PathSegment",
+		totalDuration:"Int",
+		totalTransfers:"Int",
+		departureTime:"String",
+		arrivalTime:"String",
+		warnings:"String"
 	},
 	Subscription:{
 		_empty:"String"

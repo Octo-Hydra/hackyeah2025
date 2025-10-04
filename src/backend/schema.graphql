@@ -32,6 +32,10 @@ type TwoFactorResult {
 type Query {
   me: User
   check2FAStatus(username: String!): TwoFactorStatus!
+  userQuery: UserQuery
+  lines(transportType: TransportType): [Line!]!
+  findPath(input: FindPathInput!): JourneyPath
+  stops(transportType: TransportType): [Stop!]!
 }
 
 input RegisterInput {
@@ -63,7 +67,8 @@ type Mutation {
   setup2FA: TwoFactorSetup!
   verify2FA(token: String!, secret: String!): TwoFactorResult!
   disable2FA: TwoFactorResult!
-  carrierMutations: carrierMutation 
+  carrierMutations: carrierMutation
+  userMutations: userMutation
 }
 
 type carrierMutation {
@@ -72,6 +77,10 @@ type carrierMutation {
   updateReport(id: ID!, input: UpdateReportInput!): Incident!
   deleteReport(id: ID!): DeleteResult!
   publishReport(id: ID!): Incident!
+}
+
+type userMutation {
+  createReport(input: CreateReportInput!): Incident!
 }
 
 enum IncidentKind {
@@ -140,12 +149,76 @@ type DeleteResult {
 }
 
 type UserQuery {
-    dupa: String!
+  incidentsByLine(lineId: ID!, transportType: TransportType): [Incident!]!
 }
 
-extend type Query {
-  userQuery: UserQuery
+# Geographic coordinates
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
 }
+
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
+# Stop/Station with location
+type Stop {
+  id: ID!
+  name: String!
+  coordinates: Coordinates!
+  transportType: TransportType!
+  platformNumbers: [String!]
+}
+
+# Path segment type
+enum SegmentType {
+  WALK
+  TRANSIT
+}
+
+# Location info for segment endpoints
+type SegmentLocation {
+  stopId: ID
+  stopName: String
+  coordinates: Coordinates!
+}
+
+# Single segment of a journey
+type PathSegment {
+  segmentType: SegmentType!
+  from: SegmentLocation!
+  to: SegmentLocation!
+  lineId: id
+  lineName: String
+  transportType: TransportType
+  departureTime: String
+  arrivalTime: String
+  duration: Int!
+  distance: Int
+  platformNumber: String
+  warnings: [String!]
+}
+
+# Complete journey path
+type JourneyPath {
+  segments: [PathSegment!]!
+  totalDuration: Int!
+  totalTransfers: Int!
+  departureTime: String!
+  arrivalTime: String!
+  warnings: [String!]!
+}
+
+# Input for finding a path
+input FindPathInput {
+  startCoordinates: CoordinatesInput!
+  endCoordinates: CoordinatesInput!
+  departureTime: String
+  maxWalkingDistance: Int
+}
+
 type Subscription {
   _empty: String
 }

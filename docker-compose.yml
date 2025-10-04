@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:7
+    image: mongo:latest
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -10,16 +10,6 @@ services:
       MONGO_INITDB_DATABASE: agentsfun
     volumes:
       - mongo-data:/data/db
-
-  # mailhog:
-  #   image: mailhog/mailhog:latest
-  #   restart: unless-stopped
-  #   ports:
-  #     - "1025:1025" # SMTP server
-  #     - "8025:8025" # Web UI
-  #   environment:
-  #     MH_STORAGE: memory
-  #     MH_UI_WEB_PATH: mailhog
 
 volumes:
   mongo-data:

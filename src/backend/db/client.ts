@@ -18,9 +18,9 @@ export async function getMongoClient(): Promise<MongoClient> {
   return client;
 }
 
-export async function getMongoDb(dbName?: string): Promise<Db> {
+export async function DB(dbName?: string): Promise<Db> {
   const c = await getMongoClient();
-  // if dbName is not provided, use the database part of the connection string or default to "hackyeah"
+  console.log(c);
   if (dbName) return c.db(dbName);
   return c.db();
 }
