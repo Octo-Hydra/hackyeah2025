@@ -63,7 +63,7 @@ type Mutation {
   setup2FA: TwoFactorSetup!
   verify2FA(token: String!, secret: String!): TwoFactorResult!
   disable2FA: TwoFactorResult!
-  carrierMutations: carrierMutation 
+  carrierMutations: carrierMutation
 }
 
 type carrierMutation {
@@ -140,12 +140,54 @@ type DeleteResult {
 }
 
 type UserQuery {
-    dupa: String!
+  dupa: String!
 }
 
 extend type Query {
   userQuery: UserQuery
 }
+
+type NotificationReport {
+  id: ID!
+  reportedBy: String!
+  title: String!
+  description: String!
+  kind: IncidentKind!
+  lineId: String!
+  lineName: String!
+  timestamp: String!
+  status: String!
+  supportingReports: [String!]!
+  totalReputation: Int!
+  reportCount: Int!
+}
+
+type OfficialNotification {
+  id: ID!
+  incidentId: String!
+  title: String!
+  description: String!
+  kind: IncidentKind!
+  lineId: String!
+  lineName: String!
+  reportCount: Int!
+  totalReputation: Int!
+  contributingUsers: [String!]!
+  createdAt: String!
+  status: String!
+}
+
+type ReputationUpdate {
+  userId: String!
+  change: Int!
+  newReputation: Int!
+  reason: String!
+  timestamp: String!
+}
+
 type Subscription {
-  _empty: String
+  notificationReported(lineIds: [String!]): NotificationReport!
+  notificationConfirmed(lineIds: [String!]): NotificationReport!
+  notificationOfficial: OfficialNotification!
+  reputationUpdated(userId: String!): ReputationUpdate!
 }

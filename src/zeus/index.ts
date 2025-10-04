@@ -676,7 +676,7 @@ export const InternalArgsBuilt = ({
     }
     const checkType = ResolveFromPath(props, returns, ops)(p);
     if (checkType.startsWith('scalar.')) {
-       
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, ...splittedScalar] = checkType.split('.');
       const scalarKey = splittedScalar.join('.');
       return (scalars?.[scalarKey]?.encode?.(a) as string) || JSON.stringify(a);
@@ -1037,8 +1037,52 @@ publishReport?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["Inc
 		__typename?: boolean | `@${string}`,
 	['...on UserQuery']?: Omit<ValueTypes["UserQuery"], "...on UserQuery">
 }>;
+	["NotificationReport"]: AliasType<{
+	id?:boolean | `@${string}`,
+	reportedBy?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	timestamp?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	supportingReports?:boolean | `@${string}`,
+	totalReputation?:boolean | `@${string}`,
+	reportCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on NotificationReport']?: Omit<ValueTypes["NotificationReport"], "...on NotificationReport">
+}>;
+	["OfficialNotification"]: AliasType<{
+	id?:boolean | `@${string}`,
+	incidentId?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	reportCount?:boolean | `@${string}`,
+	totalReputation?:boolean | `@${string}`,
+	contributingUsers?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on OfficialNotification']?: Omit<ValueTypes["OfficialNotification"], "...on OfficialNotification">
+}>;
+	["ReputationUpdate"]: AliasType<{
+	userId?:boolean | `@${string}`,
+	change?:boolean | `@${string}`,
+	newReputation?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	timestamp?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on ReputationUpdate']?: Omit<ValueTypes["ReputationUpdate"], "...on ReputationUpdate">
+}>;
 	["Subscription"]: AliasType<{
-	_empty?:boolean | `@${string}`,
+notificationReported?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
+notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
+	notificationOfficial?:ValueTypes["OfficialNotification"],
+reputationUpdated?: [{	userId: string | Variable<any, string>},ValueTypes["ReputationUpdate"]],
 		__typename?: boolean | `@${string}`,
 	['...on Subscription']?: Omit<ValueTypes["Subscription"], "...on Subscription">
 }>;
@@ -1163,8 +1207,49 @@ publishReport?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["Incident"]]
 	dupa?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["NotificationReport"]: AliasType<{
+	id?:boolean | `@${string}`,
+	reportedBy?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	timestamp?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	supportingReports?:boolean | `@${string}`,
+	totalReputation?:boolean | `@${string}`,
+	reportCount?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["OfficialNotification"]: AliasType<{
+	id?:boolean | `@${string}`,
+	incidentId?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	reportCount?:boolean | `@${string}`,
+	totalReputation?:boolean | `@${string}`,
+	contributingUsers?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["ReputationUpdate"]: AliasType<{
+	userId?:boolean | `@${string}`,
+	change?:boolean | `@${string}`,
+	newReputation?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	timestamp?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["Subscription"]: AliasType<{
-	_empty?:boolean | `@${string}`,
+notificationReported?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
+notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
+	notificationOfficial?:ResolverInputTypes["OfficialNotification"],
+reputationUpdated?: [{	userId: string},ResolverInputTypes["ReputationUpdate"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["schema"]: AliasType<{
@@ -1280,8 +1365,46 @@ export type ModelTypes = {
 	["UserQuery"]: {
 		dupa: string
 };
+	["NotificationReport"]: {
+		id: ModelTypes["ID"],
+	reportedBy: string,
+	title: string,
+	description: string,
+	kind: ModelTypes["IncidentKind"],
+	lineId: string,
+	lineName: string,
+	timestamp: string,
+	status: string,
+	supportingReports: Array<string>,
+	totalReputation: number,
+	reportCount: number
+};
+	["OfficialNotification"]: {
+		id: ModelTypes["ID"],
+	incidentId: string,
+	title: string,
+	description: string,
+	kind: ModelTypes["IncidentKind"],
+	lineId: string,
+	lineName: string,
+	reportCount: number,
+	totalReputation: number,
+	contributingUsers: Array<string>,
+	createdAt: string,
+	status: string
+};
+	["ReputationUpdate"]: {
+		userId: string,
+	change: number,
+	newReputation: number,
+	reason: string,
+	timestamp: string
+};
 	["Subscription"]: {
-		_empty?: string | undefined | null
+		notificationReported: ModelTypes["NotificationReport"],
+	notificationConfirmed: ModelTypes["NotificationReport"],
+	notificationOfficial: ModelTypes["OfficialNotification"],
+	reputationUpdated: ModelTypes["ReputationUpdate"]
 };
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
@@ -1423,9 +1546,53 @@ export type GraphQLTypes = {
 	dupa: string,
 	['...on UserQuery']: Omit<GraphQLTypes["UserQuery"], "...on UserQuery">
 };
+	["NotificationReport"]: {
+	__typename: "NotificationReport",
+	id: GraphQLTypes["ID"],
+	reportedBy: string,
+	title: string,
+	description: string,
+	kind: GraphQLTypes["IncidentKind"],
+	lineId: string,
+	lineName: string,
+	timestamp: string,
+	status: string,
+	supportingReports: Array<string>,
+	totalReputation: number,
+	reportCount: number,
+	['...on NotificationReport']: Omit<GraphQLTypes["NotificationReport"], "...on NotificationReport">
+};
+	["OfficialNotification"]: {
+	__typename: "OfficialNotification",
+	id: GraphQLTypes["ID"],
+	incidentId: string,
+	title: string,
+	description: string,
+	kind: GraphQLTypes["IncidentKind"],
+	lineId: string,
+	lineName: string,
+	reportCount: number,
+	totalReputation: number,
+	contributingUsers: Array<string>,
+	createdAt: string,
+	status: string,
+	['...on OfficialNotification']: Omit<GraphQLTypes["OfficialNotification"], "...on OfficialNotification">
+};
+	["ReputationUpdate"]: {
+	__typename: "ReputationUpdate",
+	userId: string,
+	change: number,
+	newReputation: number,
+	reason: string,
+	timestamp: string,
+	['...on ReputationUpdate']: Omit<GraphQLTypes["ReputationUpdate"], "...on ReputationUpdate">
+};
 	["Subscription"]: {
 	__typename: "Subscription",
-	_empty?: string | undefined | null,
+	notificationReported: GraphQLTypes["NotificationReport"],
+	notificationConfirmed: GraphQLTypes["NotificationReport"],
+	notificationOfficial: GraphQLTypes["OfficialNotification"],
+	reputationUpdated: GraphQLTypes["ReputationUpdate"],
 	['...on Subscription']: Omit<GraphQLTypes["Subscription"], "...on Subscription">
 };
 	["ID"]: "scalar" & { name: "ID" }

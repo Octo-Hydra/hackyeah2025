@@ -53,6 +53,17 @@ export const AllTypesProps: Record<string,any> = {
 		kind:"IncidentKind",
 		status:"ReportStatus"
 	},
+	Subscription:{
+		notificationReported:{
+
+		},
+		notificationConfirmed:{
+
+		},
+		reputationUpdated:{
+
+		}
+	},
 	ID: `scalar.ID` as const
 }
 
@@ -136,8 +147,46 @@ export const ReturnTypes: Record<string,any> = {
 	UserQuery:{
 		dupa:"String"
 	},
+	NotificationReport:{
+		id:"ID",
+		reportedBy:"String",
+		title:"String",
+		description:"String",
+		kind:"IncidentKind",
+		lineId:"String",
+		lineName:"String",
+		timestamp:"String",
+		status:"String",
+		supportingReports:"String",
+		totalReputation:"Int",
+		reportCount:"Int"
+	},
+	OfficialNotification:{
+		id:"ID",
+		incidentId:"String",
+		title:"String",
+		description:"String",
+		kind:"IncidentKind",
+		lineId:"String",
+		lineName:"String",
+		reportCount:"Int",
+		totalReputation:"Int",
+		contributingUsers:"String",
+		createdAt:"String",
+		status:"String"
+	},
+	ReputationUpdate:{
+		userId:"String",
+		change:"Int",
+		newReputation:"Int",
+		reason:"String",
+		timestamp:"String"
+	},
 	Subscription:{
-		_empty:"String"
+		notificationReported:"NotificationReport",
+		notificationConfirmed:"NotificationReport",
+		notificationOfficial:"OfficialNotification",
+		reputationUpdated:"ReputationUpdate"
 	},
 	ID: `scalar.ID` as const
 }
