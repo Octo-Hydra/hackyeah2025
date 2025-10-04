@@ -1517,18 +1517,18 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Geographic coordinates;
-	// Stop/Station with location;
-	// Path segment type;
-	// Location info for segment endpoints;
-	// Single segment of a journey;
-	// Complete journey path;
-	// Input for finding a path;
-	// Real-time incident updates;
-	// Line-specific incident updates;
-	// All incidents for specific lines (user subscribes to favorite lines);
-	// Journey path updates (when incidents affect the route);
-	// Payload when a journey path is affected by an incident;
+    // Geographic coordinates;
+	// Stop/Station with location;
+	// Path segment type;
+	// Location info for segment endpoints;
+	// Single segment of a journey;
+	// Complete journey path;
+	// Input for finding a path;
+	// Real-time incident updates;
+	// Line-specific incident updates;
+	// All incidents for specific lines (user subscribes to favorite lines);
+	// Journey path updates (when incidents affect the route);
+	// Payload when a journey path is affected by an incident;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
