@@ -1,6 +1,8 @@
-# HackYeah 2025 - Progressive Web App
+# OnTime - Progressive Web App
 
-A modern PWA built with Next.js 15, featuring real-time notifications, authentication, and mobile-first design - perfect for Yanosik-style navigation apps.
+**No more waiting, just on-time arrivals!**
+
+A modern mobile-first PWA built with Next.js 15, featuring real-time navigation, push notifications, native app experience, and beautiful UI.
 
 ## 🚀 Quick Start
 
@@ -23,19 +25,42 @@ Visit: **https://localhost:3000**
 
 ## 📱 Features
 
-- ✅ **Progressive Web App** - Install on any device (iOS, Android, Desktop)
-- ✅ **Push Notifications** - Real-time alerts with MongoDB storage
-- ✅ **NextAuth.js v5** - Credentials & Google OAuth authentication
-- ✅ **MongoDB** - User accounts & push subscriptions
-- ✅ **Service Worker** - Offline support & background sync
-- ✅ **WebSocket Ready** - For real-time data updates
-- ✅ **Geolocation Ready** - Perfect for maps & navigation
-- ✅ **Mobile First** - Responsive design with Tailwind CSS
+### 🎯 Mobile Native Experience
+- ✅ **Native Bottom Navigation** - iOS/Android style tab bar
+- ✅ **Beautiful Splash Screens** - Custom screens for all iOS devices
+- ✅ **Touch-Optimized UI** - Large tap targets, smooth animations
+- ✅ **Safe Area Support** - Perfect on notched devices (iPhone X+)
 
-## 📂 Project Structure
+### 💪 PWA Capabilities
+- ✅ **Installable** - Add to home screen on any device
+- ✅ **Offline Support** - Service worker with background sync
+- ✅ **Push Notifications** - Real-time alerts with MongoDB storage
+- ✅ **App Shortcuts** - Quick actions from home screen
+
+### 🔐 Authentication & Data
+- ✅ **NextAuth.js v5** - Credentials & OAuth (Google, Facebook)
+- ✅ **MongoDB** - User accounts & push subscriptions
+- ✅ **GraphQL API** - Modern data layer with Zeus
+
+### 🎨 Modern Stack
+- ✅ **Next.js 15** - App Router with Turbopack
+- ✅ **Tailwind CSS** - Beautiful responsive design
+- ✅ **TypeScript** - Full type safety
+- ✅ **shadcn/ui** - Premium UI components
+
+## � Mobile PWA Guide
+
+**NEW!** Check out our comprehensive mobile PWA documentation:
+- 📘 **[README_MOBILE_PWA.md](./README_MOBILE_PWA.md)** - Complete implementation guide
+- 📱 **[docs/MOBILE_PWA.md](./docs/MOBILE_PWA.md)** - Mobile features overview
+- 🎨 **[docs/PWA_INSTALLATION.md](./docs/PWA_INSTALLATION.md)** - Installation & splash screens
+
+## �📂 Project Structure
 
 ```
 ├── docs/                      # 📚 All documentation
+│   ├── MOBILE_PWA.md         # 🆕 Mobile features guide
+│   ├── PWA_INSTALLATION.md   # 🆕 Installation & splash screens
 │   ├── PWA_QUICKSTART.md     # Quick start guide
 │   ├── PWA_GUIDE.md          # Complete PWA documentation
 │   ├── NEXTAUTH_SETUP.md     # Authentication guide

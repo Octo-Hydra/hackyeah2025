@@ -8,7 +8,8 @@
     "build": "next build --turbopack",
     "start": "NODE_ENV=production node --import=tsx/esm server.ts",
     "lint": "eslint",
-    "lint:fix": "eslint --fix ./src/**/*.{js,ts,tsx}"
+    "lint:fix": "eslint --fix ./src/**/*.{js,ts,tsx}",
+    "splash": "node scripts/create-placeholder-splash.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
