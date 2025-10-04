@@ -14,10 +14,7 @@ type User {
 }
 
 type ActiveJourney {
-  routeIds: [ID!]!
-  lineIds: [ID!]!
-  startStop: SegmentLocation!
-  endStop: SegmentLocation!
+  segments: [PathSegment!]!
   startTime: String!
   expectedEndTime: String!
 }
@@ -30,10 +27,18 @@ type FavoriteConnection {
 }
 
 input ActiveJourneyInput {
-  routeIds: [ID!]!
-  lineIds: [ID!]!
-  startStop: SegmentLocationInput!
-  endStop: SegmentLocationInput!
+  segments: [PathSegmentInput!]!
+}
+
+input PathSegmentInput {
+  from: SegmentLocationInput!
+  to: SegmentLocationInput!
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  departureTime: String!
+  arrivalTime: String!
+  duration: Int!
 }
 
 input SegmentLocationInput {

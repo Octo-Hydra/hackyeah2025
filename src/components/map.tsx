@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
-import type { LatLngExpression } from "leaflet";
+import type { LatLngExpression, Map as LeafletMap } from "leaflet";
+import type { MappedRoute } from "@/lib/map-utils";
+import { activeJourneyToMappedRoute } from "@/lib/map-utils";
+import { useAppStore } from "@/store/app-store";
 
 // Dynamically import MapContainer to avoid SSR issues
 const MapContainer = dynamic(
@@ -25,6 +28,11 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
   ssr: false,
 });
 
+const Polyline = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Polyline),
+  { ssr: false },
+);
+
 interface MapProps {
   center?: LatLngExpression;
   zoom?: number;
@@ -34,6 +42,11 @@ interface MapProps {
 export function Map({ center, zoom = 13, className }: MapProps) {
   const [position, setPosition] = useState<LatLngExpression | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [mappedRoute, setMappedRoute] = useState<MappedRoute | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+
+  // Subscribe to active journey changes from store
+  const activeJourney = useAppStore((state) => state.user?.activeJourney);
 
   useEffect(() => {
     setIsClient(true);
@@ -55,6 +68,27 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       setPosition([52.2297, 21.0122]);
     }
   }, []);
+
+  // Convert active journey to mapped route when it changes
+  useEffect(() => {
+    if (activeJourney?.segments && activeJourney.segments.length > 0) {
+      const route = activeJourneyToMappedRoute(activeJourney.segments);
+      setMappedRoute(route);
+    } else {
+      setMappedRoute(null);
+    }
+  }, [activeJourney]);
+
+  // Fit map bounds to route when route changes
+  useEffect(() => {
+    if (mappedRoute && mapRef.current) {
+      const { bounds } = mappedRoute;
+      mapRef.current.fitBounds([
+        [bounds.minLat, bounds.minLon],
+        [bounds.maxLat, bounds.maxLon],
+      ]);
+    }
+  }, [mappedRoute]);
 
   useEffect(() => {
     // Fix Leaflet default marker icon issue with webpack
@@ -93,6 +127,18 @@ export function Map({ center, zoom = 13, className }: MapProps) {
 
   const mapCenter = center || position;
 
+  // Helper function to get color based on transport type
+  const getLineColor = (transportType: string) => {
+    switch (transportType.toUpperCase()) {
+      case "BUS":
+        return "#3b82f6"; // Blue
+      case "RAIL":
+        return "#ef4444"; // Red
+      default:
+        return "#6b7280"; // Gray
+    }
+  };
+
   return (
     <MapContainer
       center={mapCenter}
@@ -104,22 +150,92 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       touchZoom={true}
       doubleClickZoom={true}
       zoomControl={true}
+      ref={(map) => {
+        if (map) {
+          mapRef.current = map;
+        }
+      }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={mapCenter}>
-        <Popup>
-          Your current location
-          <br />
-          <small>
-            Lat: {Array.isArray(mapCenter) ? mapCenter[0] : mapCenter.lat}
+
+      {/* Show user location marker when no route is displayed */}
+      {!mappedRoute && (
+        <Marker position={mapCenter}>
+          <Popup>
+            Your current location
             <br />
-            Lng: {Array.isArray(mapCenter) ? mapCenter[1] : mapCenter.lng}
-          </small>
-        </Popup>
-      </Marker>
+            <small>
+              Lat: {Array.isArray(mapCenter) ? mapCenter[0] : mapCenter.lat}
+              <br />
+              Lng: {Array.isArray(mapCenter) ? mapCenter[1] : mapCenter.lng}
+            </small>
+          </Popup>
+        </Marker>
+      )}
+
+      {/* Render route segments as polylines */}
+      {mappedRoute?.segments.map((segment, idx) => (
+        <Polyline
+          key={`segment-${idx}`}
+          positions={[
+            [segment.from.lat, segment.from.lon],
+            [segment.to.lat, segment.to.lon],
+          ]}
+          pathOptions={{
+            color: getLineColor(segment.transportType),
+            weight: 4,
+            opacity: 0.7,
+          }}
+        >
+          <Popup>
+            <div className="text-sm">
+              <strong>{segment.lineName}</strong> ({segment.transportType})
+              <br />
+              From: {segment.from.stopName}
+              <br />
+              To: {segment.to.stopName}
+              {segment.departureTime && (
+                <>
+                  <br />
+                  Departure: {segment.departureTime}
+                </>
+              )}
+              {segment.arrivalTime && (
+                <>
+                  <br />
+                  Arrival: {segment.arrivalTime}
+                </>
+              )}
+            </div>
+          </Popup>
+        </Polyline>
+      ))}
+
+      {/* Render markers for each stop in the route */}
+      {mappedRoute?.allPoints.map((point, idx) => (
+        <Marker
+          key={`point-${idx}`}
+          position={[point.lat, point.lon]}
+          opacity={point.isTransfer ? 1 : 0.8}
+        >
+          <Popup>
+            <div className="text-sm">
+              <strong>{point.stopName}</strong>
+              {point.isTransfer && (
+                <>
+                  <br />
+                  <span className="text-orange-600 font-semibold">
+                    ⚠ Transfer Point
+                  </span>
+                </>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   );
 }

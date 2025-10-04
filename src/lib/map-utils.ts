@@ -33,6 +33,105 @@ export interface MappedRoute {
 }
 
 /**
+ * Converts user's activeJourney segments to MappedRoute format
+ * This is specifically for segments from the user's stored activeJourney
+ */
+export function activeJourneyToMappedRoute(
+  segments: Array<{
+    from: {
+      stopId: string;
+      stopName: string;
+      coordinates: { latitude: number; longitude: number };
+    };
+    to: {
+      stopId: string;
+      stopName: string;
+      coordinates: { latitude: number; longitude: number };
+    };
+    lineId: string;
+    lineName: string;
+    transportType: string;
+    departureTime: string;
+    arrivalTime: string;
+    duration: number;
+    hasIncident?: boolean;
+  }>,
+): MappedRoute | null {
+  if (!segments || segments.length === 0) {
+    return null;
+  }
+
+  const routeSegments: RouteSegment[] = [];
+  const allPoints: RoutePoint[] = [];
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLon = Infinity;
+  let maxLon = -Infinity;
+
+  segments.forEach((segment, index) => {
+    const fromPoint: RoutePoint = {
+      lat: segment.from.coordinates.latitude,
+      lon: segment.from.coordinates.longitude,
+      stopName: segment.from.stopName,
+      isTransfer: index > 0,
+    };
+
+    // Update bounds
+    minLat = Math.min(minLat, fromPoint.lat);
+    maxLat = Math.max(maxLat, fromPoint.lat);
+    minLon = Math.min(minLon, fromPoint.lon);
+    maxLon = Math.max(maxLon, fromPoint.lon);
+
+    // Add from point
+    if (
+      allPoints.length === 0 ||
+      allPoints[allPoints.length - 1].lat !== fromPoint.lat ||
+      allPoints[allPoints.length - 1].lon !== fromPoint.lon
+    ) {
+      allPoints.push(fromPoint);
+    }
+
+    const toPoint: RoutePoint = {
+      lat: segment.to.coordinates.latitude,
+      lon: segment.to.coordinates.longitude,
+      stopName: segment.to.stopName,
+      isTransfer: false,
+    };
+
+    // Update bounds
+    minLat = Math.min(minLat, toPoint.lat);
+    maxLat = Math.max(maxLat, toPoint.lat);
+    minLon = Math.min(minLon, toPoint.lon);
+    maxLon = Math.max(maxLon, toPoint.lon);
+
+    allPoints.push(toPoint);
+
+    // Create segment
+    routeSegments.push({
+      from: fromPoint,
+      to: toPoint,
+      lineId: segment.lineId,
+      lineName: segment.lineName,
+      transportType: segment.transportType,
+      departureTime: segment.departureTime,
+      arrivalTime: segment.arrivalTime,
+      duration: segment.duration,
+    });
+  });
+
+  return {
+    segments: routeSegments,
+    allPoints,
+    bounds: {
+      minLat,
+      maxLat,
+      minLon,
+      maxLon,
+    },
+  };
+}
+
+/**
  * Maps GraphQL findPath response segments to a format ready for map display
  * Extracts coordinates, creates route points, and calculates bounds
  */

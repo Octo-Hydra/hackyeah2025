@@ -238,93 +238,41 @@ export function AddJourneyDialog() {
         const mappedRoute = mapSegmentsToRoute(result.findPath);
 
         if (mappedRoute) {
-          console.log("\n=== Mapped Route for Map Display ===");
-          console.log("Total Points:", mappedRoute.allPoints.length);
-          console.log("Total Segments:", mappedRoute.segments.length);
-          console.log("Bounds:", mappedRoute.bounds);
-          console.log("\nAll Route Points:");
-          mappedRoute.allPoints.forEach((point, idx) => {
-            console.log(
-              `  ${idx + 1}. ${point.stopName || "Point"} [${point.lat}, ${point.lon}]${point.isTransfer ? " (Transfer)" : ""}`,
-            );
-          });
-          console.log("\nRoute Segments:");
-          mappedRoute.segments.forEach((segment, idx) => {
-            console.log(
-              `  ${idx + 1}. ${segment.transportType} ${segment.lineName}`,
-            );
-            console.log(
-              `     From: ${segment.from.stopName} [${segment.from.lat}, ${segment.from.lon}]`,
-            );
-            console.log(
-              `     To: ${segment.to.stopName} [${segment.to.lat}, ${segment.to.lon}]`,
-            );
-            if (segment.departureTime && segment.arrivalTime) {
-              console.log(
-                `     Time: ${segment.departureTime} → ${segment.arrivalTime} (${segment.duration} min)`,
-              );
-            }
-          });
-
-          // Extract route and line IDs from the path
-          const routeIds = [
-            ...new Set(
-              result.findPath.segments?.map((s) => s.lineId).filter(Boolean) ||
-                [],
-            ),
-          ];
-          const lineIds = routeIds; // In this case, they're the same
-
-          // Get stop IDs from the first and last segments
-          const firstSegment = result.findPath.segments?.[0];
-          const lastSegment =
-            result.findPath.segments?.[result.findPath.segments.length - 1];
-
-          if (firstSegment && lastSegment) {
-            // Call GraphQL mutation to set active journey
+          if (result.findPath.segments && result.findPath.segments.length > 0) {
+            // Call GraphQL mutation to set active journey with all segments
             const mutation = Mutation();
             const mutationResult = await mutation({
               setActiveJourney: [
                 {
                   input: {
-                    routeIds: routeIds as string[],
-                    lineIds: lineIds as string[],
-                    startStop: {
-                      stopId: firstSegment.from.stopId,
-                      stopName: firstSegment.from.stopName,
-                      coordinates: {
-                        latitude: firstSegment.from.coordinates.latitude,
-                        longitude: firstSegment.from.coordinates.longitude,
-                      },
-                    },
-                    endStop: {
-                      stopId: lastSegment.to.stopId,
-                      stopName: lastSegment.to.stopName,
-                      coordinates: {
-                        latitude: lastSegment.to.coordinates.latitude,
-                        longitude: lastSegment.to.coordinates.longitude,
-                      },
-                    },
+                    segments: result.findPath.segments,
                   },
                 },
                 {
-                  routeIds: true,
-                  lineIds: true,
-                  startStop: {
-                    stopId: true,
-                    stopName: true,
-                    coordinates: {
-                      latitude: true,
-                      longitude: true,
+                  segments: {
+                    from: {
+                      stopId: true,
+                      stopName: true,
+                      coordinates: {
+                        latitude: true,
+                        longitude: true,
+                      },
                     },
-                  },
-                  endStop: {
-                    stopId: true,
-                    stopName: true,
-                    coordinates: {
-                      latitude: true,
-                      longitude: true,
+                    to: {
+                      stopId: true,
+                      stopName: true,
+                      coordinates: {
+                        latitude: true,
+                        longitude: true,
+                      },
                     },
+                    lineId: true,
+                    lineName: true,
+                    transportType: true,
+                    departureTime: true,
+                    arrivalTime: true,
+                    duration: true,
+                    hasIncident: true,
                   },
                   startTime: true,
                   expectedEndTime: true,
@@ -332,39 +280,48 @@ export function AddJourneyDialog() {
               ],
             });
 
-            console.log("✅ Mutation result:", mutationResult.setActiveJourney);
-
             // Check if mutation returned active journey
             if (mutationResult.setActiveJourney) {
               const activeJourneyData = mutationResult.setActiveJourney;
+              const firstSeg = activeJourneyData.segments[0];
+              const lastSeg =
+                activeJourneyData.segments[
+                  activeJourneyData.segments.length - 1
+                ];
 
               // Update user's active journey in Zustand store
               setUserActiveJourney({
-                routeIds: activeJourneyData.routeIds as string[],
-                lineIds: activeJourneyData.lineIds as string[],
-                startStop: {
-                  stopId: activeJourneyData.startStop.stopId,
-                  stopName: activeJourneyData.startStop.stopName,
-                  coordinates: {
-                    latitude: activeJourneyData.startStop.coordinates.latitude,
-                    longitude:
-                      activeJourneyData.startStop.coordinates.longitude,
+                segments: activeJourneyData.segments.map((seg) => ({
+                  from: {
+                    stopId: seg.from.stopId,
+                    stopName: seg.from.stopName,
+                    coordinates: {
+                      latitude: seg.from.coordinates.latitude,
+                      longitude: seg.from.coordinates.longitude,
+                    },
                   },
-                },
-                endStop: {
-                  stopId: activeJourneyData.endStop.stopId,
-                  stopName: activeJourneyData.endStop.stopName,
-                  coordinates: {
-                    latitude: activeJourneyData.endStop.coordinates.latitude,
-                    longitude: activeJourneyData.endStop.coordinates.longitude,
+                  to: {
+                    stopId: seg.to.stopId,
+                    stopName: seg.to.stopName,
+                    coordinates: {
+                      latitude: seg.to.coordinates.latitude,
+                      longitude: seg.to.coordinates.longitude,
+                    },
                   },
-                },
+                  lineId: seg.lineId,
+                  lineName: seg.lineName,
+                  transportType: seg.transportType,
+                  departureTime: seg.departureTime,
+                  arrivalTime: seg.arrivalTime,
+                  duration: seg.duration,
+                  hasIncident: seg.hasIncident,
+                })),
                 startTime: activeJourneyData.startTime,
                 expectedEndTime: activeJourneyData.expectedEndTime,
               });
 
               toast.success("Journey saved!", {
-                description: `From ${activeJourneyData.startStop.stopName} to ${activeJourneyData.endStop.stopName}`,
+                description: `From ${firstSeg.from.stopName} to ${lastSeg.to.stopName}`,
               });
             } else {
               toast.error("Failed to save journey", {

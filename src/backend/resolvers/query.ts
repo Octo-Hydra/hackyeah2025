@@ -35,28 +35,34 @@ export const Query = {
       reputation: user.reputation ?? 0,
       activeJourney: user.activeJourney
         ? {
-            routeIds: user.activeJourney.routeIds.map((id) =>
-              id instanceof ObjectId ? id.toString() : id,
-            ),
-            lineIds: user.activeJourney.lineIds.map((id) =>
-              id instanceof ObjectId ? id.toString() : id,
-            ),
-            startStop: {
-              stopId:
-                user.activeJourney.startStop.stopId instanceof ObjectId
-                  ? user.activeJourney.startStop.stopId.toString()
-                  : user.activeJourney.startStop.stopId,
-              stopName: user.activeJourney.startStop.stopName,
-              coordinates: user.activeJourney.startStop.coordinates,
-            },
-            endStop: {
-              stopId:
-                user.activeJourney.endStop.stopId instanceof ObjectId
-                  ? user.activeJourney.endStop.stopId.toString()
-                  : user.activeJourney.endStop.stopId,
-              stopName: user.activeJourney.endStop.stopName,
-              coordinates: user.activeJourney.endStop.coordinates,
-            },
+            segments: user.activeJourney.segments.map((seg) => ({
+              from: {
+                stopId:
+                  seg.from.stopId instanceof ObjectId
+                    ? seg.from.stopId.toString()
+                    : seg.from.stopId,
+                stopName: seg.from.stopName,
+                coordinates: seg.from.coordinates,
+              },
+              to: {
+                stopId:
+                  seg.to.stopId instanceof ObjectId
+                    ? seg.to.stopId.toString()
+                    : seg.to.stopId,
+                stopName: seg.to.stopName,
+                coordinates: seg.to.coordinates,
+              },
+              lineId:
+                seg.lineId instanceof ObjectId
+                  ? seg.lineId.toString()
+                  : seg.lineId,
+              lineName: seg.lineName,
+              transportType: seg.transportType,
+              departureTime: seg.departureTime,
+              arrivalTime: seg.arrivalTime,
+              duration: seg.duration,
+              hasIncident: false, // TODO: Check for incidents
+            })),
             startTime: user.activeJourney.startTime,
             expectedEndTime: user.activeJourney.expectedEndTime,
           }

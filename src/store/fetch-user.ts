@@ -35,23 +35,30 @@ export async function fetchUserForStore(): Promise<User | null> {
         email: true,
         reputation: true,
         activeJourney: {
-          routeIds: true,
-          lineIds: true,
-          startStop: {
-            stopId: true,
-            stopName: true,
-            coordinates: {
-              latitude: true,
-              longitude: true,
+          segments: {
+            from: {
+              stopId: true,
+              stopName: true,
+              coordinates: {
+                latitude: true,
+                longitude: true,
+              },
             },
-          },
-          endStop: {
-            stopId: true,
-            stopName: true,
-            coordinates: {
-              latitude: true,
-              longitude: true,
+            to: {
+              stopId: true,
+              stopName: true,
+              coordinates: {
+                latitude: true,
+                longitude: true,
+              },
             },
+            lineId: true,
+            lineName: true,
+            transportType: true,
+            departureTime: true,
+            arrivalTime: true,
+            duration: true,
+            hasIncident: true,
           },
           startTime: true,
           expectedEndTime: true,
@@ -71,28 +78,31 @@ export async function fetchUserForStore(): Promise<User | null> {
       reputation: result.me.reputation || 0,
       activeJourney: result.me.activeJourney
         ? {
-            routeIds: (result.me.activeJourney.routeIds as string[]) || [],
-            lineIds: (result.me.activeJourney.lineIds as string[]) || [],
-            startStop: {
-              stopId: result.me.activeJourney.startStop.stopId || "",
-              stopName: result.me.activeJourney.startStop.stopName || "",
-              coordinates: {
-                latitude:
-                  result.me.activeJourney.startStop.coordinates.latitude || 0,
-                longitude:
-                  result.me.activeJourney.startStop.coordinates.longitude || 0,
+            segments: result.me.activeJourney.segments.map((seg) => ({
+              from: {
+                stopId: seg.from.stopId || "",
+                stopName: seg.from.stopName || "",
+                coordinates: {
+                  latitude: seg.from.coordinates.latitude || 0,
+                  longitude: seg.from.coordinates.longitude || 0,
+                },
               },
-            },
-            endStop: {
-              stopId: result.me.activeJourney.endStop.stopId || "",
-              stopName: result.me.activeJourney.endStop.stopName || "",
-              coordinates: {
-                latitude:
-                  result.me.activeJourney.endStop.coordinates.latitude || 0,
-                longitude:
-                  result.me.activeJourney.endStop.coordinates.longitude || 0,
+              to: {
+                stopId: seg.to.stopId || "",
+                stopName: seg.to.stopName || "",
+                coordinates: {
+                  latitude: seg.to.coordinates.latitude || 0,
+                  longitude: seg.to.coordinates.longitude || 0,
+                },
               },
-            },
+              lineId: seg.lineId || "",
+              lineName: seg.lineName || "",
+              transportType: seg.transportType,
+              departureTime: seg.departureTime || "",
+              arrivalTime: seg.arrivalTime || "",
+              duration: seg.duration || 0,
+              hasIncident: seg.hasIncident || false,
+            })),
             startTime: (result.me.activeJourney.startTime as string) || "",
             expectedEndTime:
               (result.me.activeJourney.expectedEndTime as string) || "",
