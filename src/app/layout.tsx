@@ -56,6 +56,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* iOS Splash Screens */}
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+          href="/splash-640x1136.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+          href="/splash-750x1334.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1242x2208.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1125x2436.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1242x2688.png"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

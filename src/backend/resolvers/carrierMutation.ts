@@ -94,7 +94,7 @@ export const carrierMutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: update },
-        { returnDocument: "after" as any }
+        { returnDocument: "after" as any },
       );
     if (!res.value) throw new Error("Report not found");
     return mapStoredDoc(res.value, res.value._id);
@@ -119,7 +119,7 @@ export const carrierMutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: { status: "PUBLISHED", updatedAt: now } },
-        { returnDocument: "after" as any }
+        { returnDocument: "after" as any },
       );
     if (!res.value) throw new Error("Report not found");
     return mapStoredDoc(res.value, res.value._id);
