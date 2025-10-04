@@ -1029,30 +1029,18 @@ linesIncidentOverview?: [{	period: ValueTypes["StatsPeriod"] | Variable<any, str
 	['...on KindStats']?: Omit<ValueTypes["KindStats"], "...on KindStats">
 }>;
 	["UserConnection"]: AliasType<{
-	edges?:ValueTypes["UserEdge"],
+	items?:ValueTypes["User"],
 	pageInfo?:ValueTypes["PageInfo"],
 	totalCount?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on UserConnection']?: Omit<ValueTypes["UserConnection"], "...on UserConnection">
 }>;
-	["UserEdge"]: AliasType<{
-	node?:ValueTypes["User"],
-	id?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`,
-	['...on UserEdge']?: Omit<ValueTypes["UserEdge"], "...on UserEdge">
-}>;
 	["IncidentConnection"]: AliasType<{
-	edges?:ValueTypes["IncidentEdge"],
+	items?:ValueTypes["Incident"],
 	pageInfo?:ValueTypes["PageInfo"],
 	totalCount?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on IncidentConnection']?: Omit<ValueTypes["IncidentConnection"], "...on IncidentConnection">
-}>;
-	["IncidentEdge"]: AliasType<{
-	node?:ValueTypes["Incident"],
-	id?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`,
-	['...on IncidentEdge']?: Omit<ValueTypes["IncidentEdge"], "...on IncidentEdge">
 }>;
 	["PageInfo"]: AliasType<{
 	hasNextPage?:boolean | `@${string}`,
@@ -1450,25 +1438,15 @@ linesIncidentOverview?: [{	period: ResolverInputTypes["StatsPeriod"]},ResolverIn
 		__typename?: boolean | `@${string}`
 }>;
 	["UserConnection"]: AliasType<{
-	edges?:ResolverInputTypes["UserEdge"],
+	items?:ResolverInputTypes["User"],
 	pageInfo?:ResolverInputTypes["PageInfo"],
 	totalCount?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["UserEdge"]: AliasType<{
-	node?:ResolverInputTypes["User"],
-	id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["IncidentConnection"]: AliasType<{
-	edges?:ResolverInputTypes["IncidentEdge"],
+	items?:ResolverInputTypes["Incident"],
 	pageInfo?:ResolverInputTypes["PageInfo"],
 	totalCount?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["IncidentEdge"]: AliasType<{
-	node?:ResolverInputTypes["Incident"],
-	id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["PageInfo"]: AliasType<{
@@ -1843,28 +1821,20 @@ export type ModelTypes = {
 	count: number
 };
 	["UserConnection"]: {
-		edges: Array<ModelTypes["UserEdge"]>,
+		items: Array<ModelTypes["User"]>,
 	pageInfo: ModelTypes["PageInfo"],
 	totalCount: number
-};
-	["UserEdge"]: {
-		node: ModelTypes["User"],
-	id: ModelTypes["ID"]
 };
 	["IncidentConnection"]: {
-		edges: Array<ModelTypes["IncidentEdge"]>,
+		items: Array<ModelTypes["Incident"]>,
 	pageInfo: ModelTypes["PageInfo"],
 	totalCount: number
-};
-	["IncidentEdge"]: {
-		node: ModelTypes["Incident"],
-	id: ModelTypes["ID"]
 };
 	["PageInfo"]: {
 		hasNextPage: boolean,
 	hasPreviousPage: boolean,
-	startCursor?: ModelTypes["ID"] | undefined | null,
-	endCursor?: ModelTypes["ID"] | undefined | null
+	startCursor?: string | undefined | null,
+	endCursor?: string | undefined | null
 };
 	["UserFilterInput"]: {
 	role?: ModelTypes["UserRole"] | undefined | null,
@@ -2253,36 +2223,24 @@ export type GraphQLTypes = {
 };
 	["UserConnection"]: {
 	__typename: "UserConnection",
-	edges: Array<GraphQLTypes["UserEdge"]>,
+	items: Array<GraphQLTypes["User"]>,
 	pageInfo: GraphQLTypes["PageInfo"],
 	totalCount: number,
 	['...on UserConnection']: Omit<GraphQLTypes["UserConnection"], "...on UserConnection">
 };
-	["UserEdge"]: {
-	__typename: "UserEdge",
-	node: GraphQLTypes["User"],
-	id: GraphQLTypes["ID"],
-	['...on UserEdge']: Omit<GraphQLTypes["UserEdge"], "...on UserEdge">
-};
 	["IncidentConnection"]: {
 	__typename: "IncidentConnection",
-	edges: Array<GraphQLTypes["IncidentEdge"]>,
+	items: Array<GraphQLTypes["Incident"]>,
 	pageInfo: GraphQLTypes["PageInfo"],
 	totalCount: number,
 	['...on IncidentConnection']: Omit<GraphQLTypes["IncidentConnection"], "...on IncidentConnection">
-};
-	["IncidentEdge"]: {
-	__typename: "IncidentEdge",
-	node: GraphQLTypes["Incident"],
-	id: GraphQLTypes["ID"],
-	['...on IncidentEdge']: Omit<GraphQLTypes["IncidentEdge"], "...on IncidentEdge">
 };
 	["PageInfo"]: {
 	__typename: "PageInfo",
 	hasNextPage: boolean,
 	hasPreviousPage: boolean,
-	startCursor?: GraphQLTypes["ID"] | undefined | null,
-	endCursor?: GraphQLTypes["ID"] | undefined | null,
+	startCursor?: string | undefined | null,
+	endCursor?: string | undefined | null,
 	['...on PageInfo']: Omit<GraphQLTypes["PageInfo"], "...on PageInfo">
 };
 	["UserFilterInput"]: {

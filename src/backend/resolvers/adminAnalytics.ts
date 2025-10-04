@@ -9,10 +9,11 @@ import clientPromise from "@/lib/mongodb";
 import type { IncidentModel, LineModel } from "@/backend/db/collections";
 
 interface Context {
-  auth: () => Promise<{
-    user?: { id?: string; email?: string; role?: string };
-  } | null>;
   db: Db;
+  session: {
+    user: { email: string; name: string; role: string };
+    expires: string;
+  } | null;
 }
 
 // Period to milliseconds conversion
@@ -52,7 +53,7 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
+      const session = context.session;
       if (
         !session?.user?.role ||
         !["ADMIN", "MODERATOR"].includes(session.user.role)
@@ -147,7 +148,7 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
+      const session = context.session;
       if (
         !session?.user?.role ||
         !["ADMIN", "MODERATOR"].includes(session.user.role)
@@ -311,7 +312,7 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
+      const session = context.session;
       if (
         !session?.user?.role ||
         !["ADMIN", "MODERATOR"].includes(session.user.role)

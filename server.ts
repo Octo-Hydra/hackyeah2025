@@ -37,7 +37,7 @@ const yoga = createYoga({
   schema: createSchema<{
     db: Db;
     session: {
-      user: { email: string; name: string; image: string };
+      user: { email: string; name: string; image: string; role: string };
       expires: string;
     } | null;
     request: Request;
@@ -93,12 +93,14 @@ const yoga = createYoga({
                 email: decoded.email as string,
                 name: decoded.name as string,
                 image: decoded.picture as string,
+                role: (decoded.role as string) || "USER", // Add role from token
               },
               expires: new Date((decoded.exp as number) * 1000).toISOString(),
             };
             console.log("✅ Session decoded successfully:", {
               email: decoded.email,
               name: decoded.name,
+              role: decoded.role,
             });
           }
         } catch (error) {
