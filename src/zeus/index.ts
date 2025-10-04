@@ -1106,7 +1106,10 @@ incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transport
 	maxWalkingDistance?: number | undefined | null | Variable<any, string>
 };
 	["Subscription"]: AliasType<{
-	_empty?:boolean | `@${string}`,
+notificationReported?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
+notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["NotificationReport"]],
+	notificationOfficial?:ValueTypes["OfficialNotification"],
+reputationUpdated?: [{	userId: string | Variable<any, string>},ValueTypes["ReputationUpdate"]],
 		__typename?: boolean | `@${string}`,
 	['...on Subscription']?: Omit<ValueTypes["Subscription"], "...on Subscription">
 }>;
@@ -1294,7 +1297,10 @@ incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverI
 	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: AliasType<{
-	_empty?:boolean | `@${string}`,
+notificationReported?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
+notificationConfirmed?: [{	lineIds?: Array<string> | undefined | null},ResolverInputTypes["NotificationReport"]],
+	notificationOfficial?:ResolverInputTypes["OfficialNotification"],
+reputationUpdated?: [{	userId: string},ResolverInputTypes["ReputationUpdate"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["schema"]: AliasType<{
@@ -1467,7 +1473,10 @@ export type ModelTypes = {
 	maxWalkingDistance?: number | undefined | null
 };
 	["Subscription"]: {
-		_empty?: string | undefined | null
+		notificationReported: ModelTypes["NotificationReport"],
+	notificationConfirmed: ModelTypes["NotificationReport"],
+	notificationOfficial: ModelTypes["OfficialNotification"],
+	reputationUpdated: ModelTypes["ReputationUpdate"]
 };
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
@@ -1478,13 +1487,20 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Geographic coordinates;
-	// Stop/Station with location;
-	// Path segment type;
-	// Location info for segment endpoints;
-	// Single segment of a journey;
-	// Complete journey path;
-	// Input for finding a path;
+    // Geographic coordinates
+;
+	// Stop/Station with location
+;
+	// Path segment type
+;
+	// Location info for segment endpoints
+;
+	// Single segment of a journey
+;
+	// Complete journey path
+;
+	// Input for finding a path
+;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
@@ -1686,7 +1702,10 @@ export type GraphQLTypes = {
 };
 	["Subscription"]: {
 	__typename: "Subscription",
-	_empty?: string | undefined | null,
+	notificationReported: GraphQLTypes["NotificationReport"],
+	notificationConfirmed: GraphQLTypes["NotificationReport"],
+	notificationOfficial: GraphQLTypes["OfficialNotification"],
+	reputationUpdated: GraphQLTypes["ReputationUpdate"],
 	['...on Subscription']: Omit<GraphQLTypes["Subscription"], "...on Subscription">
 };
 	["ID"]: "scalar" & { name: "ID" }

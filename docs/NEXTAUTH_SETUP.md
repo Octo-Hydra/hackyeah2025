@@ -4,9 +4,10 @@ This project has been configured with NextAuth.js v5 (beta) with the following f
 
 - ✅ Credentials-based authentication (email/password)
 - ✅ Google OAuth provider
+- ✅ Facebook OAuth provider
 - ✅ MongoDB adapter for session and user management
 - ✅ Password hashing with bcryptjs
-- ✅ Protected routes with middleware
+- ✅ Protected routes with server-side session checks
 
 ## 📦 Installed Packages
 

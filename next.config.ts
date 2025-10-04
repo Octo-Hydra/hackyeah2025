@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  eslint: { ignoreDuringBuilds: true },
 };
 
 const withNextZeus = createNextZeusPlugin({

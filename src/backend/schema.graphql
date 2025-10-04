@@ -220,5 +220,8 @@ input FindPathInput {
 }
 
 type Subscription {
-  _empty: String
+  notificationReported(lineIds: [String!]): NotificationReport!
+  notificationConfirmed(lineIds: [String!]): NotificationReport!
+  notificationOfficial: OfficialNotification!
+  reputationUpdated(userId: String!): ReputationUpdate!
 }

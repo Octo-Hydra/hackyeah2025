@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnTime - Splash Screen Generator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #0066FF;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .controls {
+      margin-bottom: 30px;
+    }
+    .control-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+    input[type="color"],
+    input[type="file"] {
+      width: 100%;
+      height: 45px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 5px;
+      cursor: pointer;
+    }
+    button {
+      background: #0066FF;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #0052CC;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .preview-item {
+      text-align: center;
+    }
+    .preview-item canvas {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 8px;
+    }
+    .preview-item .label {
+      font-size: 12px;
+      color: #666;
+    }
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      display: block;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 OnTime Splash Screen Generator</h1>
+    <p class="subtitle">Generate beautiful splash screens for your PWA</p>
+
+    <div class="status" id="status"></div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="logoUpload">Upload Logo (recommended: 512x512 PNG)</label>
+        <input type="file" id="logoUpload" accept="image/*">
+      </div>
+
+      <div class="control-group">
+        <label for="bgColor">Background Color</label>
+        <input type="color" id="bgColor" value="#0066FF">
+      </div>
+
+      <button id="generateBtn" disabled>Generate Splash Screens</button>
+      <button id="downloadBtn" style="display: none;">Download All Splash Screens</button>
+    </div>
+
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    const sizes = [
+      { width: 640, height: 1136, name: 'iPhone SE' },
+      { width: 750, height: 1334, name: 'iPhone 8' },
+      { width: 1242, height: 2208, name: 'iPhone 8 Plus' },
+      { width: 1125, height: 2436, name: 'iPhone X' },
+      { width: 1242, height: 2688, name: 'iPhone XS Max' },
+      { width: 390, height: 844, name: 'Screenshot' }
+    ];
+
+    let logoImage = null;
+    const canvases = [];
+
+    document.getElementById('logoUpload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          logoImage = new Image();
+          logoImage.onload = () => {
+            document.getElementById('generateBtn').disabled = false;
+            showStatus('Logo loaded! Click "Generate Splash Screens" to create.', 'success');
+          };
+          logoImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', generateSplashScreens);
+    document.getElementById('downloadBtn').addEventListener('click', downloadAll);
+
+    function generateSplashScreens() {
+      const bgColor = document.getElementById('bgColor').value;
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+      canvases.length = 0;
+
+      sizes.forEach(size => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size.width;
+        canvas.height = size.height;
+        const ctx = canvas.getContext('2d');
+
+        // Fill background
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw logo centered
+        if (logoImage) {
+          const logoSize = Math.min(canvas.width, canvas.height) * 0.33;
+          const x = (canvas.width - logoSize) / 2;
+          const y = (canvas.height - logoSize) / 2;
+          ctx.drawImage(logoImage, x, y, logoSize, logoSize);
+        }
+
+        // Add to preview
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        
+        const previewCanvas = canvas.cloneNode();
+        const previewCtx = previewCanvas.getContext('2d');
+        previewCtx.drawImage(canvas, 0, 0);
+        
+        previewItem.innerHTML = `
+          <canvas width="${size.width}" height="${size.height}"></canvas>
+          <div class="label">${size.name}<br>${size.width}x${size.height}</div>
+        `;
+        previewItem.querySelector('canvas').getContext('2d').drawImage(canvas, 0, 0);
+        preview.appendChild(previewItem);
+
+        canvases.push({ canvas, size });
+      });
+
+      document.getElementById('downloadBtn').style.display = 'block';
+      showStatus('Splash screens generated! Click "Download All" to save them.', 'success');
+    }
+
+    function downloadAll() {
+      canvases.forEach(({ canvas, size }) => {
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `splash-${size.width}x${size.height}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      });
+      showStatus('Downloading all splash screens...', 'success');
+    }
+
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+
+    // Try to load the apple-touch-icon.png automatically
+    fetch('/apple-touch-icon.png')
+      .then(res => res.blob())
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          logoImage = new Image();
+          logoImage.onload = () => {
+            document.getElementById('generateBtn').disabled = false;
+            showStatus('Default logo loaded! You can generate splash screens or upload a different logo.', 'success');
+          };
+          logoImage.src = e.target.result;
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(() => {
+        showStatus('Upload your logo to get started.', 'error');
+      });
+  </script>
+</body>
+</html>

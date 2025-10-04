@@ -9,11 +9,17 @@ export async function handleCredentialsSignIn(formData: FormData) {
   const password = formData.get("password") as string;
 
   try {
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       email,
       password,
-      redirectTo: "/",
+      redirect: false,
     });
+
+    if (result?.error) {
+      return { error: "Invalid credentials" };
+    }
+
+    return { success: true };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -29,6 +35,10 @@ export async function handleCredentialsSignIn(formData: FormData) {
 
 export async function handleGoogleSignIn() {
   await signIn("google", { redirectTo: "/" });
+}
+
+export async function handleFacebookSignIn() {
+  await signIn("facebook", { redirectTo: "/" });
 }
 
 export async function handleRegister(data: RegisterData) {

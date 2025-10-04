@@ -9,7 +9,7 @@ import path from "path";
 import resolvers from "./src/backend/resolvers";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = dev ?"localhost" : "0.0.0.0";
+const hostname = dev ? "localhost" : "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
 // prepare nextjs
@@ -47,7 +47,6 @@ const yoga = createYoga({
     async (req: IncomingMessage, res: ServerResponse) => {
       try {
         const url = parse(req.url ?? "", true);
-
         if (url.pathname?.startsWith(graphqlEndpoint)) {
           await yoga(req, res);
         } else {
@@ -57,7 +56,7 @@ const yoga = createYoga({
         console.error(`Error while handling ${req.url}`, err);
         res.writeHead(500).end();
       }
-    }
+    },
   );
 
   // create websocket server
@@ -104,11 +103,11 @@ const yoga = createYoga({
         return args;
       },
     },
-    wsServer
+    wsServer,
   );
 
   await new Promise<void>((resolve, reject) =>
-    server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
+    server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
   );
 
   console.log(`

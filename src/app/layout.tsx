@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
@@ -13,17 +13,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
+};
+
 export const metadata: Metadata = {
-  title: "HackYeah 2025",
-  description: "HackYeah 2025 Progressive Web Application",
+  title: "OnTime",
+  description: "OnTime - No more waiting, just on-time arrivals!",
   generator: "Next.js",
+  applicationName: "OnTime",
   manifest: "/manifest.json",
-  keywords: ["hackyeah", "pwa", "nextjs"],
-  authors: [{ name: "HackYeah Team" }],
+  keywords: ["communication", "travel", "utilities"],
+  authors: [{ name: "Hydra Tech" }],
   icons: [
-    { rel: "apple-touch-icon", url: "/icons/icon-128x128.png" },
-    { rel: "icon", url: "/icons/icon-128x128.png" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "icon", url: "/favicon.ico" },
   ],
+  appleWebApp: {
+    title: "OnTime",
+    statusBarStyle: "default",
+    capable: true,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -34,14 +55,32 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="application-name" content="HackYeah 2025" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="HackYeah" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#000000" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {/* iOS Splash Screens */}
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+          href="/splash-640x1136.svg"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+          href="/splash-750x1334.svg"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1242x2208.svg"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1125x2436.svg"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+          href="/splash-1242x2688.svg"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

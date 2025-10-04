@@ -85,7 +85,7 @@ const ensureCleanup = () => {
 
 const queueZeusGeneration = async (
   args: string[],
-  mode: "initial" | "watch"
+  mode: "initial" | "watch",
 ) => {
   const failOnError = mode === "initial";
 
@@ -147,25 +147,25 @@ export default function withZeusPlugin({
   args = [],
 }: ZeusPluginOptions) {
   return (nextConfig: NextConfig = {}): NextConfig => {
-    const absInput = path.resolve(process.cwd(), input);
-    const absOutput = path.resolve(process.cwd(), output);
-    const commandArgs = [absInput, absOutput, ...args];
-    if (!globalThis.__zeusInitialized) {
-      try {
-        runGraphQLZeusSync(commandArgs);
-        logInfo("Generated Zeus types");
-      } catch (error) {
-        logError("Failed to generate Zeus types", error);
-        throw error;
-      }
-
-      if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "production") {
+      const absInput = path.resolve(process.cwd(), input);
+      const absOutput = path.resolve(process.cwd(), output);
+      const commandArgs = [absInput, absOutput, ...args];
+      if (!globalThis.__zeusInitialized) {
+        try {
+          runGraphQLZeusSync(commandArgs);
+          logInfo("Generated Zeus types");
+        } catch (error) {
+          logError("Failed to generate Zeus types", error);
+          throw error;
+        }
         startWatcher(absInput, commandArgs);
+        ensureCleanup();
+        globalThis.__zeusInitialized = true;
       }
-
-      ensureCleanup();
-      globalThis.__zeusInitialized = true;
+      return nextConfig;
+    } else {
+      return nextConfig;
     }
-    return nextConfig;
   };
 }

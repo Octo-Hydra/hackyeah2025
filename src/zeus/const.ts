@@ -209,7 +209,10 @@ export const ReturnTypes: Record<string,any> = {
 		warnings:"String"
 	},
 	Subscription:{
-		_empty:"String"
+		notificationReported:"NotificationReport",
+		notificationConfirmed:"NotificationReport",
+		notificationOfficial:"OfficialNotification",
+		reputationUpdated:"ReputationUpdate"
 	},
 	ID: `scalar.ID` as const
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1170" height="2532" viewBox="0 0 1170 2532" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#0066FF"/>
+  <circle cx="585" cy="1266" r="175.5" fill="#FFFFFF" opacity="0.9"/>
+  <text x="585" y="1558.5" 
+        font-family="Arial, sans-serif" 
+        font-size="93.60000000000001" 
+        font-weight="bold" 
+        fill="#FFFFFF" 
+        text-anchor="middle">OnTime</text>
+  <text x="585" y="1640.4" 
+        font-family="Arial, sans-serif" 
+        font-size="35.1" 
+        fill="#FFFFFF" 
+        opacity="0.8" 
+        text-anchor="middle">No more waiting</text>
+</svg>
