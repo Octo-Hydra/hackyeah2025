@@ -98,7 +98,12 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       center={mapCenter}
       zoom={zoom}
       className={className}
-      style={{ height: "100%", width: "100%" }}
+      style={{ height: "100%", width: "100%", touchAction: "pan-y" }}
+      scrollWheelZoom={true}
+      dragging={true}
+      touchZoom={true}
+      doubleClickZoom={true}
+      zoomControl={true}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

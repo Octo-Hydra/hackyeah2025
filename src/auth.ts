@@ -1,14 +1,19 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
+  return "http://localhost:3000";
+};
+
+const BASE_URL = getBaseUrl();
 
 // Validation schema for credentials
 const credentialsSchema = z.object({
@@ -20,7 +25,7 @@ export const authConfig: NextAuthConfig = {
   adapter: MongoDBAdapter(clientPromise),
   trustHost: true,
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
@@ -40,33 +45,22 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         try {
-          // Validate credentials
           const { email, password } = credentialsSchema.parse(credentials);
-
-          // Get user from database
           const client = await clientPromise;
           const db = client.db();
           const user = await db.collection("users").findOne({ email });
-
           if (!user) {
             throw new Error("No user found with this email");
           }
-
-          // Check if user has a password (credentials user)
           if (!user.password) {
             throw new Error(
               "Please sign in with the provider you used to create your account",
             );
           }
-
-          // Verify password
           const isValid = await bcrypt.compare(password, user.password);
-
           if (!isValid) {
             throw new Error("Invalid password");
           }
-
-          // Return user object (without password)
           return {
             id: user._id.toString(),
             email: user.email,
@@ -91,10 +85,27 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    redirect({ url }) {
-      if (url.startsWith("/")) return `${BASE_URL}${url}`;
-      else if (new URL(url).origin === BASE_URL) return url;
-      return BASE_URL;
+    redirect({ url, baseUrl }) {
+      const actualBaseUrl = baseUrl || BASE_URL;
+      if (url.startsWith("/")) {
+        return `${actualBaseUrl}${url}`;
+      }
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(actualBaseUrl);
+        if (urlObj.origin === baseUrlObj.origin) {
+          return url;
+        }
+        if (
+          process.env.NODE_ENV === "development" &&
+          (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1")
+        ) {
+          return url;
+        }
+      } catch (e) {
+        console.error("Error parsing redirect URL:", e);
+      }
+      return actualBaseUrl;
     },
     async jwt({ token, user }) {
       if (user) {

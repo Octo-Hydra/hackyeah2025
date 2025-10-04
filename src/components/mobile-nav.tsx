@@ -36,7 +36,10 @@ export function MobileNav() {
   const { data: session } = useSession();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-[9999] border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden touch-ui"
+      style={{ position: "fixed", bottom: 0 }}
+    >
       <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
           // Skip auth-required items if not logged in

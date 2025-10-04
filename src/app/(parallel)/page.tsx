@@ -31,22 +31,28 @@ export default function HomePage() {
 
   // Prevent body scroll on mobile
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
     // Save original styles
     const originalStyle = window.getComputedStyle(document.body).overflow;
     const originalPosition = window.getComputedStyle(document.body).position;
+    const originalHeight = window.getComputedStyle(document.body).height;
 
-    // Lock scroll on mount
+    // Lock scroll on mount for mobile
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.width = "100%";
-    document.body.style.height = "100%";
+    document.body.style.height = "100dvh";
+    document.body.style.touchAction = "none";
 
     // Restore on unmount
     return () => {
       document.body.style.overflow = originalStyle;
       document.body.style.position = originalPosition;
       document.body.style.width = "";
-      document.body.style.height = "";
+      document.body.style.height = originalHeight;
+      document.body.style.touchAction = "";
     };
   }, []);
 
@@ -113,12 +119,14 @@ export default function HomePage() {
         </header>
 
         {/* Map */}
-        <main className="relative flex-1 overflow-hidden">
-          <Map className="h-full w-full" />
+        <main className="relative flex-1 overflow-hidden touch-ui">
+          <div className="absolute inset-0">
+            <Map className="h-full w-full" />
+          </div>
 
           {/* Action Buttons - Only show when logged in */}
           {session && (
-            <div className="absolute bottom-6 right-6 z-[1000] flex flex-col gap-3">
+            <div className="absolute bottom-20 right-6 z-[1000] flex flex-col gap-3 md:bottom-6">
               <AddJourneyDialog />
               <AddEventDialog />
             </div>
