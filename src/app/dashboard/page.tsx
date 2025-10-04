@@ -1,46 +1,153 @@
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { signOut } from "@/auth";
+import { MobileLayout } from "@/components/mobile-layout";
+import { LayoutDashboard, User, Mail, Calendar } from "lucide-react";
+import Image from "next/image";
+import { DashboardFAB } from "@/components/dashboard-fab";
 
 export default async function DashboardPage() {
   const session = await auth();
 
   if (!session) {
-    return null;
+    redirect("/auth/signin?callbackUrl=/dashboard");
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>Welcome to your Dashboard</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-500">Name:</p>
-            <p className="font-medium">{session.user?.name}</p>
+    <MobileLayout>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Desktop Header */}
+        <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <LayoutDashboard className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold">Dashboard</h1>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Email:</p>
-            <p className="font-medium">{session.user?.email}</p>
+        </header>
+
+        {/* Mobile Header */}
+        <header className="border-b bg-white dark:bg-gray-950 md:hidden">
+          <div className="flex h-14 items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <Image
+                src="/apple-touch-icon.png"
+                alt="OnTime"
+                width={28}
+                height={28}
+                className="rounded-lg"
+              />
+              <h1 className="text-lg font-bold">Dashboard</h1>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">User ID:</p>
-            <p className="font-mono text-sm">{session.user?.id}</p>
+        </header>
+
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+          <div className="mx-auto max-w-2xl space-y-6">
+            {/* Welcome Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Welcome back, {session.user?.name || "User"}!
+                </CardTitle>
+                <CardDescription>
+                  Here&apos;s an overview of your activity
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3 rounded-lg border p-3">
+                  <User className="h-5 w-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium">Name</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {session.user?.name || "Not set"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 rounded-lg border p-3">
+                  <Mail className="h-5 w-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {session.user?.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 rounded-lg border p-3">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium">Member Since</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">12</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Active Journeys
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600">5</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Alerts Created
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form
+                  action={async () => {
+                    "use server";
+                    await signOut();
+                  }}
+                >
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    className="w-full"
+                  >
+                    Sign Out
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
-          >
-            <Button type="submit" variant="destructive">
-              Sign Out
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        </main>
+
+        {/* Floating Action Button (FAB) - Mobile only */}
+        <DashboardFAB />
+      </div>
+    </MobileLayout>
   );
 }

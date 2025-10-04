@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Bell, Plus, MapPin } from "lucide-react";
 import Image from "next/image";
+import { AlertsFAB } from "@/components/alerts-fab";
 
 export default async function AlertsPage() {
   const session = await auth();
@@ -71,7 +72,7 @@ export default async function AlertsPage() {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-6">
+        <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
           <div className="mx-auto max-w-2xl">
             {/* Stats */}
             <div className="mb-6 grid grid-cols-3 gap-3 md:gap-4">
@@ -179,6 +180,9 @@ export default async function AlertsPage() {
             )}
           </div>
         </main>
+
+        {/* Floating Action Button (FAB) - Mobile only */}
+        <AlertsFAB />
       </div>
     </MobileLayout>
   );
