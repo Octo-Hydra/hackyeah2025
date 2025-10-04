@@ -28,7 +28,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export function PushNotificationManager() {
   const [isSupported, setIsSupported] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(
-    null
+    null,
   );
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ export function PushNotificationManager() {
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
         ),
       });
 

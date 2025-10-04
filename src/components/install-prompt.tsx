@@ -16,14 +16,14 @@ export function InstallPrompt() {
     setIsIOS(
       /iPad|iPhone|iPod/.test(navigator.userAgent) &&
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !(window as any).MSStream
+        !(window as any).MSStream,
     );
 
     // Check if already installed
     setIsStandalone(
       window.matchMedia("(display-mode: standalone)").matches ||
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window.navigator as any).standalone
+        (window.navigator as any).standalone,
     );
 
     // Listen for install prompt
