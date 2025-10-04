@@ -20,6 +20,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/zeus/**",
     ],
     rules: {
       "react-hooks/rules-of-hooks": "off",

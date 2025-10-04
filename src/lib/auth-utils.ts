@@ -2,10 +2,9 @@ import bcrypt from "bcryptjs";
 import clientPromise from "@/lib/mongodb";
 import { z } from "zod";
 
-// Validation schema for user registration
 const registerSchema = z.object({
   name: z.string().min(2),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(6),
 });
 
