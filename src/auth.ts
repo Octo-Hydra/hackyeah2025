@@ -8,13 +8,6 @@ import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-const getBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
-  return "http://localhost:3000";
-};
-
-const BASE_URL = getBaseUrl();
-
 // Validation schema for credentials
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -76,37 +69,24 @@ export const authConfig: NextAuthConfig = {
   ],
   pages: {
     signIn: "/auth/signin",
-    // signOut: "/auth/signout",
-    // error: "/auth/error",
-    // verifyRequest: "/auth/verify-request",
-    // newUser: "/auth/new-user",
   },
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    redirect({ url }) {
-      const actualBaseUrl = BASE_URL;
-      console.log("Redirecting to:", url, "from baseUrl:", actualBaseUrl);
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
       if (url.startsWith("/")) {
-        return `${actualBaseUrl}${url}`;
+        return `${baseUrl}${url}`;
       }
-      try {
-        const urlObj = new URL(url);
-        const baseUrlObj = new URL(actualBaseUrl);
-        if (urlObj.origin === baseUrlObj.origin) {
-          return url;
-        }
-        if (
-          process.env.NODE_ENV === "development" &&
-          (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1")
-        ) {
-          return url;
-        }
-      } catch (e) {
-        console.error("Error parsing redirect URL:", e);
+
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) {
+        return url;
       }
-      return actualBaseUrl;
+
+      // Default redirect to base URL for external URLs
+      return baseUrl;
     },
     async jwt({ token, user }) {
       if (user) {
