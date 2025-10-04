@@ -1,4 +1,5 @@
-import { GraphQLResponse } from "./zeus";
+import { GraphQLResponse } from "@/zeus";
+
 export class GraphQLError extends Error {
   private errors: GraphQLResponse["errors"];
   constructor(response: GraphQLResponse) {
