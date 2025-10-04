@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Navigation, User, Shield } from "lucide-react";
+import { AddEventDialog } from "@/components/add-event-dialog";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -53,21 +54,12 @@ export default function HomePage() {
       <main className="relative flex-1">
         <Map className="h-full w-full" />
 
-        {/* Floating Info Card */}
-        <div className="absolute bottom-4 left-4 right-4 z-[1000] mx-auto max-w-md rounded-lg border bg-white p-4 shadow-lg dark:bg-gray-950 sm:left-auto sm:right-4">
-          <h2 className="mb-2 text-lg font-semibold">
-            Real-time Navigation & Alerts
-          </h2>
-          <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-            View live traffic updates, road conditions, and community alerts on
-            the map.
-          </p>
-          {!session && (
-            <Button asChild className="w-full" size="sm">
-              <Link href="/auth/signin">Sign in to report alerts</Link>
-            </Button>
-          )}
-        </div>
+        {/* Add Event Button - Only show when logged in */}
+        {session && (
+          <div className="absolute bottom-6 right-6 z-[1000]">
+            <AddEventDialog />
+          </div>
+        )}
       </main>
     </div>
   );
