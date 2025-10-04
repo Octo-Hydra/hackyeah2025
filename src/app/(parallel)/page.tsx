@@ -7,13 +7,35 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
 
+  // Prevent body scroll on mobile
+  useEffect(() => {
+    // Save original styles
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const originalPosition = window.getComputedStyle(document.body).position;
+
+    // Lock scroll on mount
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.height = "100%";
+
+    // Restore on unmount
+    return () => {
+      document.body.style.overflow = originalStyle;
+      document.body.style.position = originalPosition;
+      document.body.style.width = "";
+      document.body.style.height = "";
+    };
+  }, []);
+
   return (
-    <MobileLayout>
-      <div className="flex h-screen flex-col">
+    <MobileLayout className="h-screen-mobile no-overscroll">
+      <div className="flex h-full flex-col overflow-hidden">
         {/* Desktop Header - Hidden on mobile */}
         <header className="z-10 hidden border-b bg-white shadow-sm dark:bg-gray-950 md:block">
           <div className="flex h-16 items-center justify-between px-4">
@@ -74,7 +96,7 @@ export default function HomePage() {
         </header>
 
         {/* Map */}
-        <main className="relative flex-1">
+        <main className="relative flex-1 overflow-hidden">
           <Map className="h-full w-full" />
 
           {/* Floating Action Button - Mobile */}

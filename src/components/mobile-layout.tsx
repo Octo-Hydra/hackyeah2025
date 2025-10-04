@@ -15,12 +15,11 @@ export function MobileLayout({
   className,
 }: MobileLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={cn("flex min-h-screen flex-col", className)}>
       <main
         className={cn(
           "flex-1",
           showNav && "pb-16 md:pb-0", // Add padding for mobile nav
-          className,
         )}
       >
         {children}
