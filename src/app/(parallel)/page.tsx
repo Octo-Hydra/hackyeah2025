@@ -5,12 +5,26 @@ import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Navigation, User, Shield } from "lucide-react";
-import { AddEventDialog } from "@/components/add-event-dialog";
-import { AddJourneyDialog } from "@/components/add-journey-dialog";
-import { Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// Load dialogs only on client side to avoid SSR issues with leaflet-geosearch
+const AddEventDialog = dynamic(
+  () =>
+    import("@/components/add-event-dialog").then((mod) => ({
+      default: mod.AddEventDialog,
+    })),
+  { ssr: false },
+);
+
+const AddJourneyDialog = dynamic(
+  () =>
+    import("@/components/add-journey-dialog").then((mod) => ({
+      default: mod.AddJourneyDialog,
+    })),
+  { ssr: false },
+);
 
 export default function HomePage() {
   const { data: session, status } = useSession();
