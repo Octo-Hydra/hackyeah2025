@@ -4,20 +4,19 @@ import { signIn } from "@/auth";
 import { registerUser, type RegisterData } from "@/lib/auth-utils";
 import { AuthError } from "next-auth";
 
-export async function handleCredentialsSignIn(formData: FormData) {
+export async function handleCredentialsSignIn(
+  formData: FormData,
+  redirectTo?: string,
+) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
   try {
-    const result = await signIn("credentials", {
+    await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      redirectTo: redirectTo || "/",
     });
-
-    if (result?.error) {
-      return { error: "Invalid credentials" };
-    }
 
     return { success: true };
   } catch (error) {
@@ -33,12 +32,12 @@ export async function handleCredentialsSignIn(formData: FormData) {
   }
 }
 
-export async function handleGoogleSignIn() {
-  await signIn("google", { redirectTo: "/" });
+export async function handleGoogleSignIn(redirectTo?: string) {
+  await signIn("google", { redirectTo: redirectTo || "/" });
 }
 
-export async function handleFacebookSignIn() {
-  await signIn("facebook", { redirectTo: "/" });
+export async function handleFacebookSignIn(redirectTo?: string) {
+  await signIn("facebook", { redirectTo: redirectTo || "/" });
 }
 
 export async function handleRegister(data: RegisterData) {
@@ -51,4 +50,12 @@ export async function handleRegister(data: RegisterData) {
     }
     return { error: "Failed to register user" };
   }
+}
+
+export async function handleRejestracja(data: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  return handleRegister(data);
 }

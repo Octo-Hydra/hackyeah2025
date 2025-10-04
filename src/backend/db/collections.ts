@@ -61,6 +61,8 @@ export interface IncidentModel {
     endStopId: ObjectId | string;
     lineId?: ObjectId | string | null;
   } | null;
+  isFake?: boolean; // True if marked as fake by admin/moderator
+  reportedBy?: ObjectId | string | null; // User ID who reported (for reputation)
   createdAt: string;
 }
 

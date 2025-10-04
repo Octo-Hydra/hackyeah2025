@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "OnTime",
     short_name: "OnTime",
-    description: "OnTime - No more waiting, just on-time arrivals!",
+    description: "OnTime - Koniec z czekaniem, zawsze na czas!",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -55,9 +55,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "View Map",
-        short_name: "Map",
-        description: "View real-time map with alerts",
+        name: "Zobacz mapę",
+        short_name: "Mapa",
+        description: "Zobacz mapę na żywo z alertami",
         url: "/",
         icons: [
           {
@@ -67,9 +67,9 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
       },
       {
-        name: "My Alerts",
-        short_name: "Alerts",
-        description: "View your alerts",
+        name: "Moje alerty",
+        short_name: "Alerty",
+        description: "Zobacz swoje alerty",
         url: "/alerts",
         icons: [
           {

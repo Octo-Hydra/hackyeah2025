@@ -27,13 +27,18 @@ const typeDefs = fs.readFileSync(sdlPath, "utf-8");
 
 // resolvers imported from src/backend/resolvers
 
-// @ts-expect-error - Type mismatch between GraphQLContext and Yoga context
 const yoga = createYoga({
   graphqlEndpoint,
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  schema: createSchema({
+  schema: createSchema<{
+    session: {
+      user: { email: string; name: string; image: string };
+      expires: string;
+    } | null;
+    request: Request;
+  }>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MobileLayout } from "@/components/mobile-layout";
+import { isMobileDevice } from "@/lib/user-agent";
 import Link from "next/link";
 import { User, ArrowLeft, Mail, Calendar, Shield } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -21,8 +22,10 @@ export default async function UserProfilePage() {
     redirect("/auth/signin?callbackUrl=/user");
   }
 
+  const isMobile = await isMobileDevice();
+
   return (
-    <MobileLayout>
+    <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Desktop Header */}
         <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
@@ -31,12 +34,12 @@ export default async function UserProfilePage() {
               <Button asChild variant="ghost" size="sm">
                 <Link href="/">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Map
+                  Powrót do mapy
                 </Link>
               </Button>
               <div className="flex items-center gap-2">
                 <User className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold">My Profile</h1>
+                <h1 className="text-xl font-bold">Mój profil</h1>
               </div>
             </div>
           </div>
@@ -53,13 +56,13 @@ export default async function UserProfilePage() {
                 height={28}
                 className="rounded-lg"
               />
-              <h1 className="text-lg font-bold">Profile</h1>
+              <h1 className="text-lg font-bold">Profil</h1>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="overflow-y-auto max-h-[calc(100vh-6rem)] container mx-auto px-4 py-8">
           <div className="mx-auto max-w-2xl">
             {/* Profile Card */}
             <Card className="mb-6">
@@ -72,7 +75,7 @@ export default async function UserProfilePage() {
                   </div>
                   <div>
                     <CardTitle className="text-2xl">
-                      {session.user?.name || "User"}
+                      {session.user?.name || "Użytkownik"}
                     </CardTitle>
                     <CardDescription>{session.user?.email}</CardDescription>
                   </div>
@@ -92,9 +95,9 @@ export default async function UserProfilePage() {
                 <div className="flex items-center gap-3 rounded-lg border p-3">
                   <User className="h-5 w-5 text-gray-600" />
                   <div>
-                    <p className="text-sm font-medium">Name</p>
+                    <p className="text-sm font-medium">Imię</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {session.user?.name || "Not set"}
+                      {session.user?.name || "Nie ustawiono"}
                     </p>
                   </div>
                 </div>
@@ -102,9 +105,9 @@ export default async function UserProfilePage() {
                 <div className="flex items-center gap-3 rounded-lg border p-3">
                   <Calendar className="h-5 w-5 text-gray-600" />
                   <div>
-                    <p className="text-sm font-medium">Member Since</p>
+                    <p className="text-sm font-medium">Członek od</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date().toLocaleDateString()}
+                      {new Date().toLocaleDateString("pl-PL")}
                     </p>
                   </div>
                 </div>
@@ -114,30 +117,33 @@ export default async function UserProfilePage() {
             {/* Quick Actions */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>Szybkie akcje</CardTitle>
                 <CardDescription>
-                  Manage your account and preferences
+                  Zarządzaj swoim kontem i preferencjami
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button
-                  asChild
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Link href="/moderator">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Moderator Panel
-                  </Link>
+                {(session.user?.role === "MODERATOR" ||
+                  session.user?.role === "ADMIN") && (
+                  <Button
+                    asChild
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <Link href="/moderator">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Panel moderatora
+                    </Link>
+                  </Button>
+                )}
+                <Button className="w-full justify-start" variant="outline">
+                  Edytuj profil
                 </Button>
                 <Button className="w-full justify-start" variant="outline">
-                  Edit Profile
+                  Ustawienia powiadomień
                 </Button>
                 <Button className="w-full justify-start" variant="outline">
-                  Notification Settings
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  Privacy Settings
+                  Ustawienia prywatności
                 </Button>
               </CardContent>
             </Card>
@@ -145,7 +151,7 @@ export default async function UserProfilePage() {
             {/* Sign Out */}
             <Card>
               <CardHeader>
-                <CardTitle>Account Actions</CardTitle>
+                <CardTitle>Akcje konta</CardTitle>
               </CardHeader>
               <CardContent>
                 <SignOutButton />

@@ -28,11 +28,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "OnTime",
-  description: "OnTime - No more waiting, just on-time arrivals!",
+  description: "OnTime - Koniec z czekaniem, zawsze na czas!",
   generator: "Next.js",
   applicationName: "OnTime",
   manifest: "/manifest.json",
-  keywords: ["communication", "travel", "utilities"],
+  keywords: ["komunikacja", "podróże", "narzędzia"],
   authors: [{ name: "Hydra Tech" }],
   icons: [
     { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
@@ -60,7 +60,7 @@ export default async function RootLayout({
   const user = await fetchUserForStore();
 
   return (
-    <html lang="en">
+    <html lang="pl">
       <head>
         {/* iOS Splash Screens */}
         <link

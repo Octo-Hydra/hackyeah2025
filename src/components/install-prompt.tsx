@@ -58,58 +58,58 @@ export function InstallPrompt() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Smartphone className="h-5 w-5" />
-          Install App
+          Zainstaluj aplikację
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isIOS ? (
           <div className="space-y-2 text-sm">
-            <p>To install this app on your iOS device:</p>
+            <p>Aby zainstalować tę aplikację na urządzeniu iOS:</p>
             <ol className="list-inside list-decimal space-y-1 text-gray-600 dark:text-gray-400">
               <li>
-                Tap the share button{" "}
+                Stuknij w przycisk udostępniania{" "}
                 <span className="inline-flex items-center rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-800">
                   ⎋
                 </span>
               </li>
               <li>
-                Scroll down and tap{" "}
+                Przewiń w dół i wybierz{" "}
                 <span className="font-semibold">
-                  &ldquo;Add to Home Screen&rdquo;
+                  &ldquo;Dodaj do ekranu początkowego&rdquo;
                 </span>{" "}
                 <span className="inline-flex items-center rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-800">
                   ➕
                 </span>
               </li>
-              <li>Tap &ldquo;Add&rdquo; in the top right corner</li>
+              <li>Stuknij &ldquo;Dodaj&rdquo; w prawym górnym rogu</li>
             </ol>
           </div>
         ) : deferredPrompt ? (
           <>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Install this app on your device for quick access and offline
-              functionality.
+              Zainstaluj aplikację na swoim urządzeniu, aby mieć szybki dostęp i
+              możliwość pracy offline.
             </p>
             <Button onClick={handleInstallClick} className="w-full">
               <Download className="mr-2 h-4 w-4" />
-              Add to Home Screen
+              Dodaj do ekranu początkowego
             </Button>
           </>
         ) : (
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p>To install this app:</p>
+            <p>Aby zainstalować aplikację:</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
               <li>
-                <strong>Chrome/Edge:</strong> Look for the install icon in the
-                address bar
+                <strong>Chrome/Edge:</strong> znajdź ikonę instalacji na pasku
+                adresu
               </li>
               <li>
-                <strong>Firefox:</strong> Tap the menu (⋮) →
-                &ldquo;Install&rdquo;
+                <strong>Firefox:</strong> otwórz menu (⋮) →
+                &ldquo;Zainstaluj&rdquo;
               </li>
               <li>
-                <strong>Safari:</strong> Use the share menu → &ldquo;Add to Home
-                Screen&rdquo;
+                <strong>Safari:</strong> użyj menu udostępniania →
+                &ldquo;Dodaj do ekranu początkowego&rdquo;
               </li>
             </ul>
           </div>

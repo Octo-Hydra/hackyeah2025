@@ -16,24 +16,24 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    name: "Home",
+    name: "Strona główna",
     href: "/",
     icon: Home,
   },
   {
-    name: "Alerts",
+    name: "Alerty",
     href: "/alerts",
     icon: Bell,
     requireAuth: true,
   },
   {
-    name: "Dashboard",
+    name: "Panel",
     href: "/dashboard",
     icon: LayoutDashboard,
     requireAuth: true,
   },
   {
-    name: "Profile",
+    name: "Profil",
     href: "/user",
     icon: User,
     requireAuth: true,
@@ -49,12 +49,12 @@ const navItems: NavItem[] = [
 
 const guestNavItems: NavItem[] = [
   {
-    name: "Home",
+    name: "Strona główna",
     href: "/",
     icon: Home,
   },
   {
-    name: "Login",
+    name: "Zaloguj",
     href: "/auth/signin",
     icon: LogIn,
   },
@@ -67,6 +67,10 @@ export function MobileNav() {
   // Use different nav items based on auth status
   const items = session ? navItems : guestNavItems;
 
+  // Check if user has moderator or admin role
+  const userRole = session?.user?.role;
+  const isModerator = userRole === "MODERATOR" || userRole === "ADMIN";
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:hidden touch-ui"
@@ -74,14 +78,18 @@ export function MobileNav() {
     >
       <div className="flex h-16 items-center justify-around px-2">
         {items.map((item) => {
-          // Skip auth-required items if not logged in
+          // Skip if requires auth and user is not logged in
           if (item.requireAuth && !session) {
+            return null;
+          }
+
+          // Skip if requires moderator role and user doesn't have it
+          if (item.requireRole === "MODERATOR" && !isModerator) {
             return null;
           }
 
           const isActive = pathname === item.href;
           const Icon = item.icon;
-
           return (
             <Link
               key={item.name}

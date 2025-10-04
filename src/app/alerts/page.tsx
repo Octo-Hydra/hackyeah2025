@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { MobileLayout } from "@/components/mobile-layout";
+import { isMobileDevice } from "@/lib/user-agent";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Bell, Plus, MapPin } from "lucide-react";
 import Image from "next/image";
-import { AlertsFAB } from "@/components/alerts-fab";
 
 export default async function AlertsPage() {
   const session = await auth();
@@ -20,35 +20,37 @@ export default async function AlertsPage() {
     redirect("/auth/signin?callbackUrl=/alerts");
   }
 
+  const isMobile = await isMobileDevice();
+
   const mockAlerts = [
     {
       id: 1,
-      type: "Traffic",
-      title: "Heavy traffic on Main St",
-      location: "Main St & 5th Ave",
-      time: "5 min ago",
+      type: "Korek",
+      title: "Duży korek na ulicy Głównej",
+      location: "Ul. Główna i 5ta Aleja",
+      time: "5 min temu",
       severity: "high",
     },
     {
       id: 2,
-      type: "Accident",
-      title: "Minor collision reported",
-      location: "Highway 101 North",
-      time: "15 min ago",
+      type: "Wypadek",
+      title: "Zgłoszono drobną kolizję",
+      location: "Autostrada 101 Północ",
+      time: "15 min temu",
       severity: "medium",
     },
     {
       id: 3,
-      type: "Road Work",
-      title: "Lane closure",
-      location: "Downtown Bridge",
-      time: "1 hour ago",
+      type: "Roboty drogowe",
+      title: "Zamknięty pas ruchu",
+      location: "Most Śródmieście",
+      time: "1 godz. temu",
       severity: "low",
     },
   ];
 
   return (
-    <MobileLayout>
+    <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Mobile Header */}
         <header className="border-b bg-white dark:bg-gray-950">
@@ -62,52 +64,52 @@ export default async function AlertsPage() {
                 className="rounded-lg md:hidden"
               />
               <Bell className="hidden h-6 w-6 text-blue-600 md:block" />
-              <h1 className="text-lg font-bold md:text-xl">Alerts</h1>
+              <h1 className="text-lg font-bold md:text-xl">Alerty</h1>
             </div>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New Alert</span>
+              <span className="hidden sm:inline">Nowy alert</span>
             </Button>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+        <main className="overflow-y-auto max-h-[calc(100vh-2rem)] container mx-auto px-4 py-6 pb-24 md:pb-6">
           <div className="mx-auto max-w-2xl">
             {/* Stats */}
-            <div className="mb-6 grid grid-cols-3 gap-3 md:gap-4">
+            <div className="mb-6 grid grid-cols-2 gap-3 md:gap-4">
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600 md:text-3xl">
                       3
                     </div>
                     <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 md:text-sm">
-                      Active
+                      Aktywne
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600 md:text-3xl">
                       12
                     </div>
                     <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 md:text-sm">
-                      Today
+                      Dzisiaj
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-4 md:pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600 md:text-3xl">
                       45
                     </div>
                     <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 md:text-sm">
-                      This Week
+                      Ten tydzień
                     </div>
                   </div>
                 </CardContent>
@@ -116,7 +118,7 @@ export default async function AlertsPage() {
 
             {/* Alerts List */}
             <div>
-              <h2 className="mb-4 text-lg font-semibold">Recent Alerts</h2>
+              <h2 className="mb-4 text-lg font-semibold">Ostatnie alerty</h2>
               <div className="space-y-3">
                 {mockAlerts.map((alert) => (
                   <Card
@@ -154,7 +156,7 @@ export default async function AlertsPage() {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <Button variant="ghost" size="sm" className="w-full">
-                        View on Map
+                        Zobacz na mapie
                       </Button>
                     </CardContent>
                   </Card>
@@ -167,22 +169,22 @@ export default async function AlertsPage() {
               <Card className="mt-8">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Bell className="mb-4 h-12 w-12 text-gray-400" />
-                  <h3 className="mb-2 text-lg font-semibold">No alerts yet</h3>
+                  <h3 className="mb-2 text-lg font-semibold">
+                    Nie ma jeszcze alertów
+                  </h3>
                   <p className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                    Create your first alert to help the community stay informed
+                    Utwórz swój pierwszy alert, aby pomóc społeczności być na
+                    bieżąco
                   </p>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Alert
+                    Utwórz alert
                   </Button>
                 </CardContent>
               </Card>
             )}
           </div>
         </main>
-
-        {/* Floating Action Button (FAB) - Mobile only */}
-        <AlertsFAB />
       </div>
     </MobileLayout>
   );

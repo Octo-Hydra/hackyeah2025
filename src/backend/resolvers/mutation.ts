@@ -22,10 +22,10 @@ import {
   determineIncidentSegment,
   formatIncidentSegment,
 } from "../../lib/geolocation-utils.js";
+import type { Db } from "mongodb";
 
 // Interfaces
 interface CreateReportInput {
-  title: string;
   description?: string;
   kind: IncidentKind;
   status?: ReportStatus;
@@ -34,7 +34,6 @@ interface CreateReportInput {
 }
 
 interface UpdateReportInput {
-  title?: string;
   description?: string;
   kind?: IncidentKind;
   status?: ReportStatus;
@@ -63,37 +62,6 @@ interface FavoriteConnectionInput {
   endStopId: string;
 }
 
-// Helper functions
-function mapUserDoc(user: UserModel) {
-  return {
-    id: user._id?.toString() || user.id || "",
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    reputation: user.reputation || 0,
-    activeJourney: user.activeJourney
-      ? {
-          routeIds: user.activeJourney.routeIds.map((id) =>
-            typeof id === "string" ? id : id.toString(),
-          ),
-          lineIds: user.activeJourney.lineIds.map((id) =>
-            typeof id === "string" ? id : id.toString(),
-          ),
-          startStopId:
-            typeof user.activeJourney.startStopId === "string"
-              ? user.activeJourney.startStopId
-              : user.activeJourney.startStopId.toString(),
-          endStopId:
-            typeof user.activeJourney.endStopId === "string"
-              ? user.activeJourney.endStopId
-              : user.activeJourney.endStopId.toString(),
-          startTime: user.activeJourney.startTime,
-          expectedEndTime: user.activeJourney.expectedEndTime,
-        }
-      : null,
-  };
-}
-
 // Notify affected users about new incident
 async function notifyAffectedUsers(
   doc: IncidentModel,
@@ -103,6 +71,91 @@ async function notifyAffectedUsers(
   // Simplified notification - just log for now
   // TODO: Implement proper user notification based on active journeys and favorites
   console.log(`📢 New incident created: ${doc.title} (ID: ${incidentId})`);
+}
+
+/**
+ * Find similar reports on the same line/segment within a time window
+ */
+async function findSimilarReports(
+  db: Db,
+  incident: IncidentModel,
+  timeWindowHours: number,
+): Promise<IncidentModel[]> {
+  const timeWindowMs = timeWindowHours * 60 * 60 * 1000;
+  const incidentTime = new Date(incident.createdAt).getTime();
+  const startTime = new Date(incidentTime - timeWindowMs).toISOString();
+  const endTime = new Date(incidentTime + timeWindowMs).toISOString();
+
+  // Find reports with same kind on same line(s) within time window
+  const similarReports = await db
+    .collection<IncidentModel>("Incidents")
+    .find({
+      _id: { $ne: incident._id }, // Exclude current incident
+      kind: incident.kind,
+      status: { $in: ["PUBLISHED", "RESOLVED"] },
+      createdAt: { $gte: startTime, $lte: endTime },
+      // Match at least one line ID
+      lineIds: { $in: incident.lineIds || [] },
+    })
+    .toArray();
+
+  return similarReports;
+}
+
+/**
+ * Update user reputation based on report validity
+ */
+async function updateUserReputation(
+  db: Db,
+  incident: IncidentModel,
+  similarReports: IncidentModel[],
+  isFake: boolean,
+): Promise<void> {
+  const FAKE_REPORT_PENALTY = -10; // Points deducted for fake report
+  const VALIDATED_REPORT_REWARD = 5; // Points awarded for validated report
+
+  if (isFake) {
+    // Deduct points from the reporter who made the fake report
+    if (incident.reportedBy) {
+      await db
+        .collection<UserModel>("Users")
+        .updateOne(
+          { _id: new ObjectId(incident.reportedBy) },
+          { $inc: { reputation: FAKE_REPORT_PENALTY } },
+        );
+    }
+  } else {
+    // Award points if the report was validated (multiple similar reports exist)
+    if (similarReports.length > 0) {
+      // Award points to the original reporter
+      if (incident.reportedBy) {
+        await db
+          .collection<UserModel>("Users")
+          .updateOne(
+            { _id: new ObjectId(incident.reportedBy) },
+            { $inc: { reputation: VALIDATED_REPORT_REWARD } },
+          );
+      }
+
+      // Award points to all similar reporters
+      const similarReporterIds = similarReports
+        .map((r) => r.reportedBy)
+        .filter((id): id is ObjectId | string => id != null);
+
+      if (similarReporterIds.length > 0) {
+        await db.collection<UserModel>("Users").updateMany(
+          {
+            _id: {
+              $in: similarReporterIds.map((id) =>
+                typeof id === "string" ? new ObjectId(id) : id,
+              ),
+            },
+          },
+          { $inc: { reputation: VALIDATED_REPORT_REWARD } },
+        );
+      }
+    }
+  }
 }
 
 export const Mutation = {
@@ -159,14 +212,90 @@ export const Mutation = {
   ) {
     const db = await DB();
     const now = new Date().toISOString();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get user to check role
+    const user = await db
+      .collection<UserModel>("Users")
+      .findOne({ email: userEmail });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const isRegularUser = user.role === "USER";
+
+    // Validate: Regular users can only report TRAFFIC_JAM or ACCIDENT
+    if (
+      isRegularUser &&
+      input.kind !== "TRAFFIC_JAM" &&
+      input.kind !== "ACCIDENT"
+    ) {
+      throw new Error(
+        "Users can only report TRAFFIC_JAM or ACCIDENT incidents",
+      );
+    }
+
+    // Validate: Regular users MUST provide location
+    if (isRegularUser && !input.reporterLocation) {
+      throw new Error("Location is required for user-reported incidents");
+    }
+
+    // Generate title based on incident kind
+    const titleMap: Record<IncidentKind, string> = {
+      INCIDENT: "Zgłoszenie incydentu",
+      NETWORK_FAILURE: "Awaria sieci",
+      VEHICLE_FAILURE: "Awaria pojazdu",
+      ACCIDENT: "Wypadek",
+      TRAFFIC_JAM: "Korek uliczny",
+      PLATFORM_CHANGES: "Zmiana peronu",
+    };
+    const generatedTitle = titleMap[input.kind] || "Incydent";
 
     let affectedSegment = null;
     let detectedLineId: ObjectId | null = null;
 
-    // Geolocation-based segment detection
-    if (input.reporterLocation) {
+    // For regular users: ALWAYS detect segment from location
+    if (isRegularUser && input.reporterLocation) {
       console.log(
-        `📍 Reporter location: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
+        `📍 USER report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
+      );
+
+      const stops = await db.collection<StopModel>("Stops").find({}).toArray();
+
+      const segment = determineIncidentSegment(
+        input.reporterLocation,
+        stops,
+        1000, // 1km radius
+      );
+
+      if (!segment) {
+        throw new Error(
+          "Could not detect nearby stops. Please move closer to a transit stop.",
+        );
+      }
+
+      console.log(`✅ Detected segment: ${formatIncidentSegment(segment)}`);
+
+      affectedSegment = {
+        startStopId: new ObjectId(segment.startStopId),
+        endStopId: new ObjectId(segment.endStopId),
+        lineId: null as ObjectId | string | null,
+      };
+
+      // If user provided lineIds, use first one for the segment
+      if (input.lineIds && input.lineIds.length > 0 && input.lineIds[0]) {
+        detectedLineId = new ObjectId(input.lineIds[0]);
+        affectedSegment.lineId = detectedLineId;
+      }
+    }
+    // For moderators/admins: Optional geolocation detection
+    else if (!isRegularUser && input.reporterLocation) {
+      console.log(
+        `📍 STAFF report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`,
       );
 
       const stops = await db.collection<StopModel>("Stops").find({}).toArray();
@@ -200,7 +329,7 @@ export const Mutation = {
     }
 
     const doc: IncidentModel = {
-      title: input.title,
+      title: generatedTitle,
       description: input.description || null,
       kind: input.kind,
       status: (input.status || "PUBLISHED") as ReportStatus,
@@ -208,19 +337,23 @@ export const Mutation = {
         ? input.lineIds.map((id) => (id ? new ObjectId(id) : null))
         : null,
       affectedSegment,
+      isFake: false,
+      reportedBy: user._id, // Track who reported for reputation
       createdAt: now,
     };
 
     const res = await db.collection<IncidentModel>("Incidents").insertOne(doc);
     const incidentId = res.insertedId.toString();
 
-    // Create IncidentLocation entry
+    // Create IncidentLocation entry for detected segments
     if (affectedSegment && detectedLineId) {
-      // Determine severity based on incident kind (VEHICLE_FAILURE, NETWORK_FAILURE are high severity)
+      // Determine severity based on incident kind
       const severity =
         input.kind === "VEHICLE_FAILURE" || input.kind === "NETWORK_FAILURE"
           ? "HIGH"
-          : "MEDIUM";
+          : input.kind === "ACCIDENT"
+            ? "MEDIUM"
+            : "LOW";
 
       const incidentLocation: IncidentLocationModel = {
         incidentId: res.insertedId,
@@ -239,6 +372,7 @@ export const Mutation = {
 
       console.log(
         `✅ Created IncidentLocation for line ${detectedLineId} between stops`,
+        `✅ Created IncidentLocation: Line ${detectedLineId}, severity ${severity}`,
       );
     }
 
@@ -279,7 +413,6 @@ export const Mutation = {
 
     const updateFields: Partial<IncidentModel> = {};
 
-    if (input.title !== undefined) updateFields.title = input.title;
     if (input.description !== undefined)
       updateFields.description = input.description;
     if (input.kind !== undefined) updateFields.kind = input.kind;
@@ -364,6 +497,79 @@ export const Mutation = {
     pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
 
     return incident;
+  },
+
+  async resolveReport(
+    _: unknown,
+    { id, isFake }: { id: string; isFake?: boolean },
+    ctx: GraphQLContext,
+  ) {
+    const db = await DB();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get user to check role
+    const user = await db
+      .collection<UserModel>("Users")
+      .findOne({ email: userEmail });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Only MODERATOR or ADMIN can resolve reports
+    if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
+      throw new Error("Only moderators and administrators can resolve reports");
+    }
+
+    // Fetch the incident to resolve
+    const incident = await db
+      .collection<IncidentModel>("Incidents")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!incident) {
+      throw new Error(`Incident ${id} not found`);
+    }
+
+    // Update incident status to RESOLVED and set isFake flag
+    const result = await db
+      .collection<IncidentModel>("Incidents")
+      .findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            status: "RESOLVED",
+            isFake: isFake ?? false,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        { returnDocument: "after" },
+      );
+
+    if (!result) {
+      throw new Error(`Failed to update incident ${id}`);
+    }
+
+    // Find similar reports on the same line/segment within 24h time window
+    const similarReports = await findSimilarReports(db, incident, 24);
+
+    // Update reputation for the reporter and similar reporters
+    await updateUserReputation(db, incident, similarReports, isFake ?? false);
+
+    const updatedIncident = {
+      id: result._id!.toString(),
+      ...result,
+      lineIds:
+        result.lineIds?.map((lid) =>
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
+        ) ?? null,
+    };
+
+    pubsub.publish(CHANNELS.INCIDENT_UPDATED, updatedIncident);
+
+    return updatedIncident;
   },
 
   // ============================================

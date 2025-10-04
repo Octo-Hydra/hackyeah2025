@@ -28,10 +28,14 @@ export default function InterceptedSignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Close modal when user successfully signs in
+  // Bind OAuth sign-in actions to return to root
+  const handleGoogleSignInWithReturn = handleGoogleSignIn.bind(null, "/");
+  const handleFacebookSignInWithReturn = handleFacebookSignIn.bind(null, "/");
+
+  // Zamknij modal po udanym zalogowaniu
   useEffect(() => {
     if (status === "authenticated" && session) {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
       setIsOpen(false);
     }
   }, [status, session]);
@@ -54,9 +58,7 @@ export default function InterceptedSignInPage() {
       setError(result.error);
       setIsLoading(false);
     } else if (result?.success) {
-      // Sign in successful, manually refresh session
       await update();
-      // The useEffect watching session status will handle closing the modal
     }
   };
 
@@ -76,7 +78,6 @@ export default function InterceptedSignInPage() {
       setError(result.error);
       setIsLoading(false);
     } else {
-      // Auto sign in after registration
       const signInFormData = new FormData();
       signInFormData.append("email", formData.get("email") as string);
       signInFormData.append("password", formData.get("password") as string);
@@ -86,46 +87,57 @@ export default function InterceptedSignInPage() {
         setError(signInResult.error);
         setIsLoading(false);
       } else {
-        // Manually refresh session after successful sign-in
         await update();
       }
-      // If successful, the useEffect will close the modal
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px] pt-10">
-        <DialogTitle className="sr-only">Sign In</DialogTitle>
+      <DialogContent className="max-h-[95vh] overflow-y-auto pt-10 sm:max-w-[500px]">
+        <DialogTitle className="sr-only">Logowanie</DialogTitle>
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsTrigger value="signin">Logowanie</TabsTrigger>
+            <TabsTrigger value="register">Rejestracja</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
             <Card className="border-0 shadow-none">
               <CardHeader className="px-0">
                 <CardDescription>
-                  Sign in to your account using credentials, Google, or
-                  Facebook.
+                  Zaloguj się do swojego konta za pomocą danych logowania,
+                  Google lub Facebooka.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-0">
                 <form onSubmit={handleSignInSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">Adres e-mail</Label>
                     <Input
                       id="signin-email"
                       name="email"
                       type="email"
-                      placeholder="email@example.com"
+                      placeholder="jan.kowalski@example.com"
                       required
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Hasło</Label>
+                      <a
+                        href="/auth/forgot-password"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsOpen(false);
+                          router.push("/auth/forgot-password");
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Przypomnij hasło
+                      </a>
+                    </div>
                     <Input
                       id="signin-password"
                       name="password"
@@ -140,7 +152,7 @@ export default function InterceptedSignInPage() {
                     </div>
                   )}
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {isLoading ? "Logowanie..." : "Zaloguj się"}
                   </Button>
                 </form>
 
@@ -150,13 +162,13 @@ export default function InterceptedSignInPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-gray-500 dark:bg-gray-950">
-                      Or continue with
+                      Lub kontynuuj za pomocą
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -181,11 +193,11 @@ export default function InterceptedSignInPage() {
                           fill="#EA4335"
                         />
                       </svg>
-                      Sign in with Google
+                      Zaloguj się przez Google
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -199,7 +211,7 @@ export default function InterceptedSignInPage() {
                       >
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
-                      Sign in with Facebook
+                      Zaloguj się przez Facebooka
                     </Button>
                   </form>
                 </div>
@@ -211,35 +223,35 @@ export default function InterceptedSignInPage() {
             <Card className="border-0 shadow-none">
               <CardHeader className="px-0">
                 <CardDescription>
-                  Create a new account to get started.
+                  Utwórz nowe konto, aby rozpocząć.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-0">
                 <form onSubmit={handleRegisterSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-name">Name</Label>
+                    <Label htmlFor="register-name">Imię i nazwisko</Label>
                     <Input
                       id="register-name"
                       name="name"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="Jan Kowalski"
                       required
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">Adres e-mail</Label>
                     <Input
                       id="register-email"
                       name="email"
                       type="email"
-                      placeholder="email@example.com"
+                      placeholder="jan.kowalski@example.com"
                       required
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
+                    <Label htmlFor="register-password">Hasło</Label>
                     <Input
                       id="register-password"
                       name="password"
@@ -249,7 +261,7 @@ export default function InterceptedSignInPage() {
                       minLength={6}
                     />
                     <p className="text-xs text-gray-500">
-                      Password must be at least 6 characters long
+                      Hasło musi mieć co najmniej 6 znaków
                     </p>
                   </div>
                   {error && (
@@ -258,7 +270,7 @@ export default function InterceptedSignInPage() {
                     </div>
                   )}
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                    {isLoading ? "Tworzenie konta..." : "Utwórz konto"}
                   </Button>
                 </form>
 
@@ -268,13 +280,13 @@ export default function InterceptedSignInPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-gray-500 dark:bg-gray-950">
-                      Or continue with
+                      Lub kontynuuj za pomocą
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <form action={handleGoogleSignIn}>
+                  <form action={handleGoogleSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -299,11 +311,11 @@ export default function InterceptedSignInPage() {
                           fill="#EA4335"
                         />
                       </svg>
-                      Sign up with Google
+                      Zarejestruj się przez Google
                     </Button>
                   </form>
 
-                  <form action={handleFacebookSignIn}>
+                  <form action={handleFacebookSignInWithReturn}>
                     <Button
                       type="submit"
                       variant="outline"
@@ -317,7 +329,7 @@ export default function InterceptedSignInPage() {
                       >
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
-                      Sign up with Facebook
+                      Zarejestruj się przez Facebooka
                     </Button>
                   </form>
                 </div>

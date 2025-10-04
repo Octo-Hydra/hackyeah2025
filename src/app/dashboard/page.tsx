@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/card";
 import { signOut } from "@/auth";
 import { MobileLayout } from "@/components/mobile-layout";
+import { isMobileDevice } from "@/lib/user-agent";
 import { LayoutDashboard, User, Mail, Calendar } from "lucide-react";
 import Image from "next/image";
-import { DashboardFAB } from "@/components/dashboard-fab";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -21,15 +21,17 @@ export default async function DashboardPage() {
     redirect("/auth/signin?callbackUrl=/dashboard");
   }
 
+  const isMobile = await isMobileDevice();
+
   return (
-    <MobileLayout>
+    <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Desktop Header */}
         <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-6 w-6 text-blue-600" />
-              <h1 className="text-xl font-bold">Dashboard</h1>
+              <h1 className="text-xl font-bold">Panel</h1>
             </div>
           </div>
         </header>
@@ -45,31 +47,31 @@ export default async function DashboardPage() {
                 height={28}
                 className="rounded-lg"
               />
-              <h1 className="text-lg font-bold">Dashboard</h1>
+              <h1 className="text-lg font-bold">Panel</h1>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+        <main className="overflow-y-auto max-h-[calc(100vh-2rem)] container mx-auto px-4 py-6 pb-24 md:pb-6">
           <div className="mx-auto max-w-2xl space-y-6">
             {/* Welcome Card */}
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Welcome back, {session.user?.name || "User"}!
+                  Witaj ponownie, {session.user?.name || "Użytkowniku"}!
                 </CardTitle>
                 <CardDescription>
-                  Here&apos;s an overview of your activity
+                  Oto przegląd Twojej aktywności
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 rounded-lg border p-3">
                   <User className="h-5 w-5 text-gray-600" />
                   <div>
-                    <p className="text-sm font-medium">Name</p>
+                    <p className="text-sm font-medium">Imię</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {session.user?.name || "Not set"}
+                      {session.user?.name || "Nie ustawiono"}
                     </p>
                   </div>
                 </div>
@@ -87,9 +89,9 @@ export default async function DashboardPage() {
                 <div className="flex items-center gap-3 rounded-lg border p-3">
                   <Calendar className="h-5 w-5 text-gray-600" />
                   <div>
-                    <p className="text-sm font-medium">Member Since</p>
+                    <p className="text-sm font-medium">Członek od</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date().toLocaleDateString()}
+                      {new Date().toLocaleDateString("pl-PL")}
                     </p>
                   </div>
                 </div>
@@ -99,21 +101,21 @@ export default async function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <Card>
-                <CardContent className="pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-blue-600">12</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Active Journeys
+                      Aktywne podróże
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="pt-6">
+                <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-green-600">5</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Alerts Created
+                      Utworzone alerty
                     </div>
                   </div>
                 </CardContent>
@@ -123,7 +125,7 @@ export default async function DashboardPage() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>Szybkie akcje</CardTitle>
               </CardHeader>
               <CardContent>
                 <form
@@ -137,16 +139,13 @@ export default async function DashboardPage() {
                     variant="destructive"
                     className="w-full"
                   >
-                    Sign Out
+                    Wyloguj się
                   </Button>
                 </form>
               </CardContent>
             </Card>
           </div>
         </main>
-
-        {/* Floating Action Button (FAB) - Mobile only */}
-        <DashboardFAB />
       </div>
     </MobileLayout>
   );

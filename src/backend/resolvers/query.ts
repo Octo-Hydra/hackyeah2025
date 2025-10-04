@@ -1,4 +1,4 @@
-import pathResolvers from "./pathResolvers.js";
+import pathResolvers from "./pathResolversSimple.js";
 import type {
   GraphQLContext,
   LineModel,

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MobileLayout } from "@/components/mobile-layout";
+import { isMobileDevice } from "@/lib/user-agent";
 import Link from "next/link";
 import { Shield, ArrowLeft, Users, Flag, Settings } from "lucide-react";
 import Image from "next/image";
@@ -20,8 +21,16 @@ export default async function ModeratorPage() {
     redirect("/auth/signin?callbackUrl=/moderator");
   }
 
+  // Check if user has moderator or admin role
+  const userRole = session.user?.role;
+  if (userRole !== "MODERATOR" && userRole !== "ADMIN") {
+    redirect("/?error=unauthorized");
+  }
+
+  const isMobile = await isMobileDevice();
+
   return (
-    <MobileLayout>
+    <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Desktop Header */}
         <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
@@ -66,7 +75,7 @@ export default async function ModeratorPage() {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="overflow-y-auto max-h-[calc(100vh-6rem)] container mx-auto px-4 py-8">
           <div className="mb-6">
             <h2 className="mb-2 text-3xl font-bold">Moderator Dashboard</h2>
             <p className="text-gray-600 dark:text-gray-400">

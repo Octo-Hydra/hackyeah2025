@@ -415,7 +415,7 @@ export function AddJourneyDialog() {
 
   const handleUseCurrentLocation = async (type: "start" | "end") => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      alert("Geolokalizacja nie jest obsługiwana przez Twoją przeglądarkę");
       return;
     }
 
@@ -465,7 +465,7 @@ export function AddJourneyDialog() {
         <Button
           size="lg"
           className="h-14 w-14 rounded-full shadow-lg"
-          aria-label="Add journey"
+          aria-label="Dodaj podróż"
           variant="secondary"
         >
           <MapPin className="h-6 w-6" />
@@ -473,21 +473,21 @@ export function AddJourneyDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Plan Your Journey</DialogTitle>
+          <DialogTitle>Zaplanuj swoją podróż</DialogTitle>
           <DialogDescription>
-            Set your start and destination points to plan your route
+            Ustaw punkt początkowy i docelowy, aby zaplanować trasę
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Start Point */}
           <div className="space-y-2">
-            <Label htmlFor="start-point">Start Point</Label>
+            <Label htmlFor="start-point">Punkt początkowy</Label>
             <div className="relative">
               <Input
                 id="start-point"
                 type="text"
-                placeholder="Enter start address..."
+                placeholder="Wprowadź adres początkowy..."
                 value={startInput}
                 disabled
                 // onChange={(e) => setStartInput(e.target.value)}
@@ -527,18 +527,18 @@ export function AddJourneyDialog() {
               className="w-full"
             >
               <Navigation className="mr-2 h-4 w-4" />
-              Use Current Location
+              Użyj bieżącej lokalizacji
             </Button>
           </div>
 
           {/* End Point */}
           <div className="space-y-2">
-            <Label htmlFor="end-point">Destination</Label>
+            <Label htmlFor="end-point">Miejsce docelowe</Label>
             <div className="relative">
               <Input
                 id="end-point"
                 type="text"
-                placeholder="Enter destination address..."
+                placeholder="Wprowadź adres docelowy..."
                 value={endInput}
                 disabled
                 // onChange={(e) => setEndInput(e.target.value)}
@@ -581,7 +581,7 @@ export function AddJourneyDialog() {
               )}
               {endPoint && (
                 <div>
-                  <span className="font-medium text-red-600">Destination:</span>
+                  <span className="font-medium text-red-600">Cel:</span>
                   <p className="text-gray-600 dark:text-gray-400">
                     {endPoint.address}
                   </p>
@@ -603,7 +603,7 @@ export function AddJourneyDialog() {
               }}
               disabled={isLoadingStart}
             >
-              Cancel
+              Anuluj
             </Button>
             <Button
               type="submit"
@@ -612,10 +612,10 @@ export function AddJourneyDialog() {
               {isLoadingStart ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Finding Path...
+                  Wyszukiwanie trasy...
                 </>
               ) : (
-                "Plan Journey"
+                "Zaplanuj podróż"
               )}
             </Button>
           </DialogFooter>
