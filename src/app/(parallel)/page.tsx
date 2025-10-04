@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { Navigation, User, Shield } from "lucide-react";
+import { AddEventDialog } from "@/components/add-event-dialog";
+import { AddJourneyDialog } from "@/components/add-journey-dialog";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -99,31 +102,13 @@ export default function HomePage() {
         <main className="relative flex-1 overflow-hidden">
           <Map className="h-full w-full" />
 
-          {/* Floating Action Button - Mobile */}
+          {/* Action Buttons - Only show when logged in */}
           {session && (
-            <button
-              className="absolute bottom-20 right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:scale-95 md:hidden"
-              aria-label="Report Alert"
-            >
-              <Plus className="h-6 w-6" />
-            </button>
+            <div className="absolute bottom-6 right-6 z-[1000] flex flex-col gap-3">
+              <AddJourneyDialog />
+              <AddEventDialog />
+            </div>
           )}
-
-          {/* Floating Info Card - Desktop & Tablet */}
-          <div className="absolute bottom-4 left-4 right-4 z-[1000] mx-auto hidden max-w-md rounded-lg border bg-white/95 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-gray-950/95 dark:supports-[backdrop-filter]:bg-gray-950/80 md:left-auto md:right-4 md:block">
-            <h2 className="mb-2 text-lg font-semibold">
-              Real-time Navigation & Alerts
-            </h2>
-            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-              View live traffic updates, road conditions, and community alerts
-              on the map.
-            </p>
-            {!session && (
-              <Button asChild className="w-full" size="sm">
-                <Link href="/auth/signin">Sign in to report alerts</Link>
-              </Button>
-            )}
-          </div>
 
           {/* Welcome Card - Mobile only, shows when not authenticated */}
           {!session && (
