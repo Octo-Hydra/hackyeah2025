@@ -78,6 +78,7 @@ export interface IncidentModel {
     endStopId: ObjectId | string;
     lineId?: ObjectId | string | null;
   } | null;
+  delayMinutes?: number | null; // Estimated delay in minutes
   isFake?: boolean; // True if marked as fake by admin/moderator
   reportedBy?: ObjectId | string | null; // User ID who reported (for reputation)
   createdAt: string;

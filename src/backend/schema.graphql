@@ -82,6 +82,115 @@ type Query {
   lines(transportType: TransportType): [Line!]!
   stops(transportType: TransportType): [Stop!]!
   findPath(input: FindPathInput!): JourneyPath
+  # Admin queries (ADMIN/MODERATOR only)
+  admin: AdminQuery!
+}
+
+type AdminQuery {
+  # User management
+  users(filter: UserFilterInput, pagination: PaginationInput): UserConnection!
+  user(id: ID!): User
+  # Incident management
+  incidents(
+    filter: IncidentFilterInput
+    pagination: PaginationInput
+  ): IncidentConnection!
+  incident(id: ID!): Incident
+  # Archived incidents (RESOLVED status)
+  archivedIncidents(
+    filter: IncidentFilterInput
+    pagination: PaginationInput
+  ): IncidentConnection!
+  # Statistics
+  stats: AdminStats!
+  # Reports and analytics
+  lineIncidentStats(lineId: ID!, period: StatsPeriod!): LineIncidentStats!
+  lineDelayStats(lineId: ID!, period: StatsPeriod!): LineDelayStats!
+  topDelays(
+    transportType: TransportType
+    period: StatsPeriod!
+    limit: Int
+  ): [LineDelayRanking!]!
+  linesIncidentOverview(period: StatsPeriod!): [LineIncidentOverview!]!
+}
+
+type AdminStats {
+  totalUsers: Int!
+  totalIncidents: Int!
+  activeIncidents: Int!
+  resolvedIncidents: Int!
+  fakeIncidents: Int!
+  usersByRole: RoleStats!
+  incidentsByKind: [KindStats!]!
+  averageReputation: Float!
+  averageTrustScore: Float!
+}
+
+type RoleStats {
+  users: Int!
+  moderators: Int!
+  admins: Int!
+}
+
+type KindStats {
+  kind: IncidentKind!
+  count: Int!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  id: ID! # User ID used as cursor
+}
+
+type IncidentConnection {
+  edges: [IncidentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type IncidentEdge {
+  node: Incident!
+  id: ID! # Incident ID used as cursor
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: ID # First item ID
+  endCursor: ID # Last item ID
+}
+
+input UserFilterInput {
+  role: UserRole
+  minReputation: Int
+  maxReputation: Int
+  minTrustScore: Float
+  maxTrustScore: Float
+  search: String # Search by name or email
+}
+
+input IncidentFilterInput {
+  status: ReportStatus
+  kind: IncidentKind
+  lineId: ID
+  transportType: TransportType
+  isFake: Boolean
+  reportedBy: ID
+  dateFrom: String
+  dateTo: String
+}
+
+input PaginationInput {
+  first: Int # Number of items to return
+  after: ID # User/Incident ID for forward pagination
+  last: Int # Number of items to return (backward)
+  before: ID # User/Incident ID for backward pagination
 }
 
 type Mutation {
@@ -104,6 +213,68 @@ type Mutation {
   clearActiveJourney: Boolean!
   addFavoriteConnection(input: FavoriteConnectionInput!): ID!
   removeFavoriteConnection(id: ID!): Boolean!
+  # Admin mutations (ADMIN/MODERATOR only)
+  admin: AdminMutation!
+}
+
+type AdminMutation {
+  # User CRUD (ADMIN only)
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean!
+  updateUserRole(id: ID!, role: UserRole!): User!
+  updateUserReputation(id: ID!, reputation: Int!): User!
+  # Incident management (ADMIN/MODERATOR)
+  createIncident(input: CreateAdminIncidentInput!): Incident!
+  updateIncident(id: ID!, input: UpdateAdminIncidentInput!): Incident!
+  deleteIncident(id: ID!): Boolean!
+  markIncidentAsFake(id: ID!): Incident!
+  restoreIncident(id: ID!): Incident! # Restore from fake
+  bulkResolveIncidents(ids: [ID!]!): [Incident!]!
+  bulkDeleteIncidents(ids: [ID!]!): Boolean!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  password: String!
+  role: UserRole!
+  reputation: Int # Optional, defaults to 100
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+  password: String
+  role: UserRole
+  reputation: Int
+}
+
+input CreateAdminIncidentInput {
+  title: String!
+  description: String
+  kind: IncidentKind!
+  status: ReportStatus
+  lineIds: [ID!]
+  affectedSegment: IncidentSegmentInput
+  delayMinutes: Int # Estimated delay in minutes
+}
+
+input UpdateAdminIncidentInput {
+  title: String
+  description: String
+  kind: IncidentKind
+  status: ReportStatus
+  lineIds: [ID!]
+  affectedSegment: IncidentSegmentInput
+  delayMinutes: Int
+  isFake: Boolean
+}
+
+input IncidentSegmentInput {
+  startStopId: ID!
+  endStopId: ID!
+  lineId: ID
 }
 
 enum IncidentKind {
@@ -134,6 +305,7 @@ type Incident {
   status: ReportStatus!
   lines: [Line!]
   affectedSegment: IncidentSegment
+  delayMinutes: Int # Estimated delay in minutes
   isFake: Boolean # True if admin/moderator marked as fake
   reportedBy: ID # User ID who reported (for reputation tracking)
   reporter: User # User who reported (includes dynamic trustScore)
@@ -158,6 +330,7 @@ input CreateReportInput {
   status: ReportStatus
   lineIds: [ID!]
   reporterLocation: CoordinatesInput # REQUIRED for regular users (USER role), optional for MODERATOR/ADMIN
+  delayMinutes: Int # Estimated delay in minutes
 }
 
 input UpdateReportInput {
@@ -165,6 +338,7 @@ input UpdateReportInput {
   kind: IncidentKind
   status: ReportStatus
   lineIds: [ID!]
+  delayMinutes: Int
 }
 
 # Geographic coordinates
@@ -225,4 +399,67 @@ type Subscription {
   myLinesIncidents(lineIds: [ID!]!): Incident!
   # Smart notifications with deduplication and trust-based filtering
   smartIncidentNotifications(userId: ID!): Incident!
+}
+
+# Admin-only analytics types
+enum StatsPeriod {
+  LAST_24H
+  LAST_7D
+  LAST_31D
+}
+
+type LineIncidentStats {
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  period: StatsPeriod!
+  totalIncidents: Int!
+  incidentsByKind: [IncidentKindCount!]!
+  averageDelayMinutes: Float # Average delay when incidents occurred
+  timeline: [IncidentTimelineEntry!]! # Incidents over time
+}
+
+type IncidentKindCount {
+  kind: IncidentKind!
+  count: Int!
+}
+
+type IncidentTimelineEntry {
+  timestamp: String! # ISO date
+  incidentCount: Int!
+}
+
+type LineDelayStats {
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  period: StatsPeriod!
+  totalDelays: Int! # Number of delay incidents
+  averageDelayMinutes: Float!
+  maxDelayMinutes: Int!
+  minDelayMinutes: Int!
+  delayDistribution: [DelayBucket!]! # Histogram
+}
+
+type DelayBucket {
+  rangeLabel: String! # e.g., "0-5 min", "5-15 min", "15-30 min", "30+ min"
+  count: Int!
+}
+
+type LineDelayRanking {
+  rank: Int!
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  totalDelays: Int! # Frequency of delays
+  averageDelayMinutes: Float!
+  incidentCount: Int! # Total incidents causing delays
+}
+
+type LineIncidentOverview {
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  incidentCount: Int!
+  lastIncidentTime: String # ISO date of most recent incident
 }

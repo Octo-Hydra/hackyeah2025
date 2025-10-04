@@ -1,0 +1,801 @@
+# Admin Panel GraphQL Queries - Ready to Use
+
+This file contains ready-to-use GraphQL queries and mutations for the Admin Panel.
+Copy-paste directly into GraphiQL or your GraphQL client.
+
+---
+
+## 📊 AdminQuery Examples
+
+### Get System Statistics
+
+```graphql
+query GetAdminStats {
+  admin {
+    stats {
+      totalUsers
+      totalIncidents
+      activeIncidents
+      resolvedIncidents
+      fakeIncidents
+      usersByRole {
+        users
+        moderators
+        admins
+      }
+      incidentsByKind {
+        kind
+        count
+      }
+      averageReputation
+      averageTrustScore
+    }
+  }
+}
+```
+
+---
+
+### List All Users (First 20)
+
+```graphql
+query ListUsers {
+  admin {
+    users(pagination: { first: 20 }) {
+      edges {
+        node {
+          id
+          name
+          email
+          role
+          reputation
+          trustScore
+          trustScoreBreakdown {
+            baseScore
+            accuracyBonus
+            highRepBonus
+            validationRate
+            updatedAt
+          }
+        }
+        id # User ID (convenient for pagination)
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor # First user ID
+        endCursor # Last user ID
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Search Users by Email
+
+```graphql
+query SearchUsers {
+  admin {
+    users(
+      filter: { search: "john" }
+      pagination: { first: 10 }
+    ) {
+      edges {
+        node {
+          id
+          name
+          email
+          role
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get High Reputation Users
+
+```graphql
+query HighReputationUsers {
+  admin {
+    users(
+      filter: { minReputation: 150, minTrustScore: 1.5 }
+      pagination: { first: 20 }
+    ) {
+      edges {
+        node {
+          id
+          name
+          reputation
+          trustScore
+          role
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get Single User Details
+
+```graphql
+query GetUserDetails {
+  admin {
+    user(id: "507f1f77bcf86cd799439011") {
+      id
+      name
+      email
+      role
+      reputation
+      trustScore
+      trustScoreBreakdown {
+        baseScore
+        accuracyBonus
+        highRepBonus
+        validationRate
+        updatedAt
+      }
+      activeJourney {
+        segments {
+          lineName
+          transportType
+        }
+        startTime
+        expectedEndTime
+      }
+    }
+  }
+}
+```
+
+---
+
+### List Active Incidents
+
+```graphql
+query ListActiveIncidents {
+  admin {
+    incidents(
+      filter: { status: PUBLISHED }
+      pagination: { first: 20 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          description
+          kind
+          status
+          lines {
+            id
+            name
+            transportType
+          }
+          isFake
+          reporter {
+            id
+            name
+            role
+            trustScore
+          }
+          createdAt
+        }
+        id # Incident ID (convenient for pagination)
+      }
+      pageInfo {
+        hasNextPage
+        endCursor # Last incident ID
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get Incidents by Type
+
+```graphql
+query GetTrafficJams {
+  admin {
+    incidents(
+      filter: { kind: TRAFFIC_JAM, status: PUBLISHED }
+      pagination: { first: 10 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          description
+          createdAt
+          reporter {
+            name
+            trustScore
+          }
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get Fake Incidents
+
+```graphql
+query GetFakeIncidents {
+  admin {
+    incidents(
+      filter: { isFake: true }
+      pagination: { first: 50 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          kind
+          reporter {
+            name
+            reputation
+          }
+          createdAt
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get Archived Incidents (Last Month)
+
+```graphql
+query GetArchivedIncidents {
+  admin {
+    archivedIncidents(
+      filter: {
+        dateFrom: "2025-09-01T00:00:00Z"
+        dateTo: "2025-09-30T23:59:59Z"
+      }
+      pagination: { first: 100 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          kind
+          status
+          isFake
+          createdAt
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+### Get Incidents by Reporter
+
+```graphql
+query GetUserIncidents {
+  admin {
+    incidents(
+      filter: { reportedBy: "507f1f77bcf86cd799439011" }
+      pagination: { first: 20 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          kind
+          status
+          isFake
+          createdAt
+        }
+      }
+      totalCount
+    }
+  }
+}
+```
+
+---
+
+## 🔧 AdminMutation Examples
+
+### Create New User
+
+```graphql
+mutation CreateUser {
+  admin {
+    createUser(input: {
+      name: "Jane Doe"
+      email: "jane@example.com"
+      password: "SecurePassword123!"
+      role: USER
+      reputation: 100
+    }) {
+      id
+      name
+      email
+      role
+      reputation
+      trustScore
+    }
+  }
+}
+```
+
+---
+
+### Create Moderator
+
+```graphql
+mutation CreateModerator {
+  admin {
+    createUser(input: {
+      name: "John Moderator"
+      email: "john.mod@ontime.app"
+      password: "ModeratorPass123!"
+      role: MODERATOR
+      reputation: 150
+    }) {
+      id
+      name
+      role
+    }
+  }
+}
+```
+
+---
+
+### Create Admin
+
+```graphql
+mutation CreateAdmin {
+  admin {
+    createUser(input: {
+      name: "Super Admin"
+      email: "superadmin@ontime.app"
+      password: "AdminPass123!"
+      role: ADMIN
+      reputation: 200
+    }) {
+      id
+      name
+      role
+    }
+  }
+}
+```
+
+---
+
+### Update User
+
+```graphql
+mutation UpdateUser {
+  admin {
+    updateUser(
+      id: "507f1f77bcf86cd799439011"
+      input: {
+        name: "Updated Name"
+        email: "newemail@example.com"
+        reputation: 150
+      }
+    ) {
+      id
+      name
+      email
+      reputation
+    }
+  }
+}
+```
+
+---
+
+### Change User Password
+
+```graphql
+mutation ChangePassword {
+  admin {
+    updateUser(
+      id: "507f1f77bcf86cd799439011"
+      input: {
+        password: "NewSecurePassword123!"
+      }
+    ) {
+      id
+      name
+    }
+  }
+}
+```
+
+---
+
+### Promote User to Moderator
+
+```graphql
+mutation PromoteToModerator {
+  admin {
+    updateUserRole(
+      id: "507f1f77bcf86cd799439011"
+      role: MODERATOR
+    ) {
+      id
+      name
+      role
+    }
+  }
+}
+```
+
+---
+
+### Update User Reputation
+
+```graphql
+mutation UpdateReputation {
+  admin {
+    updateUserReputation(
+      id: "507f1f77bcf86cd799439011"
+      reputation: 250
+    ) {
+      id
+      name
+      reputation
+      trustScore
+    }
+  }
+}
+```
+
+---
+
+### Delete User
+
+```graphql
+mutation DeleteUser {
+  admin {
+    deleteUser(id: "507f1f77bcf86cd799439011")
+  }
+}
+```
+
+---
+
+### Create Official Incident
+
+```graphql
+mutation CreateOfficialIncident {
+  admin {
+    createIncident(input: {
+      title: "Metro M1 - Planowana przerwa techniczna"
+      description: "Przerwa techniczna na stacji Centrum w godzinach 01:00-05:00"
+      kind: NETWORK_FAILURE
+      status: PUBLISHED
+      lineIds: ["507f1f77bcf86cd799439011"]
+    }) {
+      id
+      title
+      kind
+      status
+      createdAt
+    }
+  }
+}
+```
+
+---
+
+### Create Incident with Affected Segment
+
+```graphql
+mutation CreateIncidentWithSegment {
+  admin {
+    createIncident(input: {
+      title: "Wypadek na trasie"
+      description: "Wypadek między stacjami A i B"
+      kind: ACCIDENT
+      status: PUBLISHED
+      lineIds: ["507f1f77bcf86cd799439011"]
+      affectedSegment: {
+        startStopId: "507f1f77bcf86cd799439022"
+        endStopId: "507f1f77bcf86cd799439023"
+        lineId: "507f1f77bcf86cd799439011"
+      }
+    }) {
+      id
+      title
+      affectedSegment {
+        startStopId
+        endStopId
+      }
+    }
+  }
+}
+```
+
+---
+
+### Update Incident
+
+```graphql
+mutation UpdateIncident {
+  admin {
+    updateIncident(
+      id: "507f1f77bcf86cd799439011"
+      input: {
+        title: "Updated Title"
+        description: "Updated description"
+        status: RESOLVED
+      }
+    ) {
+      id
+      title
+      status
+    }
+  }
+}
+```
+
+---
+
+### Mark Incident as Fake
+
+```graphql
+mutation MarkIncidentAsFake {
+  admin {
+    markIncidentAsFake(id: "507f1f77bcf86cd799439011") {
+      id
+      title
+      isFake
+      status
+    }
+  }
+}
+```
+
+---
+
+### Restore Incident from Fake
+
+```graphql
+mutation RestoreIncident {
+  admin {
+    restoreIncident(id: "507f1f77bcf86cd799439011") {
+      id
+      title
+      isFake
+      status
+    }
+  }
+}
+```
+
+---
+
+### Delete Incident
+
+```graphql
+mutation DeleteIncident {
+  admin {
+    deleteIncident(id: "507f1f77bcf86cd799439011")
+  }
+}
+```
+
+---
+
+### Bulk Resolve Incidents
+
+```graphql
+mutation BulkResolveIncidents {
+  admin {
+    bulkResolveIncidents(ids: [
+      "507f1f77bcf86cd799439011",
+      "507f1f77bcf86cd799439012",
+      "507f1f77bcf86cd799439013"
+    ]) {
+      id
+      title
+      status
+    }
+  }
+}
+```
+
+---
+
+### Bulk Delete Incidents
+
+```graphql
+mutation BulkDeleteIncidents {
+  admin {
+    bulkDeleteIncidents(ids: [
+      "507f1f77bcf86cd799439011",
+      "507f1f77bcf86cd799439012"
+    ])
+  }
+}
+```
+
+---
+
+## 🎯 Combined Workflows
+
+### Workflow 1: Create and Promote User
+
+```graphql
+# Step 1: Create user
+mutation Step1_CreateUser {
+  admin {
+    createUser(input: {
+      name: "New User"
+      email: "newuser@example.com"
+      password: "Password123!"
+      role: USER
+    }) {
+      id
+      name
+      role
+    }
+  }
+}
+
+# Step 2: Promote to moderator
+mutation Step2_PromoteUser {
+  admin {
+    updateUserRole(
+      id: "returned_id_from_step1"
+      role: MODERATOR
+    ) {
+      id
+      name
+      role
+    }
+  }
+}
+```
+
+---
+
+### Workflow 2: Create Incident and Mark as Fake
+
+```graphql
+# Step 1: Create incident
+mutation Step1_CreateIncident {
+  admin {
+    createIncident(input: {
+      title: "Test Incident"
+      kind: TRAFFIC_JAM
+      status: PUBLISHED
+    }) {
+      id
+      title
+    }
+  }
+}
+
+# Step 2: Mark as fake
+mutation Step2_MarkFake {
+  admin {
+    markIncidentAsFake(id: "returned_id_from_step1") {
+      id
+      isFake
+      status
+    }
+  }
+}
+
+# Step 3: Delete
+mutation Step3_Delete {
+  admin {
+    deleteIncident(id: "returned_id_from_step1")
+  }
+}
+```
+
+---
+
+### Workflow 3: Find and Cleanup Old Incidents
+
+```graphql
+# Step 1: Find old resolved incidents
+query Step1_FindOld {
+  admin {
+    archivedIncidents(
+      filter: {
+        dateTo: "2025-08-31T23:59:59Z"
+      }
+      pagination: { first: 100 }
+    ) {
+      edges {
+        node {
+          id
+          title
+          createdAt
+        }
+      }
+      totalCount
+    }
+  }
+}
+
+# Step 2: Bulk delete (use IDs from step 1)
+mutation Step2_BulkDelete {
+  admin {
+    bulkDeleteIncidents(ids: [
+      "id1_from_step1",
+      "id2_from_step1",
+      "id3_from_step1"
+    ])
+  }
+}
+```
+
+---
+
+## 📝 Variables Example
+
+When using variables in GraphiQL:
+
+```graphql
+# Query
+query GetUsers($first: Int!, $role: UserRole) {
+  admin {
+    users(
+      filter: { role: $role }
+      pagination: { first: $first }
+    ) {
+      edges {
+        node {
+          id
+          name
+          role
+        }
+      }
+    }
+  }
+}
+
+# Variables panel:
+{
+  "first": 10,
+  "role": "MODERATOR"
+}
+```
+
+---
+
+## 🔐 Authorization Header
+
+Add to GraphiQL HTTP Headers:
+
+```json
+{
+  "Authorization": "Bearer YOUR_ADMIN_JWT_TOKEN_HERE"
+}
+```
+
+Get token from NextAuth session or login mutation.

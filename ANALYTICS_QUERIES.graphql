@@ -1,0 +1,454 @@
+# Admin Analytics Queries - Test Examples
+
+## 1. Get Line Incident Statistics (last 24h/7d/31d)
+
+```graphql
+query GetLineStats {
+  admin {
+    lineIncidentStats(
+      lineId: "YOUR_LINE_ID_HERE"
+      period: LAST_31D
+    ) {
+      lineId
+      lineName
+      transportType
+      period
+      totalIncidents
+      incidentsByKind {
+        kind
+        count
+      }
+      averageDelayMinutes
+      timeline {
+        timestamp
+        incidentCount
+      }
+    }
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "admin": {
+      "lineIncidentStats": {
+        "lineId": "507f1f77bcf86cd799439011",
+        "lineName": "Bus 123",
+        "transportType": "BUS",
+        "period": "LAST_31D",
+        "totalIncidents": 45,
+        "incidentsByKind": [
+          { "kind": "TRAFFIC_JAM", "count": 20 },
+          { "kind": "VEHICLE_FAILURE", "count": 12 },
+          { "kind": "ACCIDENT", "count": 8 },
+          { "kind": "PLATFORM_CHANGES", "count": 5 }
+        ],
+        "averageDelayMinutes": 12.5,
+        "timeline": [
+          { "timestamp": "2025-09-05T00:00:00Z", "incidentCount": 3 },
+          { "timestamp": "2025-09-06T00:00:00Z", "incidentCount": 5 },
+          ...
+        ]
+      }
+    }
+  }
+}
+```
+
+---
+
+## 2. Get Line Delay Statistics
+
+```graphql
+query GetLineDelays {
+  admin {
+    lineDelayStats(
+      lineId: "YOUR_LINE_ID_HERE"
+      period: LAST_7D
+    ) {
+      lineId
+      lineName
+      transportType
+      period
+      totalDelays
+      averageDelayMinutes
+      maxDelayMinutes
+      minDelayMinutes
+      delayDistribution {
+        rangeLabel
+        count
+      }
+    }
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "admin": {
+      "lineDelayStats": {
+        "lineId": "507f1f77bcf86cd799439011",
+        "lineName": "Bus 123",
+        "transportType": "BUS",
+        "period": "LAST_7D",
+        "totalDelays": 28,
+        "averageDelayMinutes": 11.8,
+        "maxDelayMinutes": 45,
+        "minDelayMinutes": 2,
+        "delayDistribution": [
+          { "rangeLabel": "0-5 min", "count": 5 },
+          { "rangeLabel": "5-15 min", "count": 15 },
+          { "rangeLabel": "15-30 min", "count": 6 },
+          { "rangeLabel": "30+ min", "count": 2 }
+        ]
+      }
+    }
+  }
+}
+```
+
+---
+
+## 3. Top Delays Ranking (by Frequency)
+
+### All Transport Types
+```graphql
+query TopDelaysAll {
+  admin {
+    topDelays(period: LAST_31D, limit: 10) {
+      rank
+      lineId
+      lineName
+      transportType
+      totalDelays
+      averageDelayMinutes
+      incidentCount
+    }
+  }
+}
+```
+
+### Only Buses
+```graphql
+query TopDelaysBus {
+  admin {
+    topDelays(
+      transportType: BUS
+      period: LAST_7D
+      limit: 20
+    ) {
+      rank
+      lineId
+      lineName
+      transportType
+      totalDelays
+      averageDelayMinutes
+      incidentCount
+    }
+  }
+}
+```
+
+### Only Rail
+```graphql
+query TopDelaysRail {
+  admin {
+    topDelays(
+      transportType: RAIL
+      period: LAST_24H
+      limit: 5
+    ) {
+      rank
+      lineId
+      lineName
+      transportType
+      totalDelays
+      averageDelayMinutes
+      incidentCount
+    }
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "admin": {
+      "topDelays": [
+        {
+          "rank": 1,
+          "lineId": "507f1f77bcf86cd799439011",
+          "lineName": "Bus 123",
+          "transportType": "BUS",
+          "totalDelays": 45,
+          "averageDelayMinutes": 13.2,
+          "incidentCount": 45
+        },
+        {
+          "rank": 2,
+          "lineId": "507f1f77bcf86cd799439012",
+          "lineName": "Tram 5",
+          "transportType": "RAIL",
+          "totalDelays": 38,
+          "averageDelayMinutes": 9.8,
+          "incidentCount": 40
+        },
+        ...
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 4. Lines Incident Overview (All Lines)
+
+```graphql
+query LinesOverview {
+  admin {
+    linesIncidentOverview(period: LAST_31D) {
+      lineId
+      lineName
+      transportType
+      incidentCount
+      lastIncidentTime
+    }
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "admin": {
+      "linesIncidentOverview": [
+        {
+          "lineId": "507f1f77bcf86cd799439011",
+          "lineName": "Bus 123",
+          "transportType": "BUS",
+          "incidentCount": 45,
+          "lastIncidentTime": "2025-10-05T14:30:00Z"
+        },
+        {
+          "lineId": "507f1f77bcf86cd799439012",
+          "lineName": "Tram 5",
+          "transportType": "RAIL",
+          "incidentCount": 40,
+          "lastIncidentTime": "2025-10-05T12:15:00Z"
+        },
+        {
+          "lineId": "507f1f77bcf86cd799439013",
+          "lineName": "Bus 45",
+          "transportType": "BUS",
+          "incidentCount": 12,
+          "lastIncidentTime": "2025-10-04T18:45:00Z"
+        },
+        ...
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 5. Combined Dashboard Query
+
+Get all analytics data in one query:
+
+```graphql
+query AdminDashboard {
+  admin {
+    # Overall stats
+    stats {
+      totalIncidents
+      activeIncidents
+      resolvedIncidents
+      incidentsByKind {
+        kind
+        count
+      }
+    }
+    
+    # Top delays (all transport)
+    topDelaysAll: topDelays(period: LAST_7D, limit: 5) {
+      rank
+      lineName
+      transportType
+      totalDelays
+      averageDelayMinutes
+    }
+    
+    # Top bus delays
+    topBusDelays: topDelays(
+      transportType: BUS
+      period: LAST_7D
+      limit: 5
+    ) {
+      rank
+      lineName
+      totalDelays
+      averageDelayMinutes
+    }
+    
+    # Top rail delays
+    topRailDelays: topDelays(
+      transportType: RAIL
+      period: LAST_7D
+      limit: 5
+    ) {
+      rank
+      lineName
+      totalDelays
+      averageDelayMinutes
+    }
+    
+    # All lines overview
+    linesIncidentOverview(period: LAST_24H) {
+      lineName
+      transportType
+      incidentCount
+      lastIncidentTime
+    }
+  }
+}
+```
+
+---
+
+## 6. Time-Period Comparison
+
+Compare different time periods for the same line:
+
+```graphql
+query CompareTimePeriods {
+  admin {
+    last24h: lineIncidentStats(
+      lineId: "YOUR_LINE_ID"
+      period: LAST_24H
+    ) {
+      totalIncidents
+      averageDelayMinutes
+    }
+    
+    last7d: lineIncidentStats(
+      lineId: "YOUR_LINE_ID"
+      period: LAST_7D
+    ) {
+      totalIncidents
+      averageDelayMinutes
+    }
+    
+    last31d: lineIncidentStats(
+      lineId: "YOUR_LINE_ID"
+      period: LAST_31D
+    ) {
+      totalIncidents
+      averageDelayMinutes
+    }
+  }
+}
+```
+
+---
+
+## 7. Create Test Incident with Delay (Admin)
+
+```graphql
+mutation CreateTestIncident {
+  admin {
+    createIncident(input: {
+      title: "Test: Traffic Jam on Bus 123"
+      description: "Heavy traffic causing delays"
+      kind: TRAFFIC_JAM
+      status: PUBLISHED
+      lineIds: ["YOUR_LINE_ID"]
+      delayMinutes: 15
+    }) {
+      id
+      title
+      delayMinutes
+      createdAt
+    }
+  }
+}
+```
+
+---
+
+## Testing Workflow
+
+### 1. Setup Test Data
+```bash
+# Run the populate script
+npm run populate:incidents
+```
+
+### 2. Get a Line ID
+```graphql
+query GetLines {
+  lines {
+    id
+    name
+    transportType
+  }
+}
+```
+
+### 3. Test Line Statistics
+Replace `YOUR_LINE_ID` with actual line ID from step 2:
+```graphql
+query TestLineStats {
+  admin {
+    lineIncidentStats(lineId: "YOUR_LINE_ID", period: LAST_31D) {
+      lineName
+      totalIncidents
+      averageDelayMinutes
+    }
+  }
+}
+```
+
+### 4. Test Top Delays
+```graphql
+query TestTopDelays {
+  admin {
+    topDelays(period: LAST_31D, limit: 10) {
+      rank
+      lineName
+      totalDelays
+      averageDelayMinutes
+    }
+  }
+}
+```
+
+---
+
+## Authorization
+
+⚠️ **All these queries require ADMIN or MODERATOR role!**
+
+Include authorization header or be logged in as admin:
+```
+Authorization: Bearer YOUR_TOKEN
+```
+
+Or use session cookie from NextAuth.
+
+---
+
+## Notes
+
+- **Periods**: `LAST_24H`, `LAST_7D`, `LAST_31D`
+- **Transport Types**: `BUS`, `RAIL`
+- **Incident Kinds**: `TRAFFIC_JAM`, `ACCIDENT`, `VEHICLE_FAILURE`, `NETWORK_FAILURE`, `PLATFORM_CHANGES`, `INCIDENT`
+- All delay times are in **minutes**
+- Timeline data is grouped by **hour** (24h period) or **day** (7d/31d periods)
