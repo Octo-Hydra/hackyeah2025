@@ -14,6 +14,7 @@ import { DB } from "./src/backend/db/client.js";
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
+const authDebugLogging = process.env.AUTH_DEBUG === "true";
 
 // prepare nextjs
 const app = next({ dev, hostname, port });
@@ -43,12 +44,16 @@ const yoga = createYoga({
   context: async ({ request }) => {
     // WebSocket subscriptions don't have request object
     if (!request) {
-      console.log("🔌 Context called for WebSocket (no request)");
+      if (authDebugLogging) {
+        console.log("🔌 Context called for WebSocket (no request)");
+      }
       const db = await DB();
       return { db, user: null };
     }
 
-    console.log("📡 Context called for HTTP request");
+    if (authDebugLogging) {
+      console.log("📡 Context called for HTTP request");
+    }
 
     const cookieHeader = request.headers.get("cookie");
     let session = null;
@@ -65,7 +70,9 @@ const yoga = createYoga({
         {} as Record<string, string>,
       );
 
-      console.log("🍪 Available cookies:", Object.keys(cookies));
+      if (authDebugLogging) {
+        console.log("🍪 Available cookies:", Object.keys(cookies));
+      }
 
       const cookieNames = [
         "__Secure-authjs.session-token",
@@ -86,8 +93,10 @@ const yoga = createYoga({
         }
       }
 
-      console.log("🔑 Session token found:", sessionToken ? "YES" : "NO");
-      console.log("🔑 Cookie name:", cookieName);
+      if (authDebugLogging) {
+        console.log("🔑 Session token found:", sessionToken ? "YES" : "NO");
+        console.log("🔑 Cookie name:", cookieName);
+      }
 
       if (sessionToken && cookieName) {
         const secretRaw =
@@ -109,16 +118,20 @@ const yoga = createYoga({
             ),
           );
 
-          console.log("🔐 Trying salts:", saltCandidates);
-          console.log(
-            "🔐 Secret candidates:",
-            secretCandidates.map((candidate) => `string(${candidate.length})`),
-          );
-          console.log(
-            "🔐 Token prefix:",
-            sessionToken.substring(0, 40) +
-              (sessionToken.length > 40 ? "..." : ""),
-          );
+          if (authDebugLogging) {
+            console.log("🔐 Trying salts:", saltCandidates);
+            console.log(
+              "🔐 Secret candidates:",
+              secretCandidates.map(
+                (candidate) => `string(${candidate.length})`,
+              ),
+            );
+            console.log(
+              "🔐 Token prefix:",
+              sessionToken.substring(0, 40) +
+                (sessionToken.length > 40 ? "..." : ""),
+            );
+          }
 
           let decoded = null;
           for (const currentSalt of saltCandidates) {
@@ -130,18 +143,22 @@ const yoga = createYoga({
                   salt: currentSalt,
                 });
                 if (decoded) {
-                  console.log("✅ Session token decoded", {
-                    salt: currentSalt,
-                    secretType: "string",
-                  });
+                  if (authDebugLogging) {
+                    console.log("✅ Session token decoded", {
+                      salt: currentSalt,
+                      secretType: "string",
+                    });
+                  }
                   break;
                 }
               } catch (error) {
-                console.warn("❌ Decode attempt failed", {
-                  salt: currentSalt,
-                  secretType: "string",
-                  error,
-                });
+                if (authDebugLogging) {
+                  console.warn("❌ Decode attempt failed", {
+                    salt: currentSalt,
+                    secretType: "string",
+                    error,
+                  });
+                }
               }
             }
             if (decoded) break;
@@ -169,7 +186,7 @@ const yoga = createYoga({
       }
     }
 
-    if (!session) {
+    if (!session && authDebugLogging) {
       console.warn("⚠️ No valid session resolved from cookies");
     }
 
@@ -181,7 +198,9 @@ const yoga = createYoga({
         id: session.user.id,
         role: session.user.role,
       };
-      console.log("👤 User context set from session payload:", user);
+      if (authDebugLogging) {
+        console.log("👤 User context set from session payload:", user);
+      }
     } else if (session?.user?.email) {
       const userDoc = await db.collection("users").findOne({
         email: session.user.email,
@@ -191,7 +210,9 @@ const yoga = createYoga({
           id: userDoc._id.toString(),
           role: userDoc.role || "USER",
         };
-        console.log("👤 User context set from DB:", user);
+        if (authDebugLogging) {
+          console.log("👤 User context set from DB:", user);
+        }
       }
     }
 
@@ -239,10 +260,6 @@ const yoga = createYoga({
         subscribe: (args) =>
           (args.rootValue as { subscribe: YogaSubscribe }).subscribe(args),
         onSubscribe: async (ctx, _id, params) => {
-          console.log("🔌 WebSocket onSubscribe called");
-          console.log("🔌 Connection params:", ctx.connectionParams);
-          console.log("🔌 Extra request:", ctx.extra.request);
-
           const {
             schema,
             execute,

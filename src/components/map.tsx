@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import type { LatLngExpression, Map as LeafletMap } from "leaflet";
-import type { MappedRoute } from "@/lib/map-utils";
+import type { MappedRoute, RoutePoint } from "@/lib/map-utils";
 import { activeJourneyToMappedRoute } from "@/lib/map-utils";
 import { useAppStore } from "@/store/app-store";
 import { ActiveJourneyNotifier } from "./active-journey-notifier";
@@ -34,6 +34,118 @@ const Polyline = dynamic(
   { ssr: false },
 );
 
+const COORD_EPSILON = 1e-6;
+const MIN_SAMPLES = 18;
+const DISTANCE_STEP = 0.00035; // roughly 35m
+
+function arePointsEqual(
+  a: { lat: number; lon: number },
+  b: { lat: number; lon: number },
+): boolean {
+  return (
+    Math.abs(a.lat - b.lat) <= COORD_EPSILON &&
+    Math.abs(a.lon - b.lon) <= COORD_EPSILON
+  );
+}
+
+function interpolate(
+  a: { lat: number; lon: number },
+  b: { lat: number; lon: number },
+  t: number,
+): { lat: number; lon: number } {
+  return {
+    lat: a.lat + (b.lat - a.lat) * t,
+    lon: a.lon + (b.lon - a.lon) * t,
+  };
+}
+
+function catmullRomCentripetal(
+  p0: { lat: number; lon: number },
+  p1: { lat: number; lon: number },
+  p2: { lat: number; lon: number },
+  p3: { lat: number; lon: number },
+  t: number,
+): { lat: number; lon: number } {
+  const alpha = 0.5;
+
+  const dist01 = Math.max(approximateDistance(p0, p1), COORD_EPSILON);
+  const dist12 = Math.max(approximateDistance(p1, p2), COORD_EPSILON);
+  const dist23 = Math.max(approximateDistance(p2, p3), COORD_EPSILON);
+
+  const t0 = 0;
+  const t1 = Math.pow(dist01, alpha);
+  const t2 = t1 + Math.pow(dist12, alpha);
+  const t3 = t2 + Math.pow(dist23, alpha);
+
+  const tScaled = t1 + t * (t2 - t1);
+
+  const A1 = interpolate(p0, p1, (tScaled - t0) / (t1 - t0));
+  const A2 = interpolate(p1, p2, (tScaled - t1) / (t2 - t1));
+  const A3 = interpolate(p2, p3, (tScaled - t2) / (t3 - t2));
+
+  const B1 = interpolate(A1, A2, (tScaled - t0) / (t2 - t0));
+  const B2 = interpolate(A2, A3, (tScaled - t1) / (t3 - t1));
+
+  return interpolate(B1, B2, (tScaled - t1) / (t2 - t1));
+}
+
+function approximateDistance(a: RoutePoint, b: RoutePoint): number {
+  const dx = b.lon - a.lon;
+  const dy = b.lat - a.lat;
+  return Math.hypot(dx, dy);
+}
+
+function findPointIndex(points: RoutePoint[], point: RoutePoint): number {
+  return points.findIndex((candidate) => arePointsEqual(candidate, point));
+}
+
+function generateSmoothPolyline(
+  route: MappedRoute,
+  segment: MappedRoute["segments"][number],
+): LatLngExpression[] {
+  const { allPoints } = route;
+  if (allPoints.length < 2) {
+    return [
+      [segment.from.lat, segment.from.lon],
+      [segment.to.lat, segment.to.lon],
+    ];
+  }
+
+  const startIndex = findPointIndex(allPoints, segment.from);
+  const endIndex = findPointIndex(allPoints, segment.to);
+
+  if (startIndex === -1 || endIndex === -1) {
+    return [
+      [segment.from.lat, segment.from.lon],
+      [segment.to.lat, segment.to.lon],
+    ];
+  }
+
+  const p0 = allPoints[Math.max(startIndex - 1, 0)];
+  const p1 = allPoints[startIndex];
+  const p2 = allPoints[endIndex];
+  const p3 = allPoints[Math.min(endIndex + 1, allPoints.length - 1)];
+
+  if (arePointsEqual(p1, p2)) {
+    return [[p1.lat, p1.lon]];
+  }
+
+  const distance = approximateDistance(p1, p2);
+  const sampleCount = Math.max(
+    MIN_SAMPLES,
+    Math.ceil(distance / DISTANCE_STEP),
+  );
+
+  const points: LatLngExpression[] = [];
+  for (let i = 0; i <= sampleCount; i++) {
+    const t = i / sampleCount;
+    const { lat, lon } = catmullRomCentripetal(p0, p1, p2, p3, t);
+    points.push([lat, lon]);
+  }
+
+  return points;
+}
+
 interface MapProps {
   center?: LatLngExpression;
   zoom?: number;
@@ -44,7 +156,9 @@ export function Map({ center, zoom = 13, className }: MapProps) {
   const [position, setPosition] = useState<LatLngExpression | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [mappedRoute, setMappedRoute] = useState<MappedRoute | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<LeafletMap | null>(null);
+  const lastFittedRouteKey = useRef<string | null>(null);
 
   // Subscribe to active journey changes from store
   const activeJourney = useAppStore((state) => state.user?.activeJourney);
@@ -82,14 +196,38 @@ export function Map({ center, zoom = 13, className }: MapProps) {
 
   // Fit map bounds to route when route changes
   useEffect(() => {
-    if (mappedRoute && mapRef.current) {
-      const { bounds } = mappedRoute;
-      mapRef.current.fitBounds([
-        [bounds.minLat, bounds.minLon],
-        [bounds.maxLat, bounds.maxLon],
-      ]);
+    if (!mappedRoute) {
+      lastFittedRouteKey.current = null;
+      return;
     }
-  }, [mappedRoute]);
+
+    if (!mapRef.current || !mapReady) {
+      return;
+    }
+
+    const routeKey = mappedRoute.segments
+      .map((segment) =>
+        [
+          segment.from.lat.toFixed(6),
+          segment.from.lon.toFixed(6),
+          segment.to.lat.toFixed(6),
+          segment.to.lon.toFixed(6),
+        ].join(","),
+      )
+      .join("|");
+
+    if (routeKey === lastFittedRouteKey.current) {
+      return;
+    }
+
+    const { bounds } = mappedRoute;
+    mapRef.current.fitBounds([
+      [bounds.minLat, bounds.minLon],
+      [bounds.maxLat, bounds.maxLon],
+    ]);
+
+    lastFittedRouteKey.current = routeKey;
+  }, [mappedRoute, mapReady]);
 
   useEffect(() => {
     // Fix Leaflet default marker icon issue with webpack
@@ -154,6 +292,9 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       ref={(map) => {
         if (map) {
           mapRef.current = map;
+          if (!mapReady) {
+            setMapReady(true);
+          }
         }
       }}
     >
@@ -181,10 +322,7 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       {mappedRoute?.segments.map((segment, idx) => (
         <Polyline
           key={`segment-${idx}`}
-          positions={[
-            [segment.from.lat, segment.from.lon],
-            [segment.to.lat, segment.to.lon],
-          ]}
+          positions={generateSmoothPolyline(mappedRoute, segment)}
           pathOptions={{
             color: getLineColor(segment.transportType),
             weight: 4,
