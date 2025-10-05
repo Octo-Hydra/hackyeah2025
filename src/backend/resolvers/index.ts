@@ -2,6 +2,7 @@ import Query from "./query.js";
 import Mutation from "./mutation.js";
 import { subscriptionResolvers } from "./subscriptions.js";
 import Incident from "./incidentResolvers.js";
+import Line from "./lineResolvers.js";
 import { AdminQueryResolvers } from "./adminQuery.js";
 import { AdminMutationResolvers } from "./adminMutation.js";
 import { adminAnalyticsResolvers } from "./adminAnalytics.js";
@@ -23,6 +24,7 @@ const resolvers = {
   },
   AdminMutation: AdminMutationResolvers.AdminMutation,
   Incident,
+  Line,
   ...subscriptionResolvers,
 };
 
