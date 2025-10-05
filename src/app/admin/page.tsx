@@ -51,7 +51,7 @@ export default async function AdminPage() {
     <MobileLayout isMobile={isMobile}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Desktop Header */}
-        <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
+        <header className="hidden border-b bg-white right-0 left-0 dark:bg-gray-950 md:block fixed">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-4">
               <Button asChild variant="ghost" size="sm">
@@ -77,7 +77,7 @@ export default async function AdminPage() {
         </header>
 
         {/* Main Content */}
-        <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 py-8 md:max-h-[calc(100vh-4rem)]">
+        <main className=" container mx-auto px-4 py-8 overflow-y-auto max-h-screen md:max-h-none">
           <div className="mb-6">
             <h2 className="mb-2 text-3xl font-bold">Admin Dashboard</h2>
             <p className="text-gray-600 dark:text-gray-400">
