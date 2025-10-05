@@ -86,11 +86,6 @@ export function AddEventDialog() {
   const user = useAppStore((state) => state.user);
   const activeJourney = user?.activeJourney;
 
-  // Safety check - don't render if no user
-  if (!user) {
-    return null;
-  }
-
   // Extract line IDs from active journey
   const lineIds =
     activeJourney?.segments
@@ -319,6 +314,11 @@ export function AddEventDialog() {
       setSubmitting(false);
     }
   };
+
+  // Safety check - don't render if no user (after all hooks)
+  if (!user) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

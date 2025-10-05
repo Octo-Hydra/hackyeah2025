@@ -46,8 +46,8 @@ export function JourneyNotificationCenter() {
   return (
     <div
       className={cn(
-        "pointer-events-none fixed right-4 z-[9998]",
-        "top-[calc(env(safe-area-inset-top,0px)+1rem)] md:top-6",
+        "pointer-events-none fixed left-4 z-[99998]",
+        "bottom-[calc(env(safe-area-inset-top,0px)+1rem)] md:bottom-6",
       )}
     >
       <Sheet open={open} onOpenChange={setOpen}>
@@ -68,8 +68,8 @@ export function JourneyNotificationCenter() {
           </SheetTrigger>
         </div>
         <SheetContent
-          side="right"
-          className="w-full max-w-md overflow-hidden border-l bg-background p-0"
+          side="left"
+          className="w-full max-w-md overflow-hidden border-r bg-background p-0"
         >
           <SheetHeader className="flex flex-row items-center justify-between gap-2 border-b bg-muted/60 p-4">
             <div className="flex items-center gap-2">

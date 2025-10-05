@@ -135,6 +135,8 @@ Flow: User reports → GraphQL mutation → MongoDB insert → PubSub publish �
 6. **MongoDB singleton** - Always use `import clientPromise from "@/lib/mongodb"`, never create new MongoClient
 7. **NEVER create documentation files** - Don't create MD files, example files, or documentation. The `docs/` folder has everything needed. Only create actual implementation code.
 8. **No example files** - Don't create `*.example.ts`, `*.sample.ts`, or similar. Write production code directly.
+9. **No test files** - Don't create test files (`.test.ts`, `.spec.ts`) unless explicitly requested. We don't use automated testing.
+10. **Don't run builds automatically** - Only run `npm run build` at the end of a task or when explicitly requested. Focus on code changes first.
 
 ## Quick Reference
 

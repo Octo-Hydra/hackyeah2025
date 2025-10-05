@@ -252,7 +252,12 @@ export function useReputationUpdateSubscription(
  */
 export function closeWSConnection() {
   if (wsClient) {
-    wsClient.dispose();
-    wsClient = null;
+    try {
+      wsClient.dispose();
+    } catch (error) {
+      console.error("[WebSocket] Error disposing client:", error);
+    } finally {
+      wsClient = null;
+    }
   }
 }

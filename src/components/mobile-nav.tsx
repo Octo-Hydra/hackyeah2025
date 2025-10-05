@@ -94,11 +94,14 @@ export function MobileNav() {
   const handleLogout = async () => {
     setIsSigningOut(true);
     try {
+      // Clear store and localStorage
       clearStore();
       if (typeof window !== "undefined") {
         localStorage.removeItem("activeJourneyLineIds");
       }
-      await signOut({ callbackUrl: "/", redirect: true });
+      
+      // Don't await - let Next.js handle the redirect
+      signOut({ callbackUrl: "/", redirect: true });
     } catch (error) {
       console.error("Error signing out:", error);
       setIsSigningOut(false);

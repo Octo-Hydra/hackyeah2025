@@ -233,13 +233,17 @@ export const useAppStore = create<AppState>()(
 
         // Store management
         clearStore: () =>
-          set({
-            user: null,
-            notifications: [],
-            dismissedNotificationIds: [],
-            mapCenter: null,
-            mapZoom: 13,
-          }),
+          set(
+            {
+              user: null,
+              notifications: [],
+              dismissedNotificationIds: [],
+              mapCenter: null,
+              mapZoom: 13,
+            },
+            false,
+            "clearStore",
+          ),
 
         // Hydration tracking
         _hasHydrated: false,
