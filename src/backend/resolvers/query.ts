@@ -21,7 +21,7 @@ export const Query = {
 
     // Find user by email
     const user = await db
-      .collection("users")
+      .collection<UserModel>("users")
       .findOne({ email: userEmail });
 
     if (!user) {
@@ -102,7 +102,7 @@ export const Query = {
   // Moved from userQuery.ts
   async incidentsByLine(
     _: unknown,
-    { lineId }: { lineId: string; transportType?: string },
+    { lineId }: { lineId: string; transportType?: string }
   ) {
     const db = await DB();
     const query: Partial<IncidentModel> = {
@@ -139,7 +139,7 @@ export const Query = {
 
   async searchStops(
     _: unknown,
-    { query, limit = 10 }: { query: string; limit?: number },
+    { query, limit = 10 }: { query: string; limit?: number }
   ) {
     const db = await DB();
     const regex = new RegExp(query, "i"); // Case-insensitive search

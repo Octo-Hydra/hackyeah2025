@@ -207,13 +207,10 @@ async function paginateIncidents(
   const collection = db.collection<IncidentModel>("Incidents");
 
   // Count total
-  const totalCount = await collection("users").countDocuments(filter);
+  const totalCount = await collection.countDocuments(filter);
 
   // Get incidents
-  let query = collection("users")
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(limit);
+  let query = collection.find(filter).sort({ createdAt: -1 }).limit(limit);
 
   if (pagination?.after) {
     const afterId = new ObjectId(pagination.after);
