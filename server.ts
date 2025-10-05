@@ -89,14 +89,27 @@ const yoga = createYoga({
       console.log("🔑 Cookie name:", cookieName);
 
       if (sessionToken) {
-        // Determine salt based on cookie name
+        // Determine base name (without __Secure- prefix) for salt
         // Cookie can be: authjs.session-token, __Secure-authjs.session-token, etc.
-        const salt = cookieName?.includes("authjs")
-          ? "authjs.session-token"
-          : "next-auth.session-token";
+        // Salt should match the base cookie name
+        const baseCookieName =
+          cookieName?.replace(/^__Secure-/, "") || "authjs.session-token";
+        const salt = baseCookieName;
 
-        // Try both secrets (NextAuth v5 might use AUTH_SECRET)
+        // NextAuth v5 requires AUTH_SECRET (not NEXTAUTH_SECRET)
+        // In production, ensure AUTH_SECRET is set to the same value as NEXTAUTH_SECRET
+        console.log(
+          " process.env.NEXTAUTH_SECRET",
+          process.env.NEXTAUTH_SECRET,
+        );
+        console.log(" process.env.AUTH_SECRET", process.env.AUTH_SECRET);
         const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!;
+
+        if (!secret) {
+          console.error("❌ No AUTH_SECRET or NEXTAUTH_SECRET found!");
+          const db = await DB();
+          return { user: null, db };
+        }
 
         try {
           console.log("🔓 Attempting to decode token...");
