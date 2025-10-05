@@ -165,19 +165,16 @@ function buildIncidentFilter(filter?: IncidentFilterInput): any {
 async function paginateUsers(
   db: Db,
   filter: any,
-  pagination?: PaginationInput,
+  pagination?: PaginationInput
 ) {
   const limit = pagination?.first || pagination?.last || 20;
   const collection = db.collection("users");
 
   // Count total
-  const totalCount = await collection("users").countDocuments(filter);
+  const totalCount = await collection.countDocuments(filter);
 
   // Get users
-  let query = collection("users")
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(limit);
+  let query = collection.find(filter).sort({ createdAt: -1 }).limit(limit);
 
   if (pagination?.after) {
     const afterId = new ObjectId(pagination.after);
@@ -204,7 +201,7 @@ async function paginateUsers(
 async function paginateIncidents(
   db: Db,
   filter: any,
-  pagination?: PaginationInput,
+  pagination?: PaginationInput
 ) {
   const limit = pagination?.first || pagination?.last || 20;
   const collection = db.collection<IncidentModel>("Incidents");
@@ -252,7 +249,7 @@ export const AdminQueryResolvers = {
     users: async (
       _: any,
       args: { filter?: UserFilterInput; pagination?: PaginationInput },
-      context: Context,
+      context: Context
     ) => {
       const filter = buildUserFilter(args.filter);
       return paginateUsers(context.db, filter, args.pagination);
@@ -275,7 +272,7 @@ export const AdminQueryResolvers = {
     incidents: async (
       _: any,
       args: { filter?: IncidentFilterInput; pagination?: PaginationInput },
-      context: Context,
+      context: Context
     ) => {
       const filter = buildIncidentFilter(args.filter);
       return paginateIncidents(context.db, filter, args.pagination);
@@ -298,7 +295,7 @@ export const AdminQueryResolvers = {
     archivedIncidents: async (
       _: any,
       args: { filter?: IncidentFilterInput; pagination?: PaginationInput },
-      context: Context,
+      context: Context
     ) => {
       const filter = buildIncidentFilter(args.filter);
       filter.status = "RESOLVED"; // Force RESOLVED status
