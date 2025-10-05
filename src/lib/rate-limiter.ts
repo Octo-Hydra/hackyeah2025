@@ -39,9 +39,9 @@ export interface CooldownConfig {
 }
 
 export const DEFAULT_COOLDOWNS: CooldownConfig = {
-  sameLocation: 300000, // 5 minutes
-  sameKind: 180000, // 3 minutes
-  anyReport: 60000, // 1 minute
+  sameLocation: 30000, // 30 seconds
+  sameKind: 18000, // 18 seconds
+  anyReport: 10000, // 10 seconds
 };
 
 /**
