@@ -84,6 +84,21 @@ export interface IncidentModel {
   createdAt: string;
 }
 
+export interface JourneyNotificationModel {
+  _id?: ObjectId | string;
+  userId: ObjectId | string;
+  incidentId: string;
+  title: string;
+  description?: string | null;
+  kind?: IncidentKind | null;
+  status?: ReportStatus | null;
+  lineId?: ObjectId | string | null;
+  lineName?: string | null;
+  delayMinutes?: number | null;
+  receivedAt: string;
+  dismissedAt?: string | null;
+}
+
 // Incident location - tracks which segments have incidents
 export interface IncidentLocationModel {
   _id?: ObjectId | string;
@@ -226,4 +241,5 @@ export const COLLECTIONS = {
   LINES: "Lines",
   STOPS: "Stops",
   ROUTES: "Routes",
+  JOURNEY_NOTIFICATIONS: "journeyNotifications",
 } as const;

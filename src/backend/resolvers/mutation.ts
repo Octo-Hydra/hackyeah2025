@@ -10,7 +10,9 @@ import type {
   Coordinates,
   StopModel,
   IncidentLocationModel,
+  JourneyNotificationModel,
 } from "../db/collections.js";
+import { COLLECTIONS } from "../db/collections.js";
 import { DB } from "../db/client.js";
 import { pubsub, CHANNELS } from "./subscriptions.js";
 import {
@@ -73,6 +75,30 @@ interface FavoriteConnectionInput {
   endStopId: string;
 }
 
+interface JourneyNotificationInput {
+  incidentId: string;
+  title: string;
+  description?: string | null;
+  kind?: IncidentKind | null;
+  status?: ReportStatus | null;
+  lineId?: string | null;
+  lineName?: string | null;
+  delayMinutes?: number | null;
+}
+
+interface JourneyNotificationResult {
+  id: string;
+  incidentId: string;
+  title: string;
+  description?: string | null;
+  kind?: IncidentKind | null;
+  status?: ReportStatus | null;
+  lineId?: string | null;
+  lineName?: string | null;
+  delayMinutes?: number | null;
+  receivedAt: string;
+}
+
 // Notify affected users about new incident
 async function notifyAffectedUsers(
   doc: IncidentModel,
@@ -82,6 +108,26 @@ async function notifyAffectedUsers(
   // Simplified notification - just log for now
   // TODO: Implement proper user notification based on active journeys and favorites
   console.log(`📢 New incident created: ${doc.title} (ID: ${incidentId})`);
+}
+
+function mapJourneyNotification(
+  doc: JourneyNotificationModel,
+): JourneyNotificationResult {
+  return {
+    id: doc.incidentId,
+    incidentId: doc.incidentId,
+    title: doc.title,
+    description: doc.description ?? null,
+    kind: doc.kind ?? null,
+    status: doc.status ?? null,
+    lineId:
+      doc.lineId instanceof ObjectId
+        ? doc.lineId.toString()
+        : (doc.lineId ?? null),
+    lineName: doc.lineName ?? null,
+    delayMinutes: doc.delayMinutes ?? null,
+    receivedAt: doc.receivedAt,
+  };
 }
 
 /**
@@ -727,9 +773,24 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
+    const user = await db
+      .collection<UserModel>("users")
+      .findOne({ email: userEmail });
+
+    if (!user?._id) {
+      throw new Error("User not found");
+    }
+
+    const userId =
+      typeof user._id === "string" ? user._id : user._id.toString();
+
     const result = await db
       .collection<UserModel>("users")
       .updateOne({ email: userEmail }, { $unset: { activeJourney: "" } });
+
+    await db
+      .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
+      .deleteMany({ userId });
 
     return result.modifiedCount > 0;
   },
@@ -784,6 +845,124 @@ export const Mutation = {
       );
 
     return result.modifiedCount > 0;
+  },
+
+  async upsertJourneyNotification(
+    _: unknown,
+    { input }: { input: JourneyNotificationInput },
+    ctx: GraphQLContext,
+  ): Promise<JourneyNotificationResult> {
+    const db = await DB();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await db
+      .collection<UserModel>("users")
+      .findOne({ email: userEmail });
+
+    if (!user?._id) {
+      throw new Error("User not found");
+    }
+
+    const userId =
+      typeof user._id === "string" ? user._id : user._id.toString();
+    const now = new Date().toISOString();
+
+    const doc = await db
+      .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
+      .findOneAndUpdate(
+        { userId, incidentId: input.incidentId },
+        {
+          $set: {
+            userId,
+            incidentId: input.incidentId,
+            title: input.title,
+            description: input.description ?? null,
+            kind: input.kind ?? null,
+            status: input.status ?? null,
+            lineId: input.lineId ?? null,
+            lineName: input.lineName ?? null,
+            delayMinutes: input.delayMinutes ?? null,
+            dismissedAt: null,
+          },
+          $setOnInsert: {
+            receivedAt: now,
+          },
+        },
+        {
+          upsert: true,
+          returnDocument: "after",
+        },
+      );
+
+    if (!doc) {
+      throw new Error("Failed to upsert journey notification");
+    }
+
+    return mapJourneyNotification(doc);
+  },
+
+  async dismissJourneyNotification(
+    _: unknown,
+    { id }: { id: string },
+    ctx: GraphQLContext,
+  ): Promise<boolean> {
+    const db = await DB();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await db
+      .collection<UserModel>("users")
+      .findOne({ email: userEmail });
+
+    if (!user?._id) {
+      throw new Error("User not found");
+    }
+
+    const userId =
+      typeof user._id === "string" ? user._id : user._id.toString();
+
+    const result = await db
+      .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
+      .deleteOne({ userId, incidentId: id });
+
+    return result.deletedCount > 0;
+  },
+
+  async clearJourneyNotifications(
+    _: unknown,
+    __: unknown,
+    ctx: GraphQLContext,
+  ): Promise<boolean> {
+    const db = await DB();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await db
+      .collection<UserModel>("users")
+      .findOne({ email: userEmail });
+
+    if (!user?._id) {
+      throw new Error("User not found");
+    }
+
+    const userId =
+      typeof user._id === "string" ? user._id : user._id.toString();
+
+    const result = await db
+      .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
+      .deleteMany({ userId });
+
+    return result.acknowledged;
   },
 };
 

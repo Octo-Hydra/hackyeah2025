@@ -78,6 +78,18 @@ export default function InterceptedSignInPage() {
                 startTime: true,
                 expectedEndTime: true,
               },
+              journeyNotifications: {
+                id: true,
+                incidentId: true,
+                title: true,
+                description: true,
+                kind: true,
+                status: true,
+                lineId: true,
+                lineName: true,
+                delayMinutes: true,
+                receivedAt: true,
+              },
             },
           });
 
@@ -118,6 +130,20 @@ export default function InterceptedSignInPage() {
 
             console.log("🚗 Modal: Active journey data:", activeJourneyData);
 
+            const notifications =
+              result.me.journeyNotifications?.map((notification) => ({
+                id: notification.id,
+                incidentId: notification.incidentId ?? notification.id,
+                title: notification.title,
+                description: notification.description ?? null,
+                kind: notification.kind ?? null,
+                status: notification.status ?? undefined,
+                lineId: notification.lineId ?? null,
+                lineName: notification.lineName ?? null,
+                delayMinutes: notification.delayMinutes ?? null,
+                receivedAt: notification.receivedAt,
+              })) ?? [];
+
             // Aktualizuj Zustand store
             setUser({
               id: result.me.id,
@@ -125,6 +151,7 @@ export default function InterceptedSignInPage() {
               email: result.me.email,
               reputation: result.me.reputation ?? undefined,
               activeJourney: activeJourneyData,
+              journeyNotifications: notifications,
             });
 
             console.log("✅ Modal: User saved to store");

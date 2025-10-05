@@ -5,7 +5,7 @@
 
 import { auth } from "@/auth";
 import { prepareSSRquery } from "@/lib/graphql_request_ssr";
-import type { User } from "./app-store";
+import type { JourneyNotification, User } from "./app-store";
 
 /**
  * Fetch current user data on server-side
@@ -63,12 +63,38 @@ export async function fetchUserForStore(): Promise<User | null> {
           startTime: true,
           expectedEndTime: true,
         },
+        journeyNotifications: {
+          id: true,
+          incidentId: true,
+          title: true,
+          description: true,
+          kind: true,
+          status: true,
+          lineId: true,
+          lineName: true,
+          delayMinutes: true,
+          receivedAt: true,
+        },
       },
     });
 
     if (!result.me) {
       return null;
     }
+
+    const journeyNotifications: JourneyNotification[] =
+      result.me.journeyNotifications?.map((notification) => ({
+        id: notification.id,
+        incidentId: notification.incidentId ?? notification.id,
+        title: notification.title,
+        description: notification.description ?? null,
+        kind: notification.kind ?? null,
+        status: notification.status ?? undefined,
+        lineId: notification.lineId ?? null,
+        lineName: notification.lineName ?? null,
+        delayMinutes: notification.delayMinutes ?? null,
+        receivedAt: notification.receivedAt,
+      })) ?? [];
 
     return {
       id: result.me.id || "",
@@ -108,6 +134,7 @@ export async function fetchUserForStore(): Promise<User | null> {
               (result.me.activeJourney.expectedEndTime as string) || "",
           }
         : undefined,
+      journeyNotifications,
     };
   } catch (error) {
     // Suppress expected "Dynamic server usage" errors during build

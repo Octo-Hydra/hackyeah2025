@@ -916,8 +916,23 @@ export type ValueTypes = {
 	trustScore?:boolean | `@${string}`,
 	trustScoreBreakdown?:ValueTypes["TrustScoreBreakdown"],
 	activeJourney?:ValueTypes["ActiveJourney"],
+	journeyNotifications?:ValueTypes["JourneyNotification"],
 		__typename?: boolean | `@${string}`,
 	['...on User']?: Omit<ValueTypes["User"], "...on User">
+}>;
+	["JourneyNotification"]: AliasType<{
+	id?:boolean | `@${string}`,
+	incidentId?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	delayMinutes?:boolean | `@${string}`,
+	receivedAt?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on JourneyNotification']?: Omit<ValueTypes["JourneyNotification"], "...on JourneyNotification">
 }>;
 	["TrustScoreBreakdown"]: AliasType<{
 	baseScore?:boolean | `@${string}`,
@@ -965,6 +980,16 @@ export type ValueTypes = {
 	name: string | Variable<any, string>,
 	startStopId: ValueTypes["ID"] | Variable<any, string>,
 	endStopId: ValueTypes["ID"] | Variable<any, string>
+};
+	["JourneyNotificationInput"]: {
+	incidentId: ValueTypes["ID"] | Variable<any, string>,
+	title: string | Variable<any, string>,
+	description?: string | undefined | null | Variable<any, string>,
+	kind?: ValueTypes["IncidentKind"] | undefined | null | Variable<any, string>,
+	status?: ValueTypes["ReportStatus"] | undefined | null | Variable<any, string>,
+	lineId?: ValueTypes["ID"] | undefined | null | Variable<any, string>,
+	lineName?: string | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>
 };
 	["OperationResult"]: AliasType<{
 	success?:boolean | `@${string}`,
@@ -1092,6 +1117,9 @@ setActiveJourney?: [{	input: ValueTypes["ActiveJourneyInput"] | Variable<any, st
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ValueTypes["FavoriteConnectionInput"] | Variable<any, string>},boolean | `@${string}`],
 removeFavoriteConnection?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+upsertJourneyNotification?: [{	input: ValueTypes["JourneyNotificationInput"] | Variable<any, string>},ValueTypes["JourneyNotification"]],
+dismissJourneyNotification?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+	clearJourneyNotifications?:boolean | `@${string}`,
 	admin?:ValueTypes["AdminMutation"],
 		__typename?: boolean | `@${string}`,
 	['...on Mutation']?: Omit<ValueTypes["Mutation"], "...on Mutation">
@@ -1390,6 +1418,20 @@ export type ResolverInputTypes = {
 	trustScore?:boolean | `@${string}`,
 	trustScoreBreakdown?:ResolverInputTypes["TrustScoreBreakdown"],
 	activeJourney?:ResolverInputTypes["ActiveJourney"],
+	journeyNotifications?:ResolverInputTypes["JourneyNotification"],
+		__typename?: boolean | `@${string}`
+}>;
+	["JourneyNotification"]: AliasType<{
+	id?:boolean | `@${string}`,
+	incidentId?:boolean | `@${string}`,
+	title?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	delayMinutes?:boolean | `@${string}`,
+	receivedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["TrustScoreBreakdown"]: AliasType<{
@@ -1435,6 +1477,16 @@ export type ResolverInputTypes = {
 	name: string,
 	startStopId: ResolverInputTypes["ID"],
 	endStopId: ResolverInputTypes["ID"]
+};
+	["JourneyNotificationInput"]: {
+	incidentId: ResolverInputTypes["ID"],
+	title: string,
+	description?: string | undefined | null,
+	kind?: ResolverInputTypes["IncidentKind"] | undefined | null,
+	status?: ResolverInputTypes["ReportStatus"] | undefined | null,
+	lineId?: ResolverInputTypes["ID"] | undefined | null,
+	lineName?: string | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["OperationResult"]: AliasType<{
 	success?:boolean | `@${string}`,
@@ -1552,6 +1604,9 @@ setActiveJourney?: [{	input: ResolverInputTypes["ActiveJourneyInput"]},ResolverI
 	clearActiveJourney?:boolean | `@${string}`,
 addFavoriteConnection?: [{	input: ResolverInputTypes["FavoriteConnectionInput"]},boolean | `@${string}`],
 removeFavoriteConnection?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
+upsertJourneyNotification?: [{	input: ResolverInputTypes["JourneyNotificationInput"]},ResolverInputTypes["JourneyNotification"]],
+dismissJourneyNotification?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
+	clearJourneyNotifications?:boolean | `@${string}`,
 	admin?:ResolverInputTypes["AdminMutation"],
 		__typename?: boolean | `@${string}`
 }>;
@@ -1833,7 +1888,20 @@ export type ModelTypes = {
 	reputation?: number | undefined | null,
 	trustScore?: number | undefined | null,
 	trustScoreBreakdown?: ModelTypes["TrustScoreBreakdown"] | undefined | null,
-	activeJourney?: ModelTypes["ActiveJourney"] | undefined | null
+	activeJourney?: ModelTypes["ActiveJourney"] | undefined | null,
+	journeyNotifications: Array<ModelTypes["JourneyNotification"]>
+};
+	["JourneyNotification"]: {
+		id: ModelTypes["ID"],
+	incidentId: ModelTypes["ID"],
+	title: string,
+	description?: string | undefined | null,
+	kind?: ModelTypes["IncidentKind"] | undefined | null,
+	status?: ModelTypes["ReportStatus"] | undefined | null,
+	lineId?: ModelTypes["ID"] | undefined | null,
+	lineName?: string | undefined | null,
+	delayMinutes?: number | undefined | null,
+	receivedAt: string
 };
 	["TrustScoreBreakdown"]: {
 		baseScore: number,
@@ -1875,6 +1943,16 @@ export type ModelTypes = {
 	name: string,
 	startStopId: ModelTypes["ID"],
 	endStopId: ModelTypes["ID"]
+};
+	["JourneyNotificationInput"]: {
+	incidentId: ModelTypes["ID"],
+	title: string,
+	description?: string | undefined | null,
+	kind?: ModelTypes["IncidentKind"] | undefined | null,
+	status?: ModelTypes["ReportStatus"] | undefined | null,
+	lineId?: ModelTypes["ID"] | undefined | null,
+	lineName?: string | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["OperationResult"]: {
 		success: boolean,
@@ -1982,6 +2060,9 @@ export type ModelTypes = {
 	clearActiveJourney: boolean,
 	addFavoriteConnection: ModelTypes["ID"],
 	removeFavoriteConnection: boolean,
+	upsertJourneyNotification: ModelTypes["JourneyNotification"],
+	dismissJourneyNotification: boolean,
+	clearJourneyNotifications: boolean,
 	admin: ModelTypes["AdminMutation"]
 };
 	["AdminMutation"]: {
@@ -2263,7 +2344,22 @@ export type GraphQLTypes = {
 	trustScore?: number | undefined | null,
 	trustScoreBreakdown?: GraphQLTypes["TrustScoreBreakdown"] | undefined | null,
 	activeJourney?: GraphQLTypes["ActiveJourney"] | undefined | null,
+	journeyNotifications: Array<GraphQLTypes["JourneyNotification"]>,
 	['...on User']: Omit<GraphQLTypes["User"], "...on User">
+};
+	["JourneyNotification"]: {
+	__typename: "JourneyNotification",
+	id: GraphQLTypes["ID"],
+	incidentId: GraphQLTypes["ID"],
+	title: string,
+	description?: string | undefined | null,
+	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	status?: GraphQLTypes["ReportStatus"] | undefined | null,
+	lineId?: GraphQLTypes["ID"] | undefined | null,
+	lineName?: string | undefined | null,
+	delayMinutes?: number | undefined | null,
+	receivedAt: string,
+	['...on JourneyNotification']: Omit<GraphQLTypes["JourneyNotification"], "...on JourneyNotification">
 };
 	["TrustScoreBreakdown"]: {
 	__typename: "TrustScoreBreakdown",
@@ -2311,6 +2407,16 @@ export type GraphQLTypes = {
 		name: string,
 	startStopId: GraphQLTypes["ID"],
 	endStopId: GraphQLTypes["ID"]
+};
+	["JourneyNotificationInput"]: {
+		incidentId: GraphQLTypes["ID"],
+	title: string,
+	description?: string | undefined | null,
+	kind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	status?: GraphQLTypes["ReportStatus"] | undefined | null,
+	lineId?: GraphQLTypes["ID"] | undefined | null,
+	lineName?: string | undefined | null,
+	delayMinutes?: number | undefined | null
 };
 	["OperationResult"]: {
 	__typename: "OperationResult",
@@ -2439,6 +2545,9 @@ export type GraphQLTypes = {
 	clearActiveJourney: boolean,
 	addFavoriteConnection: GraphQLTypes["ID"],
 	removeFavoriteConnection: boolean,
+	upsertJourneyNotification: GraphQLTypes["JourneyNotification"],
+	dismissJourneyNotification: boolean,
+	clearJourneyNotifications: boolean,
 	admin: GraphQLTypes["AdminMutation"],
 	['...on Mutation']: Omit<GraphQLTypes["Mutation"], "...on Mutation">
 };
@@ -2763,6 +2872,7 @@ type ZEUS_VARIABLES = {
 	["PathSegmentInput"]: ValueTypes["PathSegmentInput"];
 	["SegmentLocationInput"]: ValueTypes["SegmentLocationInput"];
 	["FavoriteConnectionInput"]: ValueTypes["FavoriteConnectionInput"];
+	["JourneyNotificationInput"]: ValueTypes["JourneyNotificationInput"];
 	["UserFilterInput"]: ValueTypes["UserFilterInput"];
 	["IncidentFilterInput"]: ValueTypes["IncidentFilterInput"];
 	["PaginationInput"]: ValueTypes["PaginationInput"];

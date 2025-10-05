@@ -19,9 +19,7 @@ export function AppStoreProvider({ user, children }: AppStoreProviderProps) {
   useEffect(() => {
     // Initialize store with SSR data only once
     if (!initialized.current) {
-      if (user) {
-        useAppStore.getState().setUser(user);
-      }
+      useAppStore.getState().setUser(user);
       initialized.current = true;
     }
   }, [user]);

@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { SignOutButton } from "@/components/sign-out-button";
+import { AlertsFloatingSheet } from "@/components/alerts/alerts-floating-sheet";
 
 // Load dialogs only on client side to avoid SSR issues with leaflet-geosearch
 const AddEventDialog = dynamic(
@@ -137,6 +138,9 @@ export default function HomePage() {
               <AddEventDialog />
             </div>
           )}
+
+          {/* Floating Alerts Sheet */}
+          <AlertsFloatingSheet />
         </main>
       </div>
     </MobileLayout>

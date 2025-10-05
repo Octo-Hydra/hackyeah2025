@@ -4,7 +4,9 @@ import type {
   LineModel,
   IncidentModel,
   UserModel,
+  JourneyNotificationModel,
 } from "../db/collections";
+import { COLLECTIONS } from "../db/collections";
 import { DB } from "../db/client.js";
 import { ObjectId } from "mongodb";
 
@@ -26,6 +28,18 @@ export const Query = {
       return null;
     }
 
+    const userId =
+      typeof user._id === "string" ? user._id : user._id?.toString();
+
+    const notifications = await db
+      .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
+      .find({
+        userId,
+        dismissedAt: { $in: [null, undefined] },
+      })
+      .sort({ receivedAt: -1 })
+      .toArray();
+
     // Convert ObjectIds to strings for GraphQL
     return {
       id: user._id?.toString() ?? "",
@@ -33,6 +47,21 @@ export const Query = {
       email: user.email,
       role: user.role,
       reputation: user.reputation ?? 0,
+      journeyNotifications: notifications.map((notification) => ({
+        id: notification.incidentId,
+        incidentId: notification.incidentId,
+        title: notification.title,
+        description: notification.description,
+        kind: notification.kind,
+        status: notification.status ?? null,
+        lineId:
+          notification.lineId instanceof ObjectId
+            ? notification.lineId.toString()
+            : (notification.lineId ?? null),
+        lineName: notification.lineName ?? null,
+        delayMinutes: notification.delayMinutes ?? null,
+        receivedAt: notification.receivedAt,
+      })),
       activeJourney: user.activeJourney
         ? {
             segments: user.activeJourney.segments.map((seg) => ({

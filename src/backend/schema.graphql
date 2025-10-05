@@ -12,6 +12,20 @@ type User {
   trustScore: Float # Dynamic trust score (0.5-2.5), updated by cron
   trustScoreBreakdown: TrustScoreBreakdown
   activeJourney: ActiveJourney
+  journeyNotifications: [JourneyNotification!]!
+}
+
+type JourneyNotification {
+  id: ID!
+  incidentId: ID!
+  title: String!
+  description: String
+  kind: IncidentKind
+  status: ReportStatus
+  lineId: ID
+  lineName: String
+  delayMinutes: Int
+  receivedAt: String!
 }
 
 type TrustScoreBreakdown {
@@ -60,6 +74,17 @@ input FavoriteConnectionInput {
   name: String!
   startStopId: ID!
   endStopId: ID!
+}
+
+input JourneyNotificationInput {
+  incidentId: ID!
+  title: String!
+  description: String
+  kind: IncidentKind
+  status: ReportStatus
+  lineId: ID
+  lineName: String
+  delayMinutes: Int
 }
 
 # Generic result type for operations
@@ -206,6 +231,11 @@ type Mutation {
   clearActiveJourney: Boolean!
   addFavoriteConnection(input: FavoriteConnectionInput!): ID!
   removeFavoriteConnection(id: ID!): Boolean!
+  upsertJourneyNotification(
+    input: JourneyNotificationInput!
+  ): JourneyNotification!
+  dismissJourneyNotification(id: ID!): Boolean!
+  clearJourneyNotifications: Boolean!
   # Admin mutations (ADMIN/MODERATOR only)
   admin: AdminMutation!
 }

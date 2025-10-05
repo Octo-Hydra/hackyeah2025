@@ -16,6 +16,10 @@ export const AllTypesProps: Record<string,any> = {
 	FavoriteConnectionInput:{
 
 	},
+	JourneyNotificationInput:{
+		kind:"IncidentKind",
+		status:"ReportStatus"
+	},
 	Query:{
 		incidentsByLine:{
 			transportType:"TransportType"
@@ -115,6 +119,12 @@ export const AllTypesProps: Record<string,any> = {
 			input:"FavoriteConnectionInput"
 		},
 		removeFavoriteConnection:{
+
+		},
+		upsertJourneyNotification:{
+			input:"JourneyNotificationInput"
+		},
+		dismissJourneyNotification:{
 
 		}
 	},
@@ -228,7 +238,20 @@ export const ReturnTypes: Record<string,any> = {
 		reputation:"Int",
 		trustScore:"Float",
 		trustScoreBreakdown:"TrustScoreBreakdown",
-		activeJourney:"ActiveJourney"
+		activeJourney:"ActiveJourney",
+		journeyNotifications:"JourneyNotification"
+	},
+	JourneyNotification:{
+		id:"ID",
+		incidentId:"ID",
+		title:"String",
+		description:"String",
+		kind:"IncidentKind",
+		status:"ReportStatus",
+		lineId:"ID",
+		lineName:"String",
+		delayMinutes:"Int",
+		receivedAt:"String"
 	},
 	TrustScoreBreakdown:{
 		baseScore:"Float",
@@ -330,6 +353,9 @@ export const ReturnTypes: Record<string,any> = {
 		clearActiveJourney:"Boolean",
 		addFavoriteConnection:"ID",
 		removeFavoriteConnection:"Boolean",
+		upsertJourneyNotification:"JourneyNotification",
+		dismissJourneyNotification:"Boolean",
+		clearJourneyNotifications:"Boolean",
 		admin:"AdminMutation"
 	},
 	AdminMutation:{
