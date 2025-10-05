@@ -142,16 +142,17 @@ export default async function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Szybkie akcje</CardTitle>
-                <CardDescription>Zarządzaj swoim kontem i ustawieniami</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SignOutButton className="w-full md:w-auto" />
-              </CardContent>
-            </Card>
+            {/* Quick Actions - hidden on mobile (logout handled in mobile nav) */}
+            {!isMobile && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Szybkie akcje</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SignOutButton />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </main>
       </div>
