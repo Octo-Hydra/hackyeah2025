@@ -206,7 +206,6 @@ export default async function RootLayout({
         <JsonLd />
         <AuthProvider>
           <AppStoreProvider user={user}>
-            <ActiveJourneyNotifier />
             {children}
             <Toaster />
           </AppStoreProvider>

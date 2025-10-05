@@ -37,7 +37,7 @@ const yoga = createYoga({
   schema: createSchema<{
     db: Db;
     session: {
-      user: { email: string; name: string; image: string };
+      user: { email: string; name: string; image: string; role: string };
       expires: string;
     } | null;
     request: Request;
@@ -60,7 +60,7 @@ const yoga = createYoga({
           acc[key] = value;
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
@@ -78,7 +78,7 @@ const yoga = createYoga({
           console.log("🔓 Attempting to decode token...");
           console.log(
             "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET
+            !!process.env.NEXTAUTH_SECRET,
           );
 
           const decoded = await decode({
@@ -93,12 +93,14 @@ const yoga = createYoga({
                 email: decoded.email as string,
                 name: decoded.name as string,
                 image: decoded.picture as string,
+                role: (decoded.role as string) || "USER", // Add role from token
               },
               expires: new Date((decoded.exp as number) * 1000).toISOString(),
             };
             console.log("✅ Session decoded successfully:", {
               email: decoded.email,
               name: decoded.name,
+              role: decoded.role,
             });
           }
         } catch (error) {
@@ -112,9 +114,25 @@ const yoga = createYoga({
     // Get database connection
     const db = await DB();
 
+    // Fetch user with role from database if session exists
+    let user = undefined;
+    if (session?.user?.email) {
+      const userDoc = await db.collection("users").findOne({
+        email: session.user.email,
+      });
+      if (userDoc) {
+        user = {
+          id: userDoc._id.toString(),
+          role: userDoc.role || "USER",
+        };
+        console.log("👤 User context set:", { id: user.id, role: user.role });
+      }
+    }
+
     return {
       db,
       session,
+      user,
       request,
     };
   },
@@ -139,7 +157,7 @@ const yoga = createYoga({
           console.error(`Error while handling ${req.url}`, err);
           res.writeHead(500).end();
         }
-      }
+      },
     );
 
     // create websocket server
@@ -186,11 +204,11 @@ const yoga = createYoga({
           return args;
         },
       },
-      wsServer
+      wsServer,
     );
 
     await new Promise<void>((resolve, reject) =>
-      server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
+      server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
     );
 
     console.log(`

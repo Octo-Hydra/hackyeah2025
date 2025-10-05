@@ -104,7 +104,7 @@ export default function HomePage() {
         </header>
 
         {/* Mobile Header - Compact */}
-        <header className="z-10 border-b bg-white shadow-sm dark:bg-gray-950 md:hidden">
+        {/* <header className="z-10 border-b bg-white shadow-sm dark:bg-gray-950 md:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <Link
               href="/"
@@ -120,7 +120,7 @@ export default function HomePage() {
               <h1 className="text-lg font-bold">OnTime</h1>
             </Link>
           </div>
-        </header>
+        </header> */}
 
         {/* Map */}
         <main className="relative flex-1 overflow-hidden touch-ui">

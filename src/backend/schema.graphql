@@ -141,32 +141,22 @@ type KindStats {
 }
 
 type UserConnection {
-  edges: [UserEdge!]!
+  items: [User!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-type UserEdge {
-  node: User!
-  id: ID! # User ID used as cursor
 }
 
 type IncidentConnection {
-  edges: [IncidentEdge!]!
+  items: [Incident!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-type IncidentEdge {
-  node: Incident!
-  id: ID! # Incident ID used as cursor
 }
 
 type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
-  startCursor: ID # First item ID
-  endCursor: ID # Last item ID
+  startCursor: String # First item ID
+  endCursor: String # Last item ID
 }
 
 input UserFilterInput {

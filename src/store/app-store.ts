@@ -73,6 +73,9 @@ interface AppState {
   mapZoom: number;
   setMapZoom: (zoom: number) => void;
 
+  // Store management
+  clearStore: () => void;
+
   // Hydration
   _hasHydrated: boolean;
   setHasHydrated: (hasHydrated: boolean) => void;
@@ -111,6 +114,14 @@ export const useAppStore = create<AppState>()(
         setMapCenter: (center) => set({ mapCenter: center }),
         mapZoom: 13,
         setMapZoom: (zoom) => set({ mapZoom: zoom }),
+
+        // Store management
+        clearStore: () =>
+          set({
+            user: null,
+            mapCenter: null,
+            mapZoom: 13,
+          }),
 
         // Hydration tracking
         _hasHydrated: false,

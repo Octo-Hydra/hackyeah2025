@@ -1,5 +1,6 @@
-import { MapPin, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface RouteNotificationProps {
   startCity: string;
@@ -27,21 +28,26 @@ export function RouteNotification({
       )}
     >
       {/* Glowing accent line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       <div className="relative p-3 sm:p-4 md:p-5">
         {/* Route display */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
           {/* Start City */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2">
-              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/90 border-2 border-primary shrink-0 mt-0.5 sm:mt-1">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
-              </div>
+            <div className="flex items-end gap-2">
+              <Image
+                src="/apple-touch-icon.png"
+                alt="OnTime"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] sm:text-xs font-medium text-primary/60 mb-0.5">
                   From
                 </p>
+
                 <p className="text-base sm:text-lg font-bold text-primary truncate">
                   {startCity}
                 </p>
@@ -73,10 +79,15 @@ export function RouteNotification({
 
           {/* End City */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2">
-              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/60 border-2 border-accent shrink-0 mt-0.5 sm:mt-1">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
-              </div>
+            <div className="flex items-end gap-2">
+              <Image
+                src="/apple-touch-icon.png"
+                alt="OnTime"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] sm:text-xs font-medium text-primary/70 mb-0.5">
                   To
@@ -91,7 +102,8 @@ export function RouteNotification({
       </div>
 
       {/* Bottom accent glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+      {/* <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" /> */}
+      {/* <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" /> */}
     </div>
   );
 }

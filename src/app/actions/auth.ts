@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { registerUser, type RegisterData } from "@/lib/auth-utils";
 import { AuthError } from "next-auth";
 
@@ -58,4 +58,8 @@ export async function handleRejestracja(data: {
   password: string;
 }) {
   return handleRegister(data);
+}
+
+export async function handleSignOut() {
+  await signOut({ redirectTo: "/" });
 }

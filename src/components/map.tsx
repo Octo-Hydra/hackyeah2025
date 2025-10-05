@@ -7,6 +7,7 @@ import type { LatLngExpression, Map as LeafletMap } from "leaflet";
 import type { MappedRoute } from "@/lib/map-utils";
 import { activeJourneyToMappedRoute } from "@/lib/map-utils";
 import { useAppStore } from "@/store/app-store";
+import { ActiveJourneyNotifier } from "./active-journey-notifier";
 
 // Dynamically import MapContainer to avoid SSR issues
 const MapContainer = dynamic(
@@ -160,7 +161,7 @@ export function Map({ center, zoom = 13, className }: MapProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-
+      <ActiveJourneyNotifier />
       {/* Show user location marker when no route is displayed */}
       {!mappedRoute && (
         <Marker position={mapCenter}>

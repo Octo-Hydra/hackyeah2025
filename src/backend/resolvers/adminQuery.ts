@@ -56,15 +56,11 @@ interface IncidentFilterInput {
 /**
  * Check if user has admin/moderator privileges
  */
+<<<<<<< HEAD
+function requireAdminOrModerator(context: Context): void {
+=======
 async function requireAdminOrModerator(context: Context): Promise<void> {
-  const user = await DB().then((db) =>
-    db
-      .collection<UserModel>("Users")
-      .findOne({ _id: new ObjectId("68e1a480e89cbf703a58a160") })
-  );
-  context.user = user
-    ? { id: user._id?.toString() || "", role: user.role }
-    : undefined;
+>>>>>>> 6c77b0188366e029f931ebcfdd3ac237dca2f9e2
   if (!context.user) {
     throw new Error("Authentication required");
   }
@@ -197,10 +193,7 @@ async function paginateUsers(
   const users = await query.toArray();
 
   return {
-    edges: users.map((user) => ({
-      node: user,
-      id: user._id?.toString() || "",
-    })),
+    items: users,
     pageInfo: {
       hasNextPage: users.length === limit,
       hasPreviousPage: !!pagination?.after,
@@ -236,10 +229,7 @@ async function paginateIncidents(
   const incidents = await query.toArray();
 
   return {
-    edges: incidents.map((incident) => ({
-      node: incident,
-      id: incident._id?.toString() || "",
-    })),
+    items: incidents,
     pageInfo: {
       hasNextPage: incidents.length === limit,
       hasPreviousPage: !!pagination?.after,
@@ -253,7 +243,7 @@ async function paginateIncidents(
 export const AdminQueryResolvers = {
   Query: {
     admin: (_: any, __: any, context: Context) => {
-      // requireAdminOrModerator(context);
+      requireAdminOrModerator(context);
       return {}; // Return empty object for nested resolvers
     },
   },

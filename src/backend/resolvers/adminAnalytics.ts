@@ -17,7 +17,7 @@ interface Context {
 
 // Period to milliseconds conversion
 function getPeriodMilliseconds(
-  period: "LAST_24H" | "LAST_7D" | "LAST_31D"
+  period: "LAST_24H" | "LAST_7D" | "LAST_31D",
 ): number {
   switch (period) {
     case "LAST_24H":
@@ -49,7 +49,7 @@ export const adminAnalyticsResolvers = {
     lineIncidentStats: async (
       _: unknown,
       args: { lineId: string; period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
       const session = await context.auth();
@@ -102,7 +102,7 @@ export const adminAnalyticsResolvers = {
         ([kind, count]) => ({
           kind,
           count,
-        })
+        }),
       );
 
       // Timeline: group by day (or hour for 24h period)
@@ -144,7 +144,7 @@ export const adminAnalyticsResolvers = {
     lineDelayStats: async (
       _: unknown,
       args: { lineId: string; period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
       const session = await context.auth();
@@ -239,7 +239,7 @@ export const adminAnalyticsResolvers = {
         period: "LAST_24H" | "LAST_7D" | "LAST_31D";
         limit?: number;
       },
-      context: Context
+      context: Context,
     ) => {
       const client = await clientPromise;
       const db = client.db();
@@ -287,7 +287,7 @@ export const adminAnalyticsResolvers = {
                 : 0,
             incidentCount: incidents.length,
           };
-        })
+        }),
       );
 
       // Sort by frequency (totalDelays) descending
@@ -308,7 +308,7 @@ export const adminAnalyticsResolvers = {
     linesIncidentOverview: async (
       _: unknown,
       args: { period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
       const session = await context.auth();
@@ -347,12 +347,12 @@ export const adminAnalyticsResolvers = {
             incidentCount: incidents.length,
             lastIncidentTime: incidents[0]?.createdAt || null,
           };
-        })
+        }),
       );
 
       // Sort by incident count descending
       return overview.sort(
-        (a: any, b: any) => b.incidentCount - a.incidentCount
+        (a: any, b: any) => b.incidentCount - a.incidentCount,
       );
     },
   },

@@ -299,28 +299,20 @@ export const ReturnTypes: Record<string,any> = {
 		count:"Int"
 	},
 	UserConnection:{
-		edges:"UserEdge",
+		items:"User",
 		pageInfo:"PageInfo",
 		totalCount:"Int"
-	},
-	UserEdge:{
-		node:"User",
-		id:"ID"
 	},
 	IncidentConnection:{
-		edges:"IncidentEdge",
+		items:"Incident",
 		pageInfo:"PageInfo",
 		totalCount:"Int"
-	},
-	IncidentEdge:{
-		node:"Incident",
-		id:"ID"
 	},
 	PageInfo:{
 		hasNextPage:"Boolean",
 		hasPreviousPage:"Boolean",
-		startCursor:"ID",
-		endCursor:"ID"
+		startCursor:"String",
+		endCursor:"String"
 	},
 	Mutation:{
 		register:"Boolean",

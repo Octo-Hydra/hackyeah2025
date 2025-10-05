@@ -15,11 +15,12 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import {
-  handleCredentialsSignIn,
   handleGoogleSignIn,
   handleFacebookSignIn,
   handleRegister,
 } from "@/app/actions/auth";
+import { useAppStore } from "@/store/app-store";
+import { Query } from "@/lib/graphql_request";
 
 export default function InterceptedSignInPage() {
   const router = useRouter();
@@ -27,18 +28,134 @@ export default function InterceptedSignInPage() {
   const [isOpen, setIsOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const setUser = useAppStore((state) => state.setUser);
+  const setMapCenter = useAppStore((state) => state.setMapCenter);
 
   // Bind OAuth sign-in actions to return to root
   const handleGoogleSignInWithReturn = handleGoogleSignIn.bind(null, "/");
   const handleFacebookSignInWithReturn = handleFacebookSignIn.bind(null, "/");
 
-  // Zamknij modal po udanym zalogowaniu
+  // Pobierz dane użytkownika i zaktualizuj store po zalogowaniu
   useEffect(() => {
-    if (status === "authenticated" && session) {
-      setIsLoading(false);
-      setIsOpen(false);
-    }
-  }, [status, session]);
+    const fetchUserData = async () => {
+      if (status === "authenticated" && session) {
+        try {
+          // Pobierz dane użytkownika z GraphQL
+          const query = Query();
+          const result = await query({
+            me: {
+              id: true,
+              name: true,
+              email: true,
+
+              reputation: true,
+              activeJourney: {
+                segments: {
+                  from: {
+                    stopId: true,
+                    stopName: true,
+                    coordinates: {
+                      latitude: true,
+                      longitude: true,
+                    },
+                  },
+                  to: {
+                    stopId: true,
+                    stopName: true,
+                    coordinates: {
+                      latitude: true,
+                      longitude: true,
+                    },
+                  },
+                  lineId: true,
+                  lineName: true,
+                  transportType: true,
+                  departureTime: true,
+                  arrivalTime: true,
+                  duration: true,
+                  hasIncident: true,
+                },
+                startTime: true,
+                expectedEndTime: true,
+              },
+            },
+          });
+
+          if (result.me) {
+            console.log("📦 Modal: GraphQL me result:", result.me);
+
+            const activeJourneyData = result.me.activeJourney
+              ? {
+                  segments: result.me.activeJourney.segments.map((seg) => ({
+                    from: {
+                      stopId: seg.from.stopId,
+                      stopName: seg.from.stopName,
+                      coordinates: {
+                        latitude: seg.from.coordinates.latitude,
+                        longitude: seg.from.coordinates.longitude,
+                      },
+                    },
+                    to: {
+                      stopId: seg.to.stopId,
+                      stopName: seg.to.stopName,
+                      coordinates: {
+                        latitude: seg.to.coordinates.latitude,
+                        longitude: seg.to.coordinates.longitude,
+                      },
+                    },
+                    lineId: seg.lineId,
+                    lineName: seg.lineName,
+                    transportType: seg.transportType as "BUS" | "RAIL",
+                    departureTime: seg.departureTime,
+                    arrivalTime: seg.arrivalTime,
+                    duration: seg.duration,
+                    hasIncident: seg.hasIncident,
+                  })),
+                  startTime: result.me.activeJourney.startTime,
+                  expectedEndTime: result.me.activeJourney.expectedEndTime,
+                }
+              : undefined;
+
+            console.log("🚗 Modal: Active journey data:", activeJourneyData);
+
+            // Aktualizuj Zustand store
+            setUser({
+              id: result.me.id,
+              name: result.me.name,
+              email: result.me.email,
+              image: result.me.image as string | null | undefined,
+              reputation: result.me.reputation ?? undefined,
+              activeJourney: activeJourneyData,
+            });
+
+            console.log("✅ Modal: User saved to store");
+
+            // Ustaw mapCenter na początek aktywnej podróży
+            if (activeJourneyData?.segments?.[0]?.from.coordinates) {
+              setMapCenter([
+                activeJourneyData.segments[0].from.coordinates.latitude,
+                activeJourneyData.segments[0].from.coordinates.longitude,
+              ]);
+              console.log(
+                "📍 Modal: Map center set to:",
+                activeJourneyData.segments[0].from.stopName,
+              );
+            }
+          }
+
+          setIsLoading(false);
+          setIsOpen(false);
+          console.log("✅ Modal: Closing dialog");
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setIsLoading(false);
+          setIsOpen(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [status, session, setUser, setMapCenter]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -52,12 +169,23 @@ export default function InterceptedSignInPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const result = await handleCredentialsSignIn(formData);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    // Use next-auth/react signIn for modal (no redirect)
+    const { signIn } = await import("next-auth/react");
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
     if (result?.error) {
-      setError(result.error);
+      setError("Invalid credentials");
       setIsLoading(false);
-    } else if (result?.success) {
+    } else if (result?.ok) {
+      // Session will be updated automatically
+      // The useEffect will handle closing the modal
       await update();
     }
   };
@@ -68,25 +196,32 @@ export default function InterceptedSignInPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
     const result = await handleRegister({
       name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
+      email,
+      password,
     });
 
     if (result.error) {
       setError(result.error);
       setIsLoading(false);
     } else {
-      const signInFormData = new FormData();
-      signInFormData.append("email", formData.get("email") as string);
-      signInFormData.append("password", formData.get("password") as string);
-      const signInResult = await handleCredentialsSignIn(signInFormData);
+      // Auto sign in after registration
+      const { signIn } = await import("next-auth/react");
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
       if (signInResult?.error) {
-        setError(signInResult.error);
+        setError("Registration successful but failed to sign in");
         setIsLoading(false);
-      } else {
+      } else if (signInResult?.ok) {
+        // Session will be updated automatically
         await update();
       }
     }
