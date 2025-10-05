@@ -218,7 +218,7 @@ export function NotificationsList() {
 
   return (
     <div className="">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         {notifications.length > 0 && (
           <Button
             variant="outline"

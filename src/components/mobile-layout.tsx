@@ -3,7 +3,6 @@
 import { MobileNav } from "./mobile-nav";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
-import { isPWAClient } from "@/lib/user-agent";
 
 interface MobileLayoutProps {
   children: React.ReactNode;

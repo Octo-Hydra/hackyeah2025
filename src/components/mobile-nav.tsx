@@ -37,6 +37,7 @@ const navItems: NavItem[] = [
     icon: Bell,
     requireAuth: true,
   },
+
   {
     name: "Profil",
     href: "/user",
@@ -44,6 +45,27 @@ const navItems: NavItem[] = [
     requireAuth: true,
     hideForRole: "ADMIN", // Hide profile for admins
   },
+  {
+    name: "Wyloguj",
+    href: "#logout",
+    icon: LogOut,
+    requireAuth: true,
+  },
+];
+
+const adminNavItems: NavItem[] = [
+  {
+    name: "Strona główna",
+    href: "/",
+    icon: Home,
+  },
+  {
+    name: "Powiadomienia",
+    href: "/pwa",
+    icon: Bell,
+    requireAuth: true,
+  },
+
   {
     name: "Admin",
     href: "/admin",
@@ -77,13 +99,12 @@ export function MobileNav() {
   const { data: session } = useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const clearStore = useAppStore((state) => state.clearStore);
-
-  // Use different nav items based on auth status
-  const items = session ? navItems : guestNavItems;
-
   // Check if user has admin role
   const userRole = session?.user?.role;
   const isAdmin = userRole === "ADMIN";
+  console.log("isAdmin", isAdmin);
+  // Use different nav items based on auth status
+  const items = session ? (isAdmin ? adminNavItems : navItems) : guestNavItems;
 
   const handleLogout = async () => {
     setIsSigningOut(true);
@@ -169,17 +190,9 @@ export function MobileNav() {
                   isActive && "scale-110",
                 )}
               />
-              <span
-                className={cn(
-                  "block max-w-[80px] truncate text-center",
-                  isActive && "font-semibold",
-                )}
-              >
+              <span className={cn("text-center", isActive && "font-semibold ")}>
                 {item.name}
               </span>
-              {isActive && (
-                <div className="absolute -bottom-0 h-0.5 w-12 rounded-t-full bg-blue-600 dark:bg-blue-400" />
-              )}
             </Link>
           );
         })}

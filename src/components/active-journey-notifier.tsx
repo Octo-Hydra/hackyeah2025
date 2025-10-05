@@ -59,6 +59,7 @@ export function ActiveJourneyNotifier() {
         endCity={lastSegment.to.stopName}
         duration={`${startTime} - ${endTime}`}
         delayMinutes={totalDelay > 0 ? totalDelay : undefined}
+        segments={activeJourney.segments}
         className="pointer-events-auto"
       />
     </div>
