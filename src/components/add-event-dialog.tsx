@@ -12,13 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertTriangle,
@@ -30,6 +23,11 @@ import {
   Train,
   Bus,
   Cable,
+  Car,
+  Wrench,
+  Radio,
+  Navigation,
+  AlertCircle,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import { toast } from "sonner";
@@ -60,12 +58,42 @@ interface LineInfo {
 }
 
 const INCIDENT_TYPES = [
-  { value: "ACCIDENT", label: "Wypadek", icon: "🚨" },
-  { value: "TRAFFIC_JAM", label: "Korek uliczny", icon: "🚗" },
-  { value: "VEHICLE_FAILURE", label: "Awaria pojazdu", icon: "⚠️" },
-  { value: "NETWORK_FAILURE", label: "Awaria sieci", icon: "📡" },
-  { value: "PLATFORM_CHANGES", label: "Zmiana peronu", icon: "🚉" },
-  { value: "INCIDENT", label: "Inny incydent", icon: "❗" },
+  { 
+    value: "ACCIDENT", 
+    label: "Wypadek", 
+    icon: AlertTriangle,
+    color: "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+  },
+  { 
+    value: "TRAFFIC_JAM", 
+    label: "Korek", 
+    icon: Car,
+    color: "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200"
+  },
+  { 
+    value: "VEHICLE_FAILURE", 
+    label: "Awaria pojazdu", 
+    icon: Wrench,
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200"
+  },
+  { 
+    value: "NETWORK_FAILURE", 
+    label: "Awaria sieci", 
+    icon: Radio,
+    color: "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200"
+  },
+  { 
+    value: "PLATFORM_CHANGES", 
+    label: "Zmiana peronu", 
+    icon: Navigation,
+    color: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+  },
+  { 
+    value: "INCIDENT", 
+    label: "Inny", 
+    icon: AlertCircle,
+    color: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+  },
 ];
 
 export function AddEventDialog() {
@@ -375,8 +403,9 @@ export function AddEventDialog() {
                     <p className="text-sm text-gray-400">Pobieranie...</p>
                   ) : location ? (
                     <p className="text-sm font-mono">
-                      {location.latitude.toFixed(5)},{" "}
-                      {location.longitude.toFixed(5)}
+                      {/* {location.latitude.toFixed(5)},{" "}
+                      {location.longitude.toFixed(5)} */}
+                      Kraków Główny
                     </p>
                   ) : (
                     <p className="text-sm text-gray-400">Niedostępna</p>
@@ -423,7 +452,7 @@ export function AddEventDialog() {
             </div>
 
             {/* Rate Limit Info */}
-            {rateLimitInfo?.rateLimitInfo?.remaining && (
+            {/* {rateLimitInfo?.rateLimitInfo?.remaining && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                 <div className="flex items-start gap-2">
                   <Clock className="mt-0.5 h-4 w-4 text-blue-600" />
@@ -445,30 +474,36 @@ export function AddEventDialog() {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Incident Type */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="kind">Rodzaj zdarzenia *</Label>
-              <Select value={kind} onValueChange={setKind} required>
-                <SelectTrigger id="kind">
-                  <SelectValue placeholder="Wybierz rodzaj..." />
-                </SelectTrigger>
-                {/* dont ask about this z-index value, it 5:36 AM */}
-                <SelectContent className=" z-[999990]" position="popper">
-                  {INCIDENT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <span className="flex items-center gap-2">
-                        <span>{type.icon}</span>
-                        <span>{type.label}</span>
+              <div className="grid grid-cols-2 gap-2">
+                {INCIDENT_TYPES.filter(type => type.label !== "Zmiana peronu" && type.label !== "Awaria sieci").map((type) => {
+                  const Icon = type.icon;
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setKind(type.value)}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all ${
+                        kind === type.value
+                          ? `${type.color} ring-2 ring-offset-2 ring-current`
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <Icon className="h-6 w-6" />
+                      <span className="text-xs font-medium text-center">
+                        {type.label}
                       </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Description */}
+            {/* Description
             <div className="space-y-2">
               <Label htmlFor="description">Opis (opcjonalnie)</Label>
               <Textarea
@@ -482,7 +517,7 @@ export function AddEventDialog() {
               <p className="text-xs text-gray-500">
                 {description.length}/500 znaków
               </p>
-            </div>
+            </div> */}
 
             {/* Info Alert */}
             <Alert>

@@ -494,7 +494,7 @@ export function AddJourneyDialog() {
           <MapPin className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         {(() => {
           console.log("🖼️ Render: showComparison =", showComparison);
           console.log("🖼️ Render: foundJourneys =", foundJourneys.length);
@@ -623,7 +623,7 @@ export function AddJourneyDialog() {
                 </div>
               </div>
 
-              {/* Selected Points Summary */}
+              {/* Selected Points Summary
               {(startPoint || endPoint) && (
                 <div className="rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-900">
                   {startPoint && (
@@ -643,7 +643,7 @@ export function AddJourneyDialog() {
                     </div>
                   )}
                 </div>
-              )}
+              )} */}
 
               <DialogFooter>
                 <Button
