@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
-import clientPromise from "./src/lib/mongodb.js";
+import clientPromise from "../src/lib/mongodb.js";
 
 async function checkStops() {
   try {

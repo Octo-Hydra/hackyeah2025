@@ -2,7 +2,7 @@
  * Test script to check MongoDB stops structure
  */
 
-import clientPromise from "./src/lib/mongodb";
+import clientPromise from "../src/lib/mongodb";
 
 async function testStops() {
   try {
