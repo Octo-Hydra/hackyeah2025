@@ -10,15 +10,15 @@ import type { IncidentModel, LineModel } from "@/backend/db/collections";
 
 interface Context {
   db: Db;
-  session: {
-    user: { email: string; name: string; role: string };
-    expires: string;
-  } | null;
+  user?: {
+    id: string;
+    role: "USER" | "MODERATOR" | "ADMIN";
+  };
 }
 
 // Period to milliseconds conversion
 function getPeriodMilliseconds(
-  period: "LAST_24H" | "LAST_7D" | "LAST_31D"
+  period: "LAST_24H" | "LAST_7D" | "LAST_31D",
 ): number {
   switch (period) {
     case "LAST_24H":
@@ -50,15 +50,14 @@ export const adminAnalyticsResolvers = {
     lineIncidentStats: async (
       _: unknown,
       args: { lineId: string; period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
-      const session = context.session;
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
@@ -103,7 +102,7 @@ export const adminAnalyticsResolvers = {
         ([kind, count]) => ({
           kind,
           count,
-        })
+        }),
       );
 
       // Timeline: group by day (or hour for 24h period)
@@ -145,15 +144,14 @@ export const adminAnalyticsResolvers = {
     lineDelayStats: async (
       _: unknown,
       args: { lineId: string; period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
-      const session = context.session;
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
@@ -240,7 +238,7 @@ export const adminAnalyticsResolvers = {
         period: "LAST_24H" | "LAST_7D" | "LAST_31D";
         limit?: number;
       },
-      context: Context
+      context: Context,
     ) => {
       const client = await clientPromise;
       const db = client.db();
@@ -288,7 +286,7 @@ export const adminAnalyticsResolvers = {
                 : 0,
             incidentCount: incidents.length,
           };
-        })
+        }),
       );
 
       // Sort by frequency (totalDelays) descending
@@ -309,15 +307,14 @@ export const adminAnalyticsResolvers = {
     linesIncidentOverview: async (
       _: unknown,
       args: { period: "LAST_24H" | "LAST_7D" | "LAST_31D" },
-      context: Context
+      context: Context,
     ) => {
       // Authorization check
-      const session = context.session;
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
@@ -348,12 +345,12 @@ export const adminAnalyticsResolvers = {
             incidentCount: incidents.length,
             lastIncidentTime: incidents[0]?.createdAt || null,
           };
-        })
+        }),
       );
 
       // Sort by incident count descending
       return overview.sort(
-        (a: any, b: any) => b.incidentCount - a.incidentCount
+        (a: any, b: any) => b.incidentCount - a.incidentCount,
       );
     },
   },

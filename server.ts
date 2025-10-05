@@ -10,7 +10,6 @@ import resolvers from "./src/backend/resolvers";
 import { decode } from "next-auth/jwt";
 import { startTrustScoreCron } from "./src/backend/cron/trust-score-cron.js";
 import { DB } from "./src/backend/db/client.js";
-import { Db } from "mongodb";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -34,20 +33,22 @@ const yoga = createYoga({
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  schema: createSchema<{
-    db: Db;
-    session: {
-      user: { email: string; name: string; image: string; role: string };
-      expires: string;
-    } | null;
-    request: Request;
-  }>({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  schema: createSchema<any>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,
     resolvers,
   }),
   context: async ({ request }) => {
+    // WebSocket subscriptions don't have request object
+    if (!request) {
+      console.log("🔌 Context called for WebSocket (no request)");
+      const db = await DB();
+      return { db, user: null };
+    }
+
+    console.log("📡 Context called for HTTP request");
     // Get session from NextAuth JWT cookie
     const cookieHeader = request.headers.get("cookie");
     let session = null;
@@ -60,31 +61,57 @@ const yoga = createYoga({
           acc[key] = value;
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
 
-      const sessionToken =
-        cookies["authjs.session-token"] ||
-        cookies["__Secure-authjs.session-token"] ||
-        cookies["next-auth.session-token"] ||
-        cookies["__Secure-next-auth.session-token"];
+      // Try different cookie names for NextAuth v5
+      let sessionToken: string | undefined;
+      let cookieName: string | undefined;
+
+      const cookieNames = [
+        "authjs.session-token",
+        "__Secure-authjs.session-token",
+        "next-auth.session-token",
+        "__Secure-next-auth.session-token",
+      ];
+
+      for (const name of cookieNames) {
+        if (cookies[name]) {
+          sessionToken = cookies[name];
+          cookieName = name;
+          break;
+        }
+      }
 
       console.log("🔑 Session token found:", sessionToken ? "YES" : "NO");
+      console.log("🔑 Cookie name:", cookieName);
 
       if (sessionToken) {
         try {
           console.log("🔓 Attempting to decode token...");
           console.log(
             "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET
+            !!process.env.NEXTAUTH_SECRET,
           );
+          console.log("🔐 AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
+
+          // Try both secrets (NextAuth v5 might use AUTH_SECRET)
+          const secret =
+            process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!;
+
+          // Determine salt based on cookie name
+          const salt = cookieName?.startsWith("authjs")
+            ? "authjs.session-token"
+            : "next-auth.session-token";
+
+          console.log("🔐 Using salt:", salt);
 
           const decoded = await decode({
             token: sessionToken,
-            secret: process.env.NEXTAUTH_SECRET!,
-            salt: "authjs.session-token",
+            secret: secret,
+            salt: salt,
           });
 
           if (decoded) {
@@ -102,9 +129,53 @@ const yoga = createYoga({
               name: decoded.name,
               role: decoded.role,
             });
+          } else {
+            console.warn("⚠️ Token decoded but no user data found");
           }
         } catch (error) {
           console.error("❌ Error decoding session token:", error);
+          console.error("   Cookie name:", cookieName);
+          console.error(
+            "   Salt used:",
+            cookieName?.startsWith("authjs")
+              ? "authjs.session-token"
+              : "next-auth.session-token",
+          );
+          console.error(
+            "   Token preview:",
+            sessionToken?.substring(0, 20) + "...",
+          );
+
+          // Try alternative decoding
+          try {
+            console.log("🔄 Trying alternative salt...");
+            const altSalt = cookieName?.startsWith("authjs")
+              ? "next-auth.session-token"
+              : "authjs.session-token";
+
+            const altDecoded = await decode({
+              token: sessionToken,
+              secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!,
+              salt: altSalt,
+            });
+
+            if (altDecoded) {
+              console.log("✅ Alternative decoding successful!");
+              session = {
+                user: {
+                  email: altDecoded.email as string,
+                  name: altDecoded.name as string,
+                  image: altDecoded.picture as string,
+                  role: (altDecoded.role as string) || "USER",
+                },
+                expires: new Date(
+                  (altDecoded.exp as number) * 1000,
+                ).toISOString(),
+              };
+            }
+          } catch (altError) {
+            console.error("❌ Alternative decoding also failed:", altError);
+          }
         }
       } else {
         console.log("⚠️ No session token found in cookies");
@@ -114,9 +185,25 @@ const yoga = createYoga({
     // Get database connection
     const db = await DB();
 
+    // Fetch user with role from database if session exists
+    let user = undefined;
+    if (session?.user?.email) {
+      const userDoc = await db.collection("users").findOne({
+        email: session.user.email,
+      });
+      if (userDoc) {
+        user = {
+          id: userDoc._id.toString(),
+          role: userDoc.role || "USER",
+        };
+        console.log("👤 User context set:", { id: user.id, role: user.role });
+      }
+    }
+
     return {
       db,
       session,
+      user,
       request,
     };
   },
@@ -141,7 +228,7 @@ const yoga = createYoga({
           console.error(`Error while handling ${req.url}`, err);
           res.writeHead(500).end();
         }
-      }
+      },
     );
 
     // create websocket server
@@ -157,6 +244,10 @@ const yoga = createYoga({
         subscribe: (args) =>
           (args.rootValue as { subscribe: YogaSubscribe }).subscribe(args),
         onSubscribe: async (ctx, _id, params) => {
+          console.log("🔌 WebSocket onSubscribe called");
+          console.log("🔌 Connection params:", ctx.connectionParams);
+          console.log("🔌 Extra request:", ctx.extra.request);
+
           const {
             schema,
             execute,
@@ -188,11 +279,11 @@ const yoga = createYoga({
           return args;
         },
       },
-      wsServer
+      wsServer,
     );
 
     await new Promise<void>((resolve, reject) =>
-      server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
+      server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
     );
 
     console.log(`

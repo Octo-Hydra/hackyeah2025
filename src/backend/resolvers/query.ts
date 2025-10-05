@@ -107,6 +107,29 @@ export const Query = {
 
   findPath: pathResolvers.findPath,
   stops: pathResolvers.stops,
+
+  async searchStops(
+    _: unknown,
+    { query, limit = 10 }: { query: string; limit?: number },
+  ) {
+    const db = await DB();
+    const regex = new RegExp(query, "i"); // Case-insensitive search
+
+    const stops = await db
+      .collection("Stops")
+      .find({
+        name: { $regex: regex },
+      })
+      .limit(limit)
+      .toArray();
+
+    return stops.map((stop) => ({
+      id: stop._id?.toString() ?? "",
+      name: stop.name,
+      coordinates: stop.coordinates,
+      transportType: stop.transportType || "BUS",
+    }));
+  },
 };
 
 export default Query;
