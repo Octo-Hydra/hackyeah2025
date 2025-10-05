@@ -27,7 +27,11 @@ export function SignOutButton({
     setIsLoading(true);
 
     try {
-      // Clear Zustand store first
+      // Close WebSocket connection first
+      closeWSConnection();
+      console.log("[Logout] WebSocket connection closed");
+
+      // Clear Zustand store before signing out
       clearStore();
 
       // Clear localStorage
@@ -35,13 +39,8 @@ export function SignOutButton({
         localStorage.removeItem("activeJourneyLineIds");
       }
 
-      // Close WebSocket connection
-      closeWSConnection();
-      console.log("[Logout] WebSocket connection closed");
-
       // Use client-side signOut for immediate session update
-      // Don't await - let Next.js handle the redirect
-      signOut({
+      await signOut({
         callbackUrl: "/",
         redirect: true,
       });

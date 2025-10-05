@@ -47,7 +47,7 @@ export function RouteNotification({
 
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] sm:text-xs font-medium text-primary/60 mb-0.5">
-                  From
+                  Z
                 </p>
 
                 <p className="text-base sm:text-lg font-bold text-primary truncate">
@@ -71,7 +71,7 @@ export function RouteNotification({
                   </p>
                 )}
                 {duration && (
-                  <p className="text-[10px] text-primary/60 whitespace-nowrap">
+                  <p className="text-[14px]  md:text-base text-primary/60 whitespace-nowrap">
                     {duration}
                   </p>
                 )}
@@ -92,7 +92,7 @@ export function RouteNotification({
 
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] sm:text-xs font-medium text-primary/70 mb-0.5">
-                  To
+                  Do
                 </p>
                 <p className="text-base sm:text-lg font-bold text-primary/90 truncate">
                   {endCity}

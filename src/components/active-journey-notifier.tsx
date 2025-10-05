@@ -9,8 +9,6 @@ import { useEffect, useState } from "react";
 import { RouteNotification } from "./ActiveRouteNotification";
 import { useUser } from "@/store/hooks";
 import { useAppStore } from "@/store/app-store";
-import { format } from "date-fns";
-import { pl } from "date-fns/locale";
 
 export function ActiveJourneyNotifier() {
   const user = useUser();
@@ -42,13 +40,9 @@ export function ActiveJourneyNotifier() {
   const firstSegment = activeJourney.segments[0];
   const lastSegment = activeJourney.segments[activeJourney.segments.length - 1];
 
-  // Format the time properly
-  const startTime = format(new Date(activeJourney.startTime), "HH:mm", {
-    locale: pl,
-  });
-  const endTime = format(new Date(activeJourney.expectedEndTime), "HH:mm", {
-    locale: pl,
-  });
+  // startTime and expectedEndTime are already in "HH:mm" format
+  const startTime = activeJourney.startTime;
+  const endTime = activeJourney.expectedEndTime;
 
   // Calculate total delay from all active notifications
   const totalDelay = notifications.reduce((sum, notification) => {

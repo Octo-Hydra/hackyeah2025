@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAppStore, type JourneyNotification } from "@/store/app-store";
 import { useJourneyIncidents } from "@/hooks/use-journey-incidents";
-import { toast } from "sonner";
+
 import {
   clearJourneyNotificationsOnServer,
   upsertJourneyNotificationOnServer,
