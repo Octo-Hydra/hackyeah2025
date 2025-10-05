@@ -5,10 +5,49 @@
 
 const STORAGE_KEY = "ontime_dismissed_notifications";
 const VISITED_PAGE_KEY = "ontime_visited_notifications_page";
+const SEEN_NOTIFICATIONS_KEY = "ontime_seen_notifications";
 
 export interface DismissedNotificationsStorage {
   dismissedIds: string[];
   lastUpdated: string;
+}
+
+/**
+ * Mark notifications as seen (when user visits /pwa page)
+ */
+export function markNotificationsAsSeen(notificationIds: string[]): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    const seenIds = getSeenNotificationIds();
+    const combined = [...new Set([...seenIds, ...notificationIds])];
+    localStorage.setItem(SEEN_NOTIFICATIONS_KEY, JSON.stringify(combined));
+  } catch (error) {
+    console.error("Error marking notifications as seen:", error);
+  }
+}
+
+/**
+ * Get list of seen notification IDs
+ */
+export function getSeenNotificationIds(): string[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = localStorage.getItem(SEEN_NOTIFICATIONS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error("Error reading seen notifications:", error);
+    return [];
+  }
+}
+
+/**
+ * Check if notification was seen
+ */
+export function isNotificationSeen(notificationId: string): boolean {
+  const seenIds = getSeenNotificationIds();
+  return seenIds.includes(notificationId);
 }
 
 /**
@@ -64,7 +103,10 @@ export function getDismissedNotificationIds(): string[] {
     const data: DismissedNotificationsStorage = JSON.parse(stored);
     return data.dismissedIds || [];
   } catch (error) {
-    console.error("Error reading dismissed notifications from localStorage:", error);
+    console.error(
+      "Error reading dismissed notifications from localStorage:",
+      error
+    );
     return [];
   }
 }
@@ -77,7 +119,7 @@ export function addDismissedNotificationId(notificationId: string): void {
 
   try {
     const currentIds = getDismissedNotificationIds();
-    
+
     // Avoid duplicates
     if (currentIds.includes(notificationId)) return;
 
@@ -88,7 +130,10 @@ export function addDismissedNotificationId(notificationId: string): void {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error("Error saving dismissed notification to localStorage:", error);
+    console.error(
+      "Error saving dismissed notification to localStorage:",
+      error
+    );
   }
 }
 
@@ -101,13 +146,16 @@ export function removeDismissedNotificationId(notificationId: string): void {
   try {
     const currentIds = getDismissedNotificationIds();
     const data: DismissedNotificationsStorage = {
-      dismissedIds: currentIds.filter(id => id !== notificationId),
+      dismissedIds: currentIds.filter((id) => id !== notificationId),
       lastUpdated: new Date().toISOString(),
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error("Error removing dismissed notification from localStorage:", error);
+    console.error(
+      "Error removing dismissed notification from localStorage:",
+      error
+    );
   }
 }
 
@@ -120,7 +168,10 @@ export function clearDismissedNotifications(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error("Error clearing dismissed notifications from localStorage:", error);
+    console.error(
+      "Error clearing dismissed notifications from localStorage:",
+      error
+    );
   }
 }
 
@@ -139,5 +190,5 @@ export function filterDismissedNotifications<T extends { id: string }>(
   notifications: T[]
 ): T[] {
   const dismissedIds = new Set(getDismissedNotificationIds());
-  return notifications.filter(notif => !dismissedIds.has(notif.id));
+  return notifications.filter((notif) => !dismissedIds.has(notif.id));
 }

@@ -9,18 +9,12 @@ import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useAppStore, type JourneyNotification } from "@/store/app-store";
 import { toast } from "sonner";
 import { upsertJourneyNotificationOnServer } from "@/lib/journey-notifications-api";
-import { markNotificationsPageVisited } from "@/lib/dismissed-notifications-storage";
 import { useEffect } from "react";
 
 export default function PWADemoPage() {
   const { isMobile } = useIsMobile();
   const notifications = useAppStore((state) => state.notifications);
   const addNotification = useAppStore((state) => state.addNotification);
-
-  // Mark that user visited this page (so floating widget won't show again)
-  useEffect(() => {
-    markNotificationsPageVisited();
-  }, []);
 
   const handleDebug = () => {
     console.log("Store notifications:", notifications);

@@ -20,7 +20,7 @@ export function useJourneyNotificationActions() {
     async (notificationId: string) => {
       // Save to localStorage first (immediate effect)
       addDismissedNotificationId(notificationId);
-      
+
       // Remove from store
       dismissNotification(notificationId);
 
@@ -31,15 +31,15 @@ export function useJourneyNotificationActions() {
         console.error("Failed to dismiss journey notification", error);
       }
     },
-    [dismissNotification],
+    [dismissNotification]
   );
 
   const clear = useCallback(async () => {
     const hadNotifications = notificationsCount > 0;
-    
+
     // Clear localStorage
     clearDismissedNotifications();
-    
+
     // Clear store
     clearNotifications();
 

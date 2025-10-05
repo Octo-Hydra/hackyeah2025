@@ -21,8 +21,6 @@ import { cn } from "@/lib/utils";
 import {
   getDismissedNotificationIds,
   addDismissedNotificationId,
-  hasVisitedNotificationsPage,
-  clearNotificationsPageVisit,
 } from "@/lib/dismissed-notifications-storage";
 
 export function AlertsFloatingSheet() {
@@ -32,17 +30,11 @@ export function AlertsFloatingSheet() {
   const { dismiss } = useJourneyNotificationActions();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [hasVisited, setHasVisited] = useState(false);
 
   // Don't show on /pwa page (notifications page)
   const isOnNotificationsPage = pathname === "/pwa";
 
-  // Check if user has visited notifications page
-  useEffect(() => {
-    setHasVisited(hasVisitedNotificationsPage());
-  }, []);
-
-  // Filter out dismissed notifications from localStorage
+  // Filter out only dismissed notifications from localStorage
   const filteredNotifications = useMemo(() => {
     const dismissedIds = new Set(getDismissedNotificationIds());
     return notifications.filter((notif) => !dismissedIds.has(notif.id));
@@ -60,46 +52,20 @@ export function AlertsFloatingSheet() {
 
   const activeCount = sortedNotifications.length;
   const latestNotification = sortedNotifications[0];
-  
-  // Track previous notification IDs to detect truly new ones
-  const [prevNotificationIds, setPrevNotificationIds] = useState<Set<string>>(new Set());
-
-  // Detect new notifications and reset visited flag
-  useEffect(() => {
-    if (sortedNotifications.length === 0) {
-      setPrevNotificationIds(new Set());
-      return;
-    }
-
-    const currentIds = new Set(sortedNotifications.map(n => n.id));
-    
-    // Check if there are any NEW notification IDs (not in previous set)
-    const hasNewNotifications = Array.from(currentIds).some(id => !prevNotificationIds.has(id));
-    
-    if (hasNewNotifications && prevNotificationIds.size > 0) {
-      // New notification arrived! Reset visited flag so user sees floating widget
-      clearNotificationsPageVisit();
-      setHasVisited(false);
-      setIsVisible(true);
-    }
-    
-    setPrevNotificationIds(currentIds);
-  }, [sortedNotifications, prevNotificationIds]);
 
   // Don't show if:
   // - No user
-  // - No notifications
-  // - Hidden by user
+  // - No unseen notifications  
+  // - Hidden by user (X button)
   // - On notifications page
-  // - User already visited notifications page
-  if (!user || activeCount === 0 || !isVisible || isOnNotificationsPage || hasVisited) {
+  if (!user || activeCount === 0 || !isVisible || isOnNotificationsPage) {
     return null;
   }
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Save to localStorage
+    // Add to dismissed list
     addDismissedNotificationId(id);
     
     // Call hook to update store and backend
@@ -113,6 +79,7 @@ export function AlertsFloatingSheet() {
   };
 
   const handleClose = () => {
+    // Just hide the widget, don't mark as seen
     setIsVisible(false);
     setIsExpanded(false);
   };
