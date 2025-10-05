@@ -165,18 +165,5 @@ export function ActiveJourneyMonitor() {
     });
   }, [incidents, activeJourney, addNotification, clearNotifications]);
 
-  // Log connection status
-  useEffect(() => {
-    if (activeJourney && segments && segments.length > 0) {
-      if (isConnected) {
-        console.log("✅ Active journey monitoring started");
-      } else {
-        console.log("⚠️ Active journey monitoring disconnected");
-      }
-    }
-  }, [isConnected, activeJourney, segments]);
-
-  // This component doesn't render anything visible
-  // It just manages the WebSocket subscription
   return null;
 }

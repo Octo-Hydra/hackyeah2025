@@ -97,10 +97,6 @@ export async function cleanupOldSubscriptions(
       updatedAt: { $lt: cutoffDate },
     });
 
-    console.log(
-      `Cleaned up ${result.deletedCount} old push subscriptions (older than ${daysOld} days)`,
-    );
-
     return result.deletedCount;
   } catch (error) {
     console.error("Error cleaning up old subscriptions:", error);
@@ -122,8 +118,6 @@ export async function createPushSubscriptionIndexes(): Promise<void> {
       .createIndex({ endpoint: 1 }, { unique: true });
 
     await db.collection("pushSubscriptions").createIndex({ updatedAt: 1 });
-
-    console.log("Push subscription indexes created successfully");
   } catch (error) {
     console.error("Error creating indexes:", error);
   }

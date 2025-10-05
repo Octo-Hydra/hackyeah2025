@@ -30,7 +30,7 @@ export async function startTrustScoreCron() {
 
   console.log("🚀 Starting trust score cron job");
   console.log(
-    "📅 Schedule: Every 5 seconds (change to '0 */6 * * *' for production)"
+    "📅 Schedule: Every 5 seconds (change to '0 */6 * * *' for production)",
   );
 
   // Create CronJob
@@ -41,7 +41,7 @@ export async function startTrustScoreCron() {
     runTrustScoreUpdate, // Function to execute
     null, // onComplete callback
     true, // Start immediately
-    "Europe/Warsaw" // Timezone
+    "Europe/Warsaw", // Timezone
   );
 
   console.log("✅ Trust score cron job started");
@@ -78,7 +78,7 @@ async function runTrustScoreUpdate() {
     const duration = Date.now() - startTime;
 
     console.log(
-      `✅ Trust scores updated: ${updatedCount} users (${duration}ms)`
+      `✅ Trust scores updated: ${updatedCount} users (${duration}ms)`,
     );
 
     // Check and finish expired journeys
@@ -113,12 +113,6 @@ async function finishExpiredJourneys(db: Awaited<ReturnType<typeof DB>>) {
       return;
     }
 
-    console.log(
-      `🔍 Checking ${usersWithJourneys.length} active journeys (current time: ${currentTime})`
-    );
-
-    let finishedCount = 0;
-
     for (const user of usersWithJourneys) {
       const activeJourney = user.activeJourney;
 
@@ -130,35 +124,18 @@ async function finishExpiredJourneys(db: Awaited<ReturnType<typeof DB>>) {
 
       // Compare times (HH:mm format)
       if (isTimePassed(expectedEndTime, currentTime)) {
-        console.log(
-          `⏰ Journey expired for ${user.email}: expected ${expectedEndTime}, now ${currentTime}`
-        );
-
         // Clear the active journey
         const result = await db
           .collection("users")
-          .updateOne(
-            { _id: user._id },
-            { $unset: { activeJourney: "" } }
-          );
+          .updateOne({ _id: user._id }, { $unset: { activeJourney: "" } });
 
         if (result.modifiedCount > 0) {
-          finishedCount++;
-
           // Also clear journey notifications for this user
           const userId =
             typeof user._id === "string" ? user._id : user._id.toString();
-          await db
-            .collection("journeyNotifications")
-            .deleteMany({ userId });
-
-          console.log(`✅ Journey finished for ${user.email}`);
+          await db.collection("journeyNotifications").deleteMany({ userId });
         }
       }
-    }
-
-    if (finishedCount > 0) {
-      console.log(`🏁 Finished ${finishedCount} expired journeys`);
     }
   } catch (error) {
     console.error("❌ Error finishing expired journeys:", error);

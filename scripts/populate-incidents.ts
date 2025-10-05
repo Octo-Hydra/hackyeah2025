@@ -124,8 +124,6 @@ function generateTitle(kind: string, lineName: string, delay: number): string {
  * Main population function
  */
 async function populateIncidents() {
-  console.log("🚀 Starting incident population...\n");
-
   const client = await clientPromise;
   const db = client.db();
 
@@ -134,7 +132,7 @@ async function populateIncidents() {
 
   if (lines.length === 0) {
     console.error(
-      "❌ No lines found in database. Please run GTFS import first."
+      "❌ No lines found in database. Please run GTFS import first.",
     );
     process.exit(1);
   }
@@ -197,7 +195,7 @@ async function populateIncidents() {
 
     // Last 7 days (excluding last 24h)
     const count7d = Math.floor(
-      Math.random() * (INCIDENTS_PER_LINE.last7d - count24h)
+      Math.random() * (INCIDENTS_PER_LINE.last7d - count24h),
     );
     for (let i = 0; i < count7d; i++) {
       const incidentType = getWeightedRandom(INCIDENT_TYPES);
@@ -220,7 +218,7 @@ async function populateIncidents() {
 
     // Last 31 days (excluding last 7d)
     const count31d = Math.floor(
-      Math.random() * (INCIDENTS_PER_LINE.last31d - count7d - count24h)
+      Math.random() * (INCIDENTS_PER_LINE.last31d - count7d - count24h),
     );
     for (let i = 0; i < count31d; i++) {
       const incidentType = getWeightedRandom(INCIDENT_TYPES);
@@ -250,7 +248,7 @@ async function populateIncidents() {
     const batch = incidentsToCreate.slice(i, i + BATCH_SIZE);
     await db.collection("Incidents").insertMany(batch);
     console.log(
-      `   ✓ Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(incidentsToCreate.length / BATCH_SIZE)} (${batch.length} incidents)`
+      `   ✓ Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(incidentsToCreate.length / BATCH_SIZE)} (${batch.length} incidents)`,
     );
   }
 
@@ -262,7 +260,7 @@ async function populateIncidents() {
   // Show sample stats
   const busIncidents = incidentsToCreate.filter(
     (i) =>
-      lines.find((l) => l._id.equals(i.lineIds[0]))?.transportType === "BUS"
+      lines.find((l) => l._id.equals(i.lineIds[0]))?.transportType === "BUS",
   ).length;
   const railIncidents = totalIncidents - busIncidents;
 

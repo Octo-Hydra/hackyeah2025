@@ -173,7 +173,6 @@ export function AddJourneyDialog() {
 
   // Handler for selecting a journey
   const handleSelectJourney = async (journey: Journey) => {
-    console.log("🎯 handleSelectJourney called with:", journey);
     setIsLoadingStart(true);
 
     try {
@@ -244,10 +243,7 @@ export function AddJourneyDialog() {
         ],
       });
 
-      console.log("📤 Mutation result:", mutationResult);
-
       if (mutationResult.setActiveJourney) {
-        console.log("✅ setActiveJourney succeeded!");
         const activeJourneyData = mutationResult.setActiveJourney;
         const firstSeg = activeJourneyData.segments[0];
         const lastSeg =
@@ -292,7 +288,6 @@ export function AddJourneyDialog() {
         });
 
         // Close dialog and reset
-        console.log("🔄 Closing dialog and resetting state");
         setOpen(false);
         setShowComparison(false);
         setFoundJourneys([]);
@@ -445,19 +440,12 @@ export function AddJourneyDialog() {
         ],
       });
 
-      console.log("=== Optimal Journey Response ===");
-      console.log("Start Stop:", startStop.stopName);
-      console.log("End Stop:", endStop.stopName);
-      console.log("Journeys Found:", result.findOptimalJourney.journeys.length);
-
       if (
         result.findOptimalJourney.journeys &&
         result.findOptimalJourney.journeys.length > 0
       ) {
         // Store journeys and show comparison view
         const journeys = result.findOptimalJourney.journeys as Journey[];
-        console.log("🎯 Setting journeys:", journeys);
-        console.log("🎯 Journey segments:", journeys[0].segments);
         setFoundJourneys(journeys);
         setShowComparison(true);
         setIsLoadingStart(false);
@@ -495,11 +483,6 @@ export function AddJourneyDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
-        {(() => {
-          console.log("🖼️ Render: showComparison =", showComparison);
-          console.log("🖼️ Render: foundJourneys =", foundJourneys.length);
-          return null;
-        })()}
         {showComparison ? (
           <>
             <DialogHeader>

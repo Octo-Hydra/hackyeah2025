@@ -124,10 +124,6 @@ export async function publishIncidentFromPending(
   // Send notifications to affected users
   await processIncidentNotifications(db, incident, "USER");
 
-  console.log(
-    `✅ Published Incident ${result.insertedId} from PendingIncident`,
-  );
-
   return incident;
 }
 
@@ -199,10 +195,6 @@ export async function rewardReporters(
     });
 
     totalRewarded += points;
-
-    console.log(
-      `🎁 Rewarded user ${userId} with ${points} reputation (${config.reason})`,
-    );
   }
 
   return {
@@ -251,9 +243,5 @@ export async function rejectPendingIncident(
     await db
       .collection("users")
       .updateOne({ _id: userId }, { $inc: { reputation: penalty } });
-
-    console.log(`⚠️ Penalized user ${userId} with ${penalty} reputation`);
   }
-
-  console.log(`❌ Rejected PendingIncident ${pendingIncidentId}`);
 }

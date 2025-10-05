@@ -125,7 +125,6 @@ export function AdminStatisticsDashboard() {
   const fetchStatistics = async () => {
     try {
       setLoading(true);
-      console.log("📊 Fetching admin statistics with period:", period);
 
       const query = Query();
       const result = await query({

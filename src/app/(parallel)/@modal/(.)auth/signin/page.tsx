@@ -94,8 +94,6 @@ export default function InterceptedSignInPage() {
           });
 
           if (result.me) {
-            console.log("📦 Modal: GraphQL me result:", result.me);
-
             const activeJourneyData = result.me.activeJourney
               ? {
                   segments: result.me.activeJourney.segments.map((seg) => ({
@@ -128,8 +126,6 @@ export default function InterceptedSignInPage() {
                 }
               : undefined;
 
-            console.log("🚗 Modal: Active journey data:", activeJourneyData);
-
             const notifications =
               result.me.journeyNotifications?.map((notification) => ({
                 id: notification.id,
@@ -154,24 +150,17 @@ export default function InterceptedSignInPage() {
               journeyNotifications: notifications,
             });
 
-            console.log("✅ Modal: User saved to store");
-
             // Ustaw mapCenter na początek aktywnej podróży
             if (activeJourneyData?.segments?.[0]?.from.coordinates) {
               setMapCenter([
                 activeJourneyData.segments[0].from.coordinates.latitude,
                 activeJourneyData.segments[0].from.coordinates.longitude,
               ]);
-              console.log(
-                "📍 Modal: Map center set to:",
-                activeJourneyData.segments[0].from.stopName,
-              );
             }
           }
 
           setIsLoading(false);
           setIsOpen(false);
-          console.log("✅ Modal: Closing dialog");
         } catch (error) {
           console.error("Error fetching user data:", error);
           setIsLoading(false);

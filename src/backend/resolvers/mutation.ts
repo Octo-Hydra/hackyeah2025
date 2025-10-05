@@ -16,11 +16,6 @@ import { COLLECTIONS } from "../db/collections.js";
 import { DB } from "../db/client.js";
 import { pubsub, CHANNELS } from "./subscriptions.js";
 import {
-  shouldNotifyUser,
-  extractActiveJourneyLineIds,
-  extractFavoriteLineIds,
-} from "../../lib/threshold-algorithm.js";
-import {
   determineIncidentSegment,
   formatIncidentSegment,
 } from "../../lib/geolocation-utils.js";
@@ -99,17 +94,6 @@ interface JourneyNotificationResult {
   receivedAt: string;
 }
 
-// Notify affected users about new incident
-async function notifyAffectedUsers(
-  doc: IncidentModel,
-  incidentId: string,
-  db: Db
-) {
-  // Simplified notification - just log for now
-  // TODO: Implement proper user notification based on active journeys and favorites
-  console.log(`📢 New incident created: ${doc.title} (ID: ${incidentId})`);
-}
-
 function mapJourneyNotification(
   doc: JourneyNotificationModel,
 ): JourneyNotificationResult {
@@ -136,7 +120,7 @@ function mapJourneyNotification(
 async function findSimilarReports(
   db: Db,
   incident: IncidentModel,
-  timeWindowHours: number
+  timeWindowHours: number,
 ): Promise<IncidentModel[]> {
   const timeWindowMs = timeWindowHours * 60 * 60 * 1000;
   const incidentTime = new Date(incident.createdAt).getTime();
@@ -166,7 +150,7 @@ async function updateUserReputation(
   db: Db,
   incident: IncidentModel,
   similarReports: IncidentModel[],
-  isFake: boolean
+  isFake: boolean,
 ): Promise<void> {
   const FAKE_REPORT_PENALTY = -10; // Points deducted for fake report
   const VALIDATED_REPORT_REWARD = 5; // Points awarded for validated report
@@ -182,14 +166,14 @@ async function updateUserReputation(
       if (user) {
         const newReputation = Math.max(
           MIN_REPUTATION,
-          (user.reputation || 34) + FAKE_REPORT_PENALTY
+          (user.reputation || 34) + FAKE_REPORT_PENALTY,
         );
 
         await db
           .collection("users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
-            { $set: { reputation: newReputation } }
+            { $set: { reputation: newReputation } },
           );
       }
     }
@@ -202,7 +186,7 @@ async function updateUserReputation(
           .collection("users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
-            { $inc: { reputation: VALIDATED_REPORT_REWARD } }
+            { $inc: { reputation: VALIDATED_REPORT_REWARD } },
           );
       }
 
@@ -216,11 +200,11 @@ async function updateUserReputation(
           {
             _id: {
               $in: similarReporterIds.map((id) =>
-                typeof id === "string" ? new ObjectId(id) : id
+                typeof id === "string" ? new ObjectId(id) : id,
               ),
             },
           },
-          { $inc: { reputation: VALIDATED_REPORT_REWARD } }
+          { $inc: { reputation: VALIDATED_REPORT_REWARD } },
         );
       }
     }
@@ -233,7 +217,11 @@ export const Mutation = {
   // ============================================
   register: (
     _: unknown,
-    { name, email, password }: { name: string; email: string; password: string }
+    {
+      name,
+      email,
+      password,
+    }: { name: string; email: string; password: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -246,7 +234,7 @@ export const Mutation = {
 
   resendVerificationEmail: (
     _: unknown,
-    { email }: { email: string }
+    { email }: { email: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -256,7 +244,7 @@ export const Mutation = {
 
   verify2FA: (
     _: unknown,
-    { token, secret }: { token: string; secret: string }
+    { token, secret }: { token: string; secret: string },
   ): boolean => {
     // Mock implementation
     return true;
@@ -273,7 +261,7 @@ export const Mutation = {
   async createReport(
     _: unknown,
     { input }: { input: CreateReportInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ) {
     const db = await DB();
     const now = new Date().toISOString();
@@ -298,7 +286,7 @@ export const Mutation = {
       input.kind !== "ACCIDENT"
     ) {
       throw new Error(
-        "Users can only report TRAFFIC_JAM or ACCIDENT incidents"
+        "Users can only report TRAFFIC_JAM or ACCIDENT incidents",
       );
     }
 
@@ -323,25 +311,19 @@ export const Mutation = {
 
     // For regular users: ALWAYS detect segment from location
     if (isRegularUser && input.reporterLocation) {
-      console.log(
-        `📍 USER report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`
-      );
-
       const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
       const segment = determineIncidentSegment(
         input.reporterLocation,
         stops,
-        1000 // 1km radius
+        1000, // 1km radius
       );
 
       if (!segment) {
         throw new Error(
-          "Could not detect nearby stops. Please move closer to a transit stop."
+          "Could not detect nearby stops. Please move closer to a transit stop.",
         );
       }
-
-      console.log(`✅ Detected segment: ${formatIncidentSegment(segment)}`);
 
       affectedSegment = {
         startStopId: new ObjectId(segment.startStopId),
@@ -357,23 +339,15 @@ export const Mutation = {
     }
     // For admins: Optional geolocation detection
     else if (!isRegularUser && input.reporterLocation) {
-      console.log(
-        `📍 STAFF report at: ${input.reporterLocation.latitude}, ${input.reporterLocation.longitude}`
-      );
-
       const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
       const segment = determineIncidentSegment(
         input.reporterLocation,
         stops,
-        1000
+        1000,
       );
 
       if (segment) {
-        console.log(
-          `✅ Detected incident segment: ${formatIncidentSegment(segment)}`
-        );
-
         affectedSegment = {
           startStopId: new ObjectId(segment.startStopId),
           endStopId: new ObjectId(segment.endStopId),
@@ -386,7 +360,7 @@ export const Mutation = {
         }
       } else {
         console.log(
-          "⚠️ Could not determine incident segment from location (no nearby stops)"
+          "⚠️ Could not determine incident segment from location (no nearby stops)",
         );
       }
     }
@@ -433,11 +407,6 @@ export const Mutation = {
       await db
         .collection<IncidentLocationModel>("IncidentLocations")
         .insertOne(incidentLocation);
-
-      console.log(
-        `✅ Created IncidentLocation for line ${detectedLineId} between stops`,
-        `✅ Created IncidentLocation: Line ${detectedLineId}, severity ${severity}`
-      );
     }
 
     const incident = {
@@ -445,7 +414,7 @@ export const Mutation = {
       ...doc,
       lineIds:
         doc.lineIds?.map((id) =>
-          id ? (typeof id === "string" ? id : id.toString()) : null
+          id ? (typeof id === "string" ? id : id.toString()) : null,
         ) ?? null,
     };
 
@@ -453,8 +422,6 @@ export const Mutation = {
     // Map MODERATOR role to USER for backwards compatibility
     const mappedRole = user.role === "MODERATOR" ? "USER" : user.role;
     await processIncidentNotifications(db, doc, mappedRole as "USER" | "ADMIN");
-    // Notify affected users
-    await notifyAffectedUsers(doc, incidentId, db);
 
     // Publish real-time event
     pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
@@ -463,7 +430,7 @@ export const Mutation = {
         if (lineId) {
           pubsub.publish(
             `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
-            incident
+            incident,
           );
         }
       });
@@ -475,7 +442,7 @@ export const Mutation = {
   async updateReport(
     _: unknown,
     { id, input }: { id: string; input: UpdateReportInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ) {
     const db = await DB();
 
@@ -489,7 +456,7 @@ export const Mutation = {
       updateFields.delayMinutes = input.delayMinutes;
     if (input.lineIds !== undefined)
       updateFields.lineIds = input.lineIds.map((lid) =>
-        lid ? new ObjectId(lid) : null
+        lid ? new ObjectId(lid) : null,
       );
 
     const result = await db
@@ -497,7 +464,7 @@ export const Mutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: updateFields },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
@@ -509,7 +476,7 @@ export const Mutation = {
       ...result,
       lineIds:
         result.lineIds?.map((lid) =>
-          lid ? (typeof lid === "string" ? lid : lid.toString()) : null
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
         ) ?? null,
     };
 
@@ -519,7 +486,7 @@ export const Mutation = {
         if (lineId) {
           pubsub.publish(
             `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
-            incident
+            incident,
           );
         }
       });
@@ -531,7 +498,7 @@ export const Mutation = {
   async deleteReport(
     _: unknown,
     { id }: { id: string },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const result = await db
@@ -548,7 +515,7 @@ export const Mutation = {
       .findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $set: { status: "PUBLISHED", updatedAt: new Date().toISOString() } },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
@@ -560,7 +527,7 @@ export const Mutation = {
       ...result,
       lineIds:
         result.lineIds?.map((lid) =>
-          lid ? (typeof lid === "string" ? lid : lid.toString()) : null
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
         ) ?? null,
     };
 
@@ -572,7 +539,7 @@ export const Mutation = {
   async resolveReport(
     _: unknown,
     { id, isFake }: { id: string; isFake?: boolean },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ) {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -613,7 +580,7 @@ export const Mutation = {
             updatedAt: new Date().toISOString(),
           },
         },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
@@ -631,7 +598,7 @@ export const Mutation = {
       ...result,
       lineIds:
         result.lineIds?.map((lid) =>
-          lid ? (typeof lid === "string" ? lid : lid.toString()) : null
+          lid ? (typeof lid === "string" ? lid : lid.toString()) : null,
         ) ?? null,
     };
 
@@ -646,12 +613,8 @@ export const Mutation = {
   async setActiveJourney(
     _: unknown,
     { input }: { input: ActiveJourneyInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<ActiveJourney | null> {
-    console.log("🚀 setActiveJourney called");
-    console.log("   Context session:", !!ctx.session);
-    console.log("   Session user email:", ctx.session?.user?.email);
-
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
@@ -693,32 +656,14 @@ export const Mutation = {
       expectedEndTime,
     };
 
-    console.log("Setting active journey for user:", userEmail);
-    console.log(
-      "Active journey segments count:",
-      activeJourney.segments.length
-    );
-    console.log(
-      "First segment:",
-      JSON.stringify(activeJourney.segments[0], null, 2)
-    );
-
     const result = await db
       .collection("users")
       .updateOne({ email: userEmail }, { $set: { activeJourney } });
-
-    console.log("Set active journey result:", {
-      matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount,
-      acknowledged: result.acknowledged,
-    });
 
     if (result.matchedCount === 0) {
       console.error("❌ User not found:", userEmail);
       throw new Error("User not found");
     }
-
-    console.log("✅ Active journey set successfully");
 
     // Return the created ActiveJourney with string IDs for GraphQL
     return {
@@ -756,7 +701,7 @@ export const Mutation = {
   async clearActiveJourney(
     _: unknown,
     __: unknown,
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -790,7 +735,7 @@ export const Mutation = {
   async addFavoriteConnection(
     _: unknown,
     { input }: { input: FavoriteConnectionInput },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<string> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -811,7 +756,7 @@ export const Mutation = {
       { email: userEmail },
       {
         $push: { favoriteConnections: favorite },
-      }
+      },
     );
 
     return favoriteId;
@@ -820,7 +765,7 @@ export const Mutation = {
   async removeFavoriteConnection(
     _: unknown,
     { id }: { id: string },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
@@ -829,11 +774,12 @@ export const Mutation = {
       throw new Error("Not authenticated");
     }
 
-    const result = await db
-      .collection<UserModel>("users")
-      .updateOne({ email: userEmail }, {
+    const result = await db.collection<UserModel>("users").updateOne(
+      { email: userEmail },
+      {
         $pull: { favoriteConnections: { id } },
-      } as any);
+      },
+    );
 
     return result.modifiedCount > 0;
   },
@@ -925,7 +871,7 @@ export const Mutation = {
       .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
       .updateOne(
         { userId, incidentId: id },
-        { $set: { dismissedAt: new Date().toISOString() } }
+        { $set: { dismissedAt: new Date().toISOString() } },
       );
 
     return result.modifiedCount > 0;
@@ -960,7 +906,7 @@ export const Mutation = {
       .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
       .updateMany(
         { userId, dismissedAt: { $in: [null, undefined] } },
-        { $set: { dismissedAt: new Date().toISOString() } }
+        { $set: { dismissedAt: new Date().toISOString() } },
       );
 
     return result.acknowledged;
@@ -969,7 +915,7 @@ export const Mutation = {
   async updateProfile(
     _: unknown,
     { input }: { input: { name?: string } },
-    ctx: GraphQLContext
+    ctx: GraphQLContext,
   ): Promise<{
     id: string;
     name: string;
@@ -1001,14 +947,12 @@ export const Mutation = {
       .findOneAndUpdate(
         { email: userEmail },
         { $set: { name: trimmedName } },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
     if (!result) {
       throw new Error("User not found");
     }
-
-    console.log(`✅ Profile updated for ${userEmail}: name="${trimmedName}"`);
 
     return {
       id: result._id?.toString() ?? "",

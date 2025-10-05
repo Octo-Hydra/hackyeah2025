@@ -32,14 +32,6 @@ export const optimalJourneyResolver = {
       } = args.input;
 
       try {
-        console.log("🔍 findOptimalJourney called with:", {
-          fromStopId,
-          toStopId,
-          departureTime,
-          maxTransfers,
-          avoidIncidents,
-        });
-
         // Parse departure time or use now
         const depTime = departureTime ? new Date(departureTime) : new Date();
 
@@ -54,8 +46,6 @@ export const optimalJourneyResolver = {
             avoidIncidents: avoidIncidents !== false, // Default true
           },
         );
-
-        console.log("✅ Found journeys:", journeys.length);
 
         // Return empty result if no paths found
         if (journeys.length === 0) {

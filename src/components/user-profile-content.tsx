@@ -66,10 +66,6 @@ export function UserProfileContent({ session }: UserProfileContentProps) {
                 Powrót do mapy
               </Link>
             </Button>
-            <div className="flex items-center gap-2">
-              <User className="h-6 w-6 text-blue-600" />
-              <h1 className="text-xl font-bold">Mój profil</h1>
-            </div>
           </div>
         </div>
       </header>
@@ -116,7 +112,9 @@ export function UserProfileContent({ session }: UserProfileContentProps) {
                     <div className="flex-1">
                       <p className="text-sm font-medium">Imię</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {userData?.name || session.user?.name || "Nie ustawiono"}
+                        {userData?.name ||
+                          session.user?.name ||
+                          "Nie ustawiono"}
                       </p>
                     </div>
                   </div>

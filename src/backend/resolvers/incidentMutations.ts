@@ -128,9 +128,6 @@ export async function submitIncidentReport(
   //     const result = await db.collection("users").insertOne(newUser);
   //     user = { ...newUser, _id: result.insertedId };
 
-  //     console.log(
-  //       `✅ Created new user in DB: ${userEmail} with id ${result.insertedId}`,
-  //     );
   //   }
 
   const userId = user._id as ObjectId;
@@ -323,10 +320,6 @@ export async function submitIncidentReport(
       location: input.reporterLocation,
     },
     db,
-  );
-
-  console.log(
-    `📝 User ${userId} submitted report for ${input.kind} (pending: ${pendingIncident._id})`,
   );
 
   return {
