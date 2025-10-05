@@ -44,6 +44,11 @@ export default async function UserProfilePage() {
     redirect("/auth/signin?callbackUrl=/user");
   }
 
+  // Redirect admins to admin panel - they shouldn't access user profile
+  if (session.user?.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   const isMobile = await isMobileDevice();
 
   return (
@@ -63,6 +68,12 @@ export default async function UserProfilePage() {
                 <User className="h-6 w-6 text-blue-600" />
                 <h1 className="text-xl font-bold">Mój profil</h1>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {session.user?.email}
+              </span>
+              <SignOutButton size="sm" className="" showIcon />
             </div>
           </div>
         </header>

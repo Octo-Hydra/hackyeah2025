@@ -9,6 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
+import { SignOutButton } from "@/components/sign-out-button";
 
 // Load dialogs only on client side to avoid SSR issues with leaflet-geosearch
 const AddEventDialog = dynamic(
@@ -93,6 +94,7 @@ export default function HomePage() {
                       <Link href="/admin">Admin</Link>
                     </Button>
                   )}
+                  <SignOutButton size="sm" className="" showIcon />
                 </>
               ) : (
                 <Button asChild size="sm">

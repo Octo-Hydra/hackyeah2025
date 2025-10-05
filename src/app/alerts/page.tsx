@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Bell, Plus, MapPin } from "lucide-react";
 import type { Metadata } from "next";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export const metadata: Metadata = {
   title: "Moje Alerty",
@@ -79,10 +80,13 @@ export default async function AlertsPage() {
               <Bell className="h-6 w-6 text-blue-600" />
               <h1 className="text-xl font-bold">Alerty</h1>
             </div>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nowy alert
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nowy alert
+              </Button>
+              <SignOutButton size="sm" className="" showIcon />
+            </div>
           </div>
         </header>
 

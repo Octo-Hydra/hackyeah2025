@@ -31,6 +31,12 @@ export default async function DashboardPage() {
               <LayoutDashboard className="h-6 w-6 text-blue-600" />
               <h1 className="text-xl font-bold">Panel</h1>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {session.user?.email}
+              </span>
+              <SignOutButton size="sm" className="" showIcon />
+            </div>
           </div>
         </header>
 

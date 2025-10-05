@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { CreateIncidentForm } from "@/components/create-incident-form";
 import { AdminStatisticsDashboard } from "@/components/admin-statistics-dashboard";
 import { IncidentSimulator } from "@/components/incident-simulator";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export const metadata: Metadata = {
   title: "Panel Administratora",
@@ -69,9 +70,7 @@ export default async function AdminPage() {
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {session.user?.email}
               </span>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/user">Profile</Link>
-              </Button>
+              <SignOutButton size="sm" className="" showIcon />
             </div>
           </div>
         </header>

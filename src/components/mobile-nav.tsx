@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Shield, Bell, LayoutDashboard, LogIn } from "lucide-react";
+import { Home, User, Shield, Bell, LayoutDashboard, LogIn, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useAppStore } from "@/store/app-store";
+import { useState } from "react";
 
 interface NavItem {
   name: string;
@@ -12,6 +14,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   requireAuth?: boolean;
   requireRole?: string;
+  hideForRole?: string; // Hide for specific role
 }
 
 const navItems: NavItem[] = [
@@ -37,6 +40,7 @@ const navItems: NavItem[] = [
     href: "/user",
     icon: User,
     requireAuth: true,
+    hideForRole: "ADMIN", // Hide profile for admins
   },
   {
     name: "Admin",
@@ -44,6 +48,12 @@ const navItems: NavItem[] = [
     icon: Shield,
     requireAuth: true,
     requireRole: "ADMIN",
+  },
+  {
+    name: "Wyloguj",
+    href: "#logout",
+    icon: LogOut,
+    requireAuth: true,
   },
 ];
 
@@ -63,6 +73,8 @@ const guestNavItems: NavItem[] = [
 export function MobileNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const clearStore = useAppStore((state) => state.clearStore);
 
   // Use different nav items based on auth status
   const items = session ? navItems : guestNavItems;
@@ -70,6 +82,20 @@ export function MobileNav() {
   // Check if user has admin role
   const userRole = session?.user?.role;
   const isAdmin = userRole === "ADMIN";
+
+  const handleLogout = async () => {
+    setIsSigningOut(true);
+    try {
+      clearStore();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("activeJourneyLineIds");
+      }
+      await signOut({ callbackUrl: "/", redirect: true });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <nav
@@ -88,8 +114,39 @@ export function MobileNav() {
             return null;
           }
 
+          // Skip if should be hidden for specific role
+          if (item.hideForRole && userRole === item.hideForRole) {
+            return null;
+          }
+
           const isActive = pathname === item.href;
           const Icon = item.icon;
+          const isLogout = item.href === "#logout";
+
+          // Handle logout button separately
+          if (isLogout) {
+            return (
+              <button
+                key={item.name}
+                onClick={handleLogout}
+                disabled={isSigningOut}
+                className={cn(
+                  "flex min-w-[64px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                  "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300",
+                  isSigningOut && "opacity-50 cursor-not-allowed",
+                )}
+              >
+                <Icon
+                  className={cn(
+                    "h-5 w-5 transition-transform",
+                    isSigningOut && "animate-pulse",
+                  )}
+                />
+                <span>{isSigningOut ? "..." : item.name}</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.name}

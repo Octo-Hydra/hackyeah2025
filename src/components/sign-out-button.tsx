@@ -4,8 +4,21 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAppStore } from "@/store/app-store";
 import { signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 
-export function SignOutButton() {
+interface SignOutButtonProps {
+  variant?: "default" | "destructive" | "outline" | "ghost";
+  size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
+  showIcon?: boolean;
+}
+
+export function SignOutButton({
+  variant = "destructive",
+  size = "default",
+  className = "w-full",
+  showIcon = false,
+}: SignOutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const clearStore = useAppStore((state) => state.clearStore);
 
@@ -35,11 +48,13 @@ export function SignOutButton() {
   return (
     <Button
       onClick={handleSignOut}
-      variant="destructive"
-      className="w-full"
+      variant={variant}
+      size={size}
+      className={className}
       disabled={isLoading}
     >
-      {isLoading ? "Wylogowywanie..." : "Wyloguj się"}
+      {showIcon && <LogOut className="mr-2 h-4 w-4" />}
+      {isLoading ? "..." : "Wyloguj"}
     </Button>
   );
 }
