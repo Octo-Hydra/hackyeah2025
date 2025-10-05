@@ -120,7 +120,7 @@ export default function HomePage() {
 
           {/* Action Buttons - Only show when logged in */}
           {session && status === "authenticated" && (
-            <div className="absolute bottom-8 right-6 z-[1000] flex flex-col gap-3 supports-[bottom:env(safe-area-inset-bottom)]:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] supports-[bottom:env(safe-area-inset-bottom)]:md:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] md:bottom-6">
+            <div className="fixed bottom-8 right-6 z-[1000] flex flex-col gap-3 bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)] md:bottom-6">
               <AddJourneyDialog />
               <AddEventDialog />
             </div>

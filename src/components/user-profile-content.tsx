@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { User, ArrowLeft, Mail, Calendar, Award } from "lucide-react";
-import { SignOutButton } from "@/components/sign-out-button";
 import { EditProfileDialog } from "@/components/edit-profile-dialog";
 import { Query } from "@/lib/graphql_request";
 import type { Session } from "next-auth";
@@ -71,7 +70,7 @@ export function UserProfileContent({ session }: UserProfileContentProps) {
       </header>
 
       {/* Main Content */}
-      <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 py-8 md:max-h-[calc(100vh-4rem)]">
+      <main className="overflow-y-auto max-h-[calc(100vh-3.5rem)] container mx-auto px-4 pb-24 pt-6 md:max-h-[calc(100vh-4rem)] md:py-10">
         {/* Mobile: Single Column, Desktop: Two Columns */}
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -209,19 +208,6 @@ export function UserProfileContent({ session }: UserProfileContentProps) {
                   <EditProfileDialog
                     currentName={userData?.name || session.user?.name}
                   />
-                </CardContent>
-              </Card>
-
-              {/* Account Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Akcje konta</CardTitle>
-                  <CardDescription>
-                    Zarządzaj swoim kontem OnTime
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SignOutButton className="w-full" />
                 </CardContent>
               </Card>
             </div>

@@ -66,7 +66,7 @@ export default function PWADemoPage() {
 
   return (
     <MobileLayout isMobile={isMobile}>
-      <div className="overflow-y-auto container mx-auto max-w-4xl space-y-8 py-6 px-4 md:py-10">
+      <div className="overflow-y-auto max-h-screen md:max-h-none container mx-auto max-w-4xl space-y-8 pb-42 pt-6 px-4 md:py-10">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="">
@@ -78,7 +78,6 @@ export default function PWADemoPage() {
                 Śledź zmiany i opóźnienia w Twoich trasach
               </p>
             </div>
-            
           </div>
         </div>
 
