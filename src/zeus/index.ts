@@ -2633,48 +2633,7 @@ When threshold is met, a real Incident is created and published to WebSocket. */
     }
 
 export type GraphQLTypes = {
-    // Generic result type for operations;
-	// Incidents by line (moved from nested UserQuery);
-	// Transit queries;
-	// Search stops by name;
-	// Optimal path finding with A* and incident awareness;
-	// Admin queries (ADMIN/MODERATOR only);
-	// User management;
-	// Incident management;
-	// Archived incidents (RESOLVED status);
-	// Statistics;
-	// Reports and analytics;
-	// Auth mutations;
-	// Incident mutations;
-	// User journey mutations;
-	// Admin mutations (ADMIN/MODERATOR only);
-	// User CRUD (ADMIN only);
-	// Incident management (ADMIN/MODERATOR);
-	// Geographic coordinates;
-	// A* Pathfinding with incident awareness;
-	// Smart notifications with deduplication and trust-based filtering;
-	// Admin-only analytics types;
-	// ============================================;
-	// SPAM PREVENTION & THRESHOLD SYSTEM;
-	// ============================================;
-	// Location and affected lines;
-	// Threshold tracking;
-	// Metadata;
-	// Moderator actions;
-	// ============================================;
-	// EXTEND EXISTING TYPES;
-	// ============================================;
-	// Check if user can submit report;
-	// Get pending incidents (user can see their own);
-	// Get specific pending incident;
-	// Moderator queries;
-	// User submits incident report;
-	// Moderator actions;
-	// Approve pending incident (creates real Incident + rewards users);
-	// Reject pending incident (marks as fake);
-	// Flag user for spam;
-	// Reset user's suspicious score;
-	["UserRole"]: UserRole;
+    ["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
 	id: GraphQLTypes["ID"],

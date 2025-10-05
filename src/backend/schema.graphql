@@ -9,7 +9,7 @@ type User {
   email: String!
   role: UserRole!
   reputation: Int
-  trustScore: Float # Dynamic trust score (0.5-2.5), updated by cron
+  trustScore: Float
   trustScoreBreakdown: TrustScoreBreakdown
   activeJourney: ActiveJourney
   journeyNotifications: [JourneyNotification!]!
@@ -87,7 +87,6 @@ input JourneyNotificationInput {
   delayMinutes: Int
 }
 
-# Generic result type for operations
 type OperationResult {
   success: Boolean!
   message: String
@@ -100,38 +99,28 @@ type TwoFactorSetup {
 
 type Query {
   me: User
-  # Incidents by line (moved from nested UserQuery)
   incidentsByLine(lineId: ID!, transportType: TransportType): [Incident!]!
-  # Transit queries
   lines(transportType: TransportType): [Line!]!
   stops(transportType: TransportType): [Stop!]!
-  # Search stops by name
   searchStops(query: String!, limit: Int): [Stop!]!
   findPath(input: FindPathInput!): JourneyPath
-  # Optimal path finding with A* and incident awareness
   findOptimalJourney(input: FindOptimalJourneyInput!): OptimalJourneyResult!
-  # Admin queries (ADMIN/MODERATOR only)
   admin: AdminQuery!
 }
 
 type AdminQuery {
-  # User management
   users(filter: UserFilterInput, pagination: PaginationInput): UserConnection!
   user(id: ID!): User
-  # Incident management
   incidents(
     filter: IncidentFilterInput
     pagination: PaginationInput
   ): IncidentConnection!
   incident(id: ID!): Incident
-  # Archived incidents (RESOLVED status)
   archivedIncidents(
     filter: IncidentFilterInput
     pagination: PaginationInput
   ): IncidentConnection!
-  # Statistics
   stats: AdminStats!
-  # Reports and analytics
   lineIncidentStats(lineId: ID!, period: StatsPeriod!): LineIncidentStats!
   lineDelayStats(lineId: ID!, period: StatsPeriod!): LineDelayStats!
   topDelays(
@@ -180,8 +169,8 @@ type IncidentConnection {
 type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
-  startCursor: String # First item ID
-  endCursor: String # Last item ID
+  startCursor: String
+  endCursor: String
 }
 
 input UserFilterInput {
@@ -190,7 +179,7 @@ input UserFilterInput {
   maxReputation: Int
   minTrustScore: Float
   maxTrustScore: Float
-  search: String # Search by name or email
+  search: String
 }
 
 input IncidentFilterInput {
@@ -205,14 +194,13 @@ input IncidentFilterInput {
 }
 
 input PaginationInput {
-  first: Int # Number of items to return
-  after: ID # User/Incident ID for forward pagination
-  last: Int # Number of items to return (backward)
-  before: ID # User/Incident ID for backward pagination
+  first: Int
+  after: ID
+  last: Int
+  before: ID
 }
 
 type Mutation {
-  # Auth mutations
   register(name: String!, email: String!, password: String!): Boolean!
   verifyEmail(token: String!): Boolean!
   resendVerificationEmail(email: String!): Boolean!
@@ -220,13 +208,11 @@ type Mutation {
   verify2FA(token: String!, secret: String!): Boolean!
   disable2FA: Boolean!
 
-  # Incident mutations
   createReport(input: CreateReportInput!): Incident!
   updateReport(id: ID!, input: UpdateReportInput!): Incident!
   deleteReport(id: ID!): Boolean!
   publishReport(id: ID!): Incident!
-  resolveReport(id: ID!, isFake: Boolean): Incident! # Close incident as resolved or fake
-  # User journey mutations
+  resolveReport(id: ID!, isFake: Boolean): Incident!
   setActiveJourney(input: ActiveJourneyInput!): ActiveJourney
   clearActiveJourney: Boolean!
   addFavoriteConnection(input: FavoriteConnectionInput!): ID!
@@ -236,23 +222,20 @@ type Mutation {
   ): JourneyNotification!
   dismissJourneyNotification(id: ID!): Boolean!
   clearJourneyNotifications: Boolean!
-  # Admin mutations (ADMIN/MODERATOR only)
   admin: AdminMutation!
 }
 
 type AdminMutation {
-  # User CRUD (ADMIN only)
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean!
   updateUserRole(id: ID!, role: UserRole!): User!
   updateUserReputation(id: ID!, reputation: Int!): User!
-  # Incident management (ADMIN/MODERATOR)
   createIncident(input: CreateAdminIncidentInput!): Incident!
   updateIncident(id: ID!, input: UpdateAdminIncidentInput!): Incident!
   deleteIncident(id: ID!): Boolean!
   markIncidentAsFake(id: ID!): Incident!
-  restoreIncident(id: ID!): Incident! # Restore from fake
+  restoreIncident(id: ID!): Incident!
   bulkResolveIncidents(ids: [ID!]!): [Incident!]!
   bulkDeleteIncidents(ids: [ID!]!): Boolean!
 }
@@ -262,7 +245,7 @@ input CreateUserInput {
   email: String!
   password: String!
   role: UserRole!
-  reputation: Int # Optional, defaults to 100
+  reputation: Int
 }
 
 input UpdateUserInput {
@@ -280,7 +263,7 @@ input CreateAdminIncidentInput {
   status: ReportStatus
   lineIds: [ID!]
   affectedSegment: IncidentSegmentInput
-  delayMinutes: Int # Estimated delay in minutes
+  delayMinutes: Int
 }
 
 input UpdateAdminIncidentInput {
@@ -301,12 +284,12 @@ input IncidentSegmentInput {
 }
 
 enum IncidentKind {
-  INCIDENT # Generic incident (ADMIN only)
-  NETWORK_FAILURE # Infrastructure issues (ADMIN only)
-  VEHICLE_FAILURE # Vehicle breakdown (ADMIN only)
-  ACCIDENT # User can report
-  TRAFFIC_JAM # User can report
-  PLATFORM_CHANGES # Platform/schedule changes (ADMIN only)
+  INCIDENT
+  NETWORK_FAILURE
+  VEHICLE_FAILURE
+  ACCIDENT
+  TRAFFIC_JAM
+  PLATFORM_CHANGES
 }
 
 enum TransportType {
@@ -328,10 +311,10 @@ type Incident {
   status: ReportStatus!
   lines: [Line!]
   affectedSegment: IncidentSegment
-  delayMinutes: Int # Estimated delay in minutes
-  isFake: Boolean # True if admin/moderator marked as fake
-  reportedBy: ID # User ID who reported (for reputation tracking)
-  reporter: User # User who reported (includes dynamic trustScore)
+  delayMinutes: Int
+  isFake: Boolean
+  reportedBy: ID
+  reporter: User
   createdAt: String!
 }
 
@@ -352,8 +335,8 @@ input CreateReportInput {
   kind: IncidentKind!
   status: ReportStatus
   lineIds: [ID!]
-  reporterLocation: CoordinatesInput # REQUIRED for regular users (USER role), optional for MODERATOR/ADMIN
-  delayMinutes: Int # Estimated delay in minutes
+  reporterLocation: CoordinatesInput
+  delayMinutes: Int
 }
 
 input UpdateReportInput {
@@ -364,7 +347,6 @@ input UpdateReportInput {
   delayMinutes: Int
 }
 
-# Geographic coordinates
 type Coordinates {
   latitude: Float!
   longitude: Float!
@@ -398,7 +380,7 @@ type PathSegment {
   arrivalTime: String!
   duration: Int!
   hasIncident: Boolean!
-  warning: PathWarning # Warning for this specific segment
+  warning: PathWarning
 }
 
 type PathWarning {
@@ -424,30 +406,29 @@ input FindPathInput {
   departureTime: String
 }
 
-# A* Pathfinding with incident awareness
 input FindOptimalJourneyInput {
   fromStopId: ID!
   toStopId: ID!
-  departureTime: String # ISO datetime, defaults to now
-  maxTransfers: Int # Default: 3
-  preferredTransportTypes: [TransportType!] # Optional: prefer specific types
-  avoidIncidents: Boolean # Default: true - factor in incident delays
+  departureTime: String
+  maxTransfers: Int
+  preferredTransportTypes: [TransportType!]
+  avoidIncidents: Boolean
 }
 
 type OptimalJourneyResult {
-  journeys: [Journey!]! # Top 3 routes sorted by optimal time
+  journeys: [Journey!]!
   hasAlternatives: Boolean!
 }
 
 type Journey {
   segments: [JourneySegment!]!
-  totalDuration: Int! # Total journey time in minutes
-  totalDistance: Float! # Total distance in km
-  transferCount: Int! # Number of line changes
-  hasIncidents: Boolean! # Any incidents on this route
-  departureTime: String! # ISO datetime
-  arrivalTime: String! # ISO datetime
-  alternativeAvailable: Boolean! # True if other routes exist
+  totalDuration: Int!
+  totalDistance: Float!
+  transferCount: Int!
+  hasIncidents: Boolean!
+  departureTime: String!
+  arrivalTime: String!
+  alternativeAvailable: Boolean!
 }
 
 type JourneySegment {
@@ -456,12 +437,12 @@ type JourneySegment {
   lineId: ID!
   lineName: String!
   transportType: TransportType!
-  departureTime: String! # ISO datetime
-  arrivalTime: String! # ISO datetime
-  duration: Int! # Segment duration in minutes
-  hasIncident: Boolean! # Incident on this segment
-  incidentDelay: Int # Additional delay from incident (minutes)
-  incidentSeverity: IncidentSeverity # Severity level
+  departureTime: String!
+  arrivalTime: String!
+  duration: Int!
+  hasIncident: Boolean!
+  incidentDelay: Int
+  incidentSeverity: IncidentSeverity
 }
 
 enum IncidentSeverity {
@@ -476,11 +457,10 @@ type Subscription {
   incidentUpdated(transportType: TransportType): Incident!
   lineIncidentUpdates(lineId: ID!): Incident!
   myLinesIncidents(lineIds: [ID!]!): Incident!
-  # Smart notifications with deduplication and trust-based filtering
+
   smartIncidentNotifications(userId: ID!): Incident!
 }
 
-# Admin-only analytics types
 enum StatsPeriod {
   LAST_24H
   LAST_7D
@@ -494,8 +474,8 @@ type LineIncidentStats {
   period: StatsPeriod!
   totalIncidents: Int!
   incidentsByKind: [IncidentKindCount!]!
-  averageDelayMinutes: Float # Average delay when incidents occurred
-  timeline: [IncidentTimelineEntry!]! # Incidents over time
+  averageDelayMinutes: Float
+  timeline: [IncidentTimelineEntry!]!
 }
 
 type IncidentKindCount {
@@ -504,7 +484,7 @@ type IncidentKindCount {
 }
 
 type IncidentTimelineEntry {
-  timestamp: String! # ISO date
+  timestamp: String!
   incidentCount: Int!
 }
 
@@ -513,15 +493,15 @@ type LineDelayStats {
   lineName: String!
   transportType: TransportType!
   period: StatsPeriod!
-  totalDelays: Int! # Number of delay incidents
+  totalDelays: Int!
   averageDelayMinutes: Float!
   maxDelayMinutes: Int!
   minDelayMinutes: Int!
-  delayDistribution: [DelayBucket!]! # Histogram
+  delayDistribution: [DelayBucket!]!
 }
 
 type DelayBucket {
-  rangeLabel: String! # e.g., "0-5 min", "5-15 min", "15-30 min", "30+ min"
+  rangeLabel: String!
   count: Int!
 }
 
@@ -530,9 +510,9 @@ type LineDelayRanking {
   lineId: ID!
   lineName: String!
   transportType: TransportType!
-  totalDelays: Int! # Frequency of delays
+  totalDelays: Int!
   averageDelayMinutes: Float!
-  incidentCount: Int! # Total incidents causing delays
+  incidentCount: Int!
 }
 
 type LineIncidentOverview {
@@ -540,12 +520,8 @@ type LineIncidentOverview {
   lineName: String!
   transportType: TransportType!
   incidentCount: Int!
-  lastIncidentTime: String # ISO date of most recent incident
+  lastIncidentTime: String
 }
-
-# ============================================
-# SPAM PREVENTION & THRESHOLD SYSTEM
-# ============================================
 
 """
 PendingIncident: User reports that haven't been published yet.
@@ -558,36 +534,32 @@ type PendingIncident {
   description: String
   status: PendingIncidentStatus!
 
-  # Location and affected lines
   location: Coordinates!
   lineIds: [ID!]
   lines: [Line!]
   delayMinutes: Int
 
-  # Threshold tracking
-  reporterIds: [ID!]! # Users who reported
-  reporters: [User!]! # Full user objects
+  reporterIds: [ID!]!
+  reporters: [User!]!
   totalReports: Int!
   aggregateReputation: Int!
-  thresholdScore: Float! # Current score (0.0-1.0+)
-  thresholdRequired: Float! # Usually 1.0
-  thresholdProgress: Int! # Percentage (0-100)
-  # Metadata
+  thresholdScore: Float!
+  thresholdRequired: Float!
+  thresholdProgress: Int!
   createdAt: String!
   lastReportAt: String!
   expiresAt: String!
   thresholdMetAt: String
 
-  # Moderator actions
   moderatorNotes: String
 }
 
 enum PendingIncidentStatus {
-  PENDING # Waiting for threshold
-  THRESHOLD_MET # Auto-approved, incident will be created
-  MANUALLY_APPROVED # Moderator approved
-  REJECTED # Moderator rejected as fake
-  EXPIRED # Timed out without meeting threshold
+  PENDING
+  THRESHOLD_MET
+  MANUALLY_APPROVED
+  REJECTED
+  EXPIRED
 }
 
 """
@@ -597,10 +569,10 @@ type SubmitReportResult {
   success: Boolean!
   pendingIncident: PendingIncident!
   message: String!
-  isNewReport: Boolean! # True if user created new pending incident
-  wasPublished: Boolean! # True if threshold met and incident published
-  publishedIncident: Incident # The real incident if published
-  reputationGained: Int # Reputation points earned (if published)
+  isNewReport: Boolean!
+  wasPublished: Boolean!
+  publishedIncident: Incident
+  reputationGained: Int
 }
 
 """
@@ -609,14 +581,14 @@ Check if user can submit a report (rate limiting)
 type CanSubmitResult {
   canSubmit: Boolean!
   reason: String
-  cooldownRemaining: Int # Seconds until can report again
+  cooldownRemaining: Int
   rateLimitInfo: RateLimitInfo
 }
 
 type RateLimitInfo {
   reportsRemaining: RateLimitRemaining!
   violations: Int!
-  suspiciousScore: Int! # 0-100
+  suspiciousScore: Int!
 }
 
 type RateLimitRemaining {
@@ -634,13 +606,13 @@ type ModeratorQueueItem {
   priority: QueuePriority!
   reason: String!
   createdAt: String!
-  assignedTo: User # Moderator assigned to review
+  assignedTo: User
 }
 
 enum QueuePriority {
-  HIGH # Near threshold or suspicious
-  MEDIUM # Normal review needed
-  LOW # Low priority
+  HIGH
+  MEDIUM
+  LOW
 }
 
 """
@@ -648,7 +620,7 @@ Result of moderator approval
 """
 type ApproveReportResult {
   success: Boolean!
-  incident: Incident! # The published incident
+  incident: Incident!
   rewardedUsers: [UserReputationChange!]!
   message: String!
 }
@@ -662,51 +634,37 @@ type UserReputationChange {
   reason: String!
 }
 
-# ============================================
-# EXTEND EXISTING TYPES
-# ============================================
-
 extend type Query {
-  # Check if user can submit report
   canSubmitReport: CanSubmitResult!
 
-  # Get pending incidents (user can see their own)
   myPendingIncidents: [PendingIncident!]!
 
-  # Get specific pending incident
   pendingIncident(id: ID!): PendingIncident
 
-  # Moderator queries
-  moderatorQueue: [ModeratorQueueItem!]! # Requires ADMIN/MODERATOR
-  allPendingIncidents(status: PendingIncidentStatus): [PendingIncident!]! # Requires ADMIN/MODERATOR
+  moderatorQueue: [ModeratorQueueItem!]!
+  allPendingIncidents(status: PendingIncidentStatus): [PendingIncident!]!
 }
 
 extend type Mutation {
-  # User submits incident report
   submitIncidentReport(input: SubmitReportInput!): SubmitReportResult!
 
-  # Moderator actions
   moderator: ModeratorMutation!
 }
 
 type ModeratorMutation {
-  # Approve pending incident (creates real Incident + rewards users)
   approveReport(pendingIncidentId: ID!, notes: String): ApproveReportResult!
 
-  # Reject pending incident (marks as fake)
   rejectReport(pendingIncidentId: ID!, reason: String!): Boolean!
 
-  # Flag user for spam
   flagUserForSpam(userId: ID!, reason: String!): Boolean!
 
-  # Reset user's suspicious score
   resetUserSpamScore(userId: ID!): Boolean!
 }
 
 input SubmitReportInput {
   kind: IncidentKind!
   description: String
-  reporterLocation: CoordinatesInput! # REQUIRED for users
+  reporterLocation: CoordinatesInput!
   lineIds: [ID!]
   delayMinutes: Int
 }
