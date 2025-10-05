@@ -140,18 +140,6 @@ export default async function UserProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {session.user?.role === "ADMIN" && (
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link href="/admin">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Panel administratora
-                    </Link>
-                  </Button>
-                )}
                 <Button className="w-full justify-start" variant="outline">
                   Edytuj profil
                 </Button>
