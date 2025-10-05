@@ -8,18 +8,26 @@ import { MobileLayout } from "@/components/mobile-layout";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useAppStore, type JourneyNotification } from "@/store/app-store";
 import { toast } from "sonner";
+import { upsertJourneyNotificationOnServer } from "@/lib/journey-notifications-api";
+import { markNotificationsPageVisited } from "@/lib/dismissed-notifications-storage";
+import { useEffect } from "react";
 
 export default function PWADemoPage() {
   const { isMobile } = useIsMobile();
   const notifications = useAppStore((state) => state.notifications);
   const addNotification = useAppStore((state) => state.addNotification);
 
+  // Mark that user visited this page (so floating widget won't show again)
+  useEffect(() => {
+    markNotificationsPageVisited();
+  }, []);
+
   const handleDebug = () => {
     console.log("Store notifications:", notifications);
     toast.info(`Powiadomienia w store: ${notifications.length}`);
   };
 
-  const handleAddTest = () => {
+  const handleAddTest = async () => {
     const testNotification: JourneyNotification = {
       id: `test-${Date.now()}`,
       incidentId: `incident-${Date.now()}`,
@@ -32,8 +40,30 @@ export default function PWADemoPage() {
       delayMinutes: 15,
       receivedAt: new Date().toISOString(),
     };
+    
+    // Add to store (for immediate display)
     addNotification(testNotification);
-    toast.success("Dodano testowe powiadomienie!");
+    
+    // Save to database (for persistence)
+    try {
+      const persisted = await upsertJourneyNotificationOnServer({
+        incidentId: testNotification.incidentId!,
+        title: testNotification.title,
+        description: testNotification.description ?? undefined,
+        kind: testNotification.kind ?? undefined,
+        status: testNotification.status as "DRAFT" | "PUBLISHED" | "RESOLVED" | undefined,
+        lineId: testNotification.lineId ?? undefined,
+        lineName: testNotification.lineName ?? undefined,
+        delayMinutes: testNotification.delayMinutes ?? undefined,
+      });
+      
+      // Update with database ID
+      addNotification({ ...persisted, id: persisted.id });
+      toast.success("Dodano testowe powiadomienie i zapisano w bazie!");
+    } catch (error) {
+      console.error("Failed to save test notification:", error);
+      toast.error("Dodano tylko lokalnie (nie zapisano w bazie)");
+    }
   };
 
   return (

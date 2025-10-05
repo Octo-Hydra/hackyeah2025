@@ -286,7 +286,8 @@ export const ReturnTypes: Record<string,any> = {
 		lineId:"ID",
 		lineName:"String",
 		delayMinutes:"Int",
-		receivedAt:"String"
+		receivedAt:"String",
+		dismissedAt:"String"
 	},
 	TrustScoreBreakdown:{
 		baseScore:"Float",

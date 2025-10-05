@@ -26,6 +26,7 @@ type JourneyNotification {
   lineName: String
   delayMinutes: Int
   receivedAt: String!
+  dismissedAt: String
 }
 
 type TrustScoreBreakdown {
