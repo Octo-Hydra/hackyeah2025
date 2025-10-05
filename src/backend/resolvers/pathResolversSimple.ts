@@ -9,6 +9,7 @@ import type {
   FindPathInput,
   IncidentModel,
   IncidentLocationModel,
+  PathWarning,
 } from "../db/collections";
 import { DB } from "../db/client.js";
 
@@ -67,7 +68,7 @@ function getCurrentTime(): string {
 async function getRouteIncidents(
   db: Db,
   segments: PathSegment[]
-): Promise<string[]> {
+): Promise<string[] | undefined> {
   const warnings: string[] = [];
 
   // Get all unique line IDs from segments
@@ -76,70 +77,7 @@ async function getRouteIncidents(
     if (seg.lineId) lineIds.add(seg.lineId);
   });
 
-  if (lineIds.size === 0) return warnings;
-
-  // Find active incidents on these lines
-  const activeIncidents = await db
-    .collection<IncidentModel>("Incidents")
-    .find({
-      status: { $in: ["PUBLISHED", "DRAFT"] },
-      isFake: { $ne: true }, // Exclude fake incidents
-      lineIds: {
-        $in: Array.from(lineIds).map((id) => new ObjectId(id)),
-      },
-    })
-    .toArray();
-
-  // Format warnings for each incident
-  for (const incident of activeIncidents) {
-    const affectedLines: string[] = [];
-
-    // Get line names
-    if (incident.lineIds && incident.lineIds.length > 0) {
-      const lines = await db
-        .collection<LineModel>("Lines")
-        .find({
-          _id: {
-            $in: incident.lineIds
-              .filter((id): id is ObjectId | string => id !== null)
-              .map((id) => (typeof id === "string" ? new ObjectId(id) : id)),
-          },
-        })
-        .toArray();
-
-      affectedLines.push(...lines.map((l) => l.name));
-    }
-
-    // Create warning message based on incident type
-    const lineNames = affectedLines.join(", ") || "trasa";
-
-    let warningMsg = "";
-    switch (incident.kind) {
-      case "NETWORK_FAILURE":
-        warningMsg = `⚠️ AWARIA SIECI na linii ${lineNames}`;
-        break;
-      case "VEHICLE_FAILURE":
-        warningMsg = `⚠️ AWARIA POJAZDU na linii ${lineNames}`;
-        break;
-      case "ACCIDENT":
-        warningMsg = `🔴 WYPADEK na linii ${lineNames}`;
-        break;
-      case "TRAFFIC_JAM":
-        warningMsg = `🚦 KOREK na linii ${lineNames}`;
-        break;
-      case "PLATFORM_CHANGES":
-        warningMsg = `ℹ️ ZMIANA PERONU na linii ${lineNames}`;
-        break;
-      default:
-        warningMsg = `⚠️ INCYDENT na linii ${lineNames}`;
-    }
-
-    if (incident.description) {
-      warningMsg += `: ${incident.description}`;
-    }
-
-    warnings.push(warningMsg);
-  }
+  if (lineIds.size === 0) return;
 
   const incidentLocations = await db
     .collection<IncidentLocationModel>("IncidentLocations")
@@ -153,7 +91,7 @@ async function getRouteIncidents(
 
   // Map incidents to affected segments
   for (const location of incidentLocations) {
-    const segment = segments.find((seg) => {
+    const segmentIndex = segments.findIndex((seg) => {
       if (seg.lineId !== location.lineId.toString()) return false;
 
       // Check if segment overlaps with incident location
@@ -170,12 +108,16 @@ async function getRouteIncidents(
       );
     });
 
-    if (segment) {
+    if (segmentIndex !== -1) {
+      const segment = segments[segmentIndex];
       const incident = await db
         .collection<IncidentModel>("Incidents")
         .findOne({ _id: new ObjectId(location.incidentId) });
 
       if (incident && !incident.isFake) {
+        // Mark segment as having incident
+        segment.hasIncident = true;
+
         const severityIcon =
           location.severity === "HIGH"
             ? "🔴"
@@ -183,17 +125,20 @@ async function getRouteIncidents(
               ? "🟡"
               : "🟢";
 
-        const segmentWarning = `${severityIcon} ${incident.title} (${segment.from.stopName} → ${segment.to.stopName})`;
+        const description = `${severityIcon} ${incident.title}`;
 
-        // Avoid duplicates
-        if (!warnings.includes(segmentWarning)) {
-          warnings.push(segmentWarning);
-        }
+        // Assign warning directly to segment
+        segment.warning = {
+          fromStop: segment.from.stopName,
+          toStop: segment.to.stopName,
+          lineName: segment.lineName,
+          description,
+          incidentKind: incident.kind,
+          severity: location.severity,
+        };
       }
     }
   }
-
-  return warnings;
 }
 
 export const pathResolvers = {
@@ -214,7 +159,7 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: ["Nie znaleziono przystanków w pobliżu podanych lokalizacji"],
+        hasIncidents: false,
       };
     }
 
@@ -225,7 +170,7 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: ["Punkt początkowy i końcowy są w tej samej lokalizacji"],
+        hasIncidents: false,
       };
     }
 
@@ -308,7 +253,7 @@ export const pathResolvers = {
             arrivalTime: route.stops[i + 1].arrivalTime || "N/A",
             duration: Math.round(segmentDistance / 500),
             distance: Math.round(segmentDistance),
-            warnings: [],
+            hasIncident: false,
           });
         }
 
@@ -316,8 +261,8 @@ export const pathResolvers = {
       }
     }
 
-    // Check for active incidents on the route
-    const routeWarnings = await getRouteIncidents(db, segments);
+    // Check for active incidents on the route and assign warnings to segments
+    await getRouteIncidents(db, segments);
 
     if (segments.length === 0) {
       return {
@@ -326,9 +271,7 @@ export const pathResolvers = {
         totalTransfers: 0,
         departureTime,
         arrivalTime: departureTime,
-        warnings: [
-          `Nie znaleziono trasy z ${startStop.name} do ${endStop.name}`,
-        ],
+        hasIncidents: false,
       };
     }
 
@@ -341,7 +284,7 @@ export const pathResolvers = {
       totalTransfers: 0,
       departureTime,
       arrivalTime: segments[segments.length - 1]?.arrivalTime || departureTime,
-      warnings: routeWarnings, // Active incidents instead of route errors
+      hasIncidents: segments.some((seg) => seg.hasIncident),
     };
   },
 

@@ -165,7 +165,7 @@ query FindPathWithWarnings {
     arrivalTime
     warnings # ← Aktywne incydenty na trasie
   }
-}
+
 ```
 
 **Response przykładowy**:

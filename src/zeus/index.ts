@@ -983,7 +983,9 @@ export type ValueTypes = {
 incidentsByLine?: [{	lineId: ValueTypes["ID"] | Variable<any, string>,	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
 lines?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Line"]],
 stops?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Stop"]],
+searchStops?: [{	query: string | Variable<any, string>,	limit?: number | undefined | null | Variable<any, string>},ValueTypes["Stop"]],
 findPath?: [{	input: ValueTypes["FindPathInput"] | Variable<any, string>},ValueTypes["JourneyPath"]],
+findOptimalJourney?: [{	input: ValueTypes["FindOptimalJourneyInput"] | Variable<any, string>},ValueTypes["OptimalJourneyResult"]],
 	admin?:ValueTypes["AdminQuery"],
 		__typename?: boolean | `@${string}`,
 	['...on Query']?: Omit<ValueTypes["Query"], "...on Query">
@@ -1231,15 +1233,25 @@ bulkDeleteIncidents?: [{	ids: Array<ValueTypes["ID"]> | Variable<any, string>},b
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
+	warning?:ValueTypes["PathWarning"],
 		__typename?: boolean | `@${string}`,
 	['...on PathSegment']?: Omit<ValueTypes["PathSegment"], "...on PathSegment">
+}>;
+	["PathWarning"]: AliasType<{
+	fromStop?:boolean | `@${string}`,
+	toStop?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	incidentKind?:boolean | `@${string}`,
+	severity?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on PathWarning']?: Omit<ValueTypes["PathWarning"], "...on PathWarning">
 }>;
 	["JourneyPath"]: AliasType<{
 	segments?:ValueTypes["PathSegment"],
 	totalDuration?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
-	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on JourneyPath']?: Omit<ValueTypes["JourneyPath"], "...on JourneyPath">
@@ -1249,6 +1261,48 @@ bulkDeleteIncidents?: [{	ids: Array<ValueTypes["ID"]> | Variable<any, string>},b
 	to: ValueTypes["CoordinatesInput"] | Variable<any, string>,
 	departureTime?: string | undefined | null | Variable<any, string>
 };
+	["FindOptimalJourneyInput"]: {
+	fromStopId: ValueTypes["ID"] | Variable<any, string>,
+	toStopId: ValueTypes["ID"] | Variable<any, string>,
+	departureTime?: string | undefined | null | Variable<any, string>,
+	maxTransfers?: number | undefined | null | Variable<any, string>,
+	preferredTransportTypes?: Array<ValueTypes["TransportType"]> | undefined | null | Variable<any, string>,
+	avoidIncidents?: boolean | undefined | null | Variable<any, string>
+};
+	["OptimalJourneyResult"]: AliasType<{
+	journeys?:ValueTypes["Journey"],
+	hasAlternatives?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on OptimalJourneyResult']?: Omit<ValueTypes["OptimalJourneyResult"], "...on OptimalJourneyResult">
+}>;
+	["Journey"]: AliasType<{
+	segments?:ValueTypes["JourneySegment"],
+	totalDuration?:boolean | `@${string}`,
+	totalDistance?:boolean | `@${string}`,
+	transferCount?:boolean | `@${string}`,
+	hasIncidents?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	alternativeAvailable?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on Journey']?: Omit<ValueTypes["Journey"], "...on Journey">
+}>;
+	["JourneySegment"]: AliasType<{
+	from?:ValueTypes["SegmentLocation"],
+	to?:ValueTypes["SegmentLocation"],
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	duration?:boolean | `@${string}`,
+	hasIncident?:boolean | `@${string}`,
+	incidentDelay?:boolean | `@${string}`,
+	incidentSeverity?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on JourneySegment']?: Omit<ValueTypes["JourneySegment"], "...on JourneySegment">
+}>;
+	["IncidentSeverity"]:IncidentSeverity;
 	["Subscription"]: AliasType<{
 incidentCreated?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
 incidentUpdated?: [{	transportType?: ValueTypes["TransportType"] | undefined | null | Variable<any, string>},ValueTypes["Incident"]],
@@ -1397,7 +1451,9 @@ export type ResolverInputTypes = {
 incidentsByLine?: [{	lineId: ResolverInputTypes["ID"],	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
 lines?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Line"]],
 stops?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Stop"]],
+searchStops?: [{	query: string,	limit?: number | undefined | null},ResolverInputTypes["Stop"]],
 findPath?: [{	input: ResolverInputTypes["FindPathInput"]},ResolverInputTypes["JourneyPath"]],
+findOptimalJourney?: [{	input: ResolverInputTypes["FindOptimalJourneyInput"]},ResolverInputTypes["OptimalJourneyResult"]],
 	admin?:ResolverInputTypes["AdminQuery"],
 		__typename?: boolean | `@${string}`
 }>;
@@ -1629,6 +1685,16 @@ bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${str
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
+	warning?:ResolverInputTypes["PathWarning"],
+		__typename?: boolean | `@${string}`
+}>;
+	["PathWarning"]: AliasType<{
+	fromStop?:boolean | `@${string}`,
+	toStop?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	incidentKind?:boolean | `@${string}`,
+	severity?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["JourneyPath"]: AliasType<{
@@ -1636,7 +1702,6 @@ bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${str
 	totalDuration?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
-	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -1645,6 +1710,45 @@ bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${str
 	to: ResolverInputTypes["CoordinatesInput"],
 	departureTime?: string | undefined | null
 };
+	["FindOptimalJourneyInput"]: {
+	fromStopId: ResolverInputTypes["ID"],
+	toStopId: ResolverInputTypes["ID"],
+	departureTime?: string | undefined | null,
+	maxTransfers?: number | undefined | null,
+	preferredTransportTypes?: Array<ResolverInputTypes["TransportType"]> | undefined | null,
+	avoidIncidents?: boolean | undefined | null
+};
+	["OptimalJourneyResult"]: AliasType<{
+	journeys?:ResolverInputTypes["Journey"],
+	hasAlternatives?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["Journey"]: AliasType<{
+	segments?:ResolverInputTypes["JourneySegment"],
+	totalDuration?:boolean | `@${string}`,
+	totalDistance?:boolean | `@${string}`,
+	transferCount?:boolean | `@${string}`,
+	hasIncidents?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	alternativeAvailable?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["JourneySegment"]: AliasType<{
+	from?:ResolverInputTypes["SegmentLocation"],
+	to?:ResolverInputTypes["SegmentLocation"],
+	lineId?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	transportType?:boolean | `@${string}`,
+	departureTime?:boolean | `@${string}`,
+	arrivalTime?:boolean | `@${string}`,
+	duration?:boolean | `@${string}`,
+	hasIncident?:boolean | `@${string}`,
+	incidentDelay?:boolean | `@${string}`,
+	incidentSeverity?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["IncidentSeverity"]:IncidentSeverity;
 	["Subscription"]: AliasType<{
 incidentCreated?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
 incidentUpdated?: [{	transportType?: ResolverInputTypes["TransportType"] | undefined | null},ResolverInputTypes["Incident"]],
@@ -1785,7 +1889,9 @@ export type ModelTypes = {
 	incidentsByLine: Array<ModelTypes["Incident"]>,
 	lines: Array<ModelTypes["Line"]>,
 	stops: Array<ModelTypes["Stop"]>,
+	searchStops: Array<ModelTypes["Stop"]>,
 	findPath?: ModelTypes["JourneyPath"] | undefined | null,
+	findOptimalJourney: ModelTypes["OptimalJourneyResult"],
 	admin: ModelTypes["AdminQuery"]
 };
 	["AdminQuery"]: {
@@ -2000,14 +2106,22 @@ export type ModelTypes = {
 	departureTime: string,
 	arrivalTime: string,
 	duration: number,
-	hasIncident: boolean
+	hasIncident: boolean,
+	warning?: ModelTypes["PathWarning"] | undefined | null
+};
+	["PathWarning"]: {
+		fromStop?: string | undefined | null,
+	toStop?: string | undefined | null,
+	lineName?: string | undefined | null,
+	description: string,
+	incidentKind?: ModelTypes["IncidentKind"] | undefined | null,
+	severity?: string | undefined | null
 };
 	["JourneyPath"]: {
 		segments: Array<ModelTypes["PathSegment"]>,
 	totalDuration: number,
 	departureTime: string,
 	arrivalTime: string,
-	warnings: Array<string>,
 	hasIncidents: boolean
 };
 	["FindPathInput"]: {
@@ -2015,6 +2129,42 @@ export type ModelTypes = {
 	to: ModelTypes["CoordinatesInput"],
 	departureTime?: string | undefined | null
 };
+	["FindOptimalJourneyInput"]: {
+	fromStopId: ModelTypes["ID"],
+	toStopId: ModelTypes["ID"],
+	departureTime?: string | undefined | null,
+	maxTransfers?: number | undefined | null,
+	preferredTransportTypes?: Array<ModelTypes["TransportType"]> | undefined | null,
+	avoidIncidents?: boolean | undefined | null
+};
+	["OptimalJourneyResult"]: {
+		journeys: Array<ModelTypes["Journey"]>,
+	hasAlternatives: boolean
+};
+	["Journey"]: {
+		segments: Array<ModelTypes["JourneySegment"]>,
+	totalDuration: number,
+	totalDistance: number,
+	transferCount: number,
+	hasIncidents: boolean,
+	departureTime: string,
+	arrivalTime: string,
+	alternativeAvailable: boolean
+};
+	["JourneySegment"]: {
+		from: ModelTypes["SegmentLocation"],
+	to: ModelTypes["SegmentLocation"],
+	lineId: ModelTypes["ID"],
+	lineName: string,
+	transportType: ModelTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
+	duration: number,
+	hasIncident: boolean,
+	incidentDelay?: number | undefined | null,
+	incidentSeverity?: ModelTypes["IncidentSeverity"] | undefined | null
+};
+	["IncidentSeverity"]:IncidentSeverity;
 	["Subscription"]: {
 		incidentCreated: ModelTypes["Incident"],
 	incidentUpdated: ModelTypes["Incident"],
@@ -2084,6 +2234,8 @@ export type GraphQLTypes = {
     // Generic result type for operations;
 	// Incidents by line (moved from nested UserQuery);
 	// Transit queries;
+	// Search stops by name;
+	// Optimal path finding with A* and incident awareness;
 	// Admin queries (ADMIN/MODERATOR only);
 	// User management;
 	// Incident management;
@@ -2097,6 +2249,7 @@ export type GraphQLTypes = {
 	// User CRUD (ADMIN only);
 	// Incident management (ADMIN/MODERATOR);
 	// Geographic coordinates;
+	// A* Pathfinding with incident awareness;
 	// Smart notifications with deduplication and trust-based filtering;
 	// Admin-only analytics types;
 	["UserRole"]: UserRole;
@@ -2177,7 +2330,9 @@ export type GraphQLTypes = {
 	incidentsByLine: Array<GraphQLTypes["Incident"]>,
 	lines: Array<GraphQLTypes["Line"]>,
 	stops: Array<GraphQLTypes["Stop"]>,
+	searchStops: Array<GraphQLTypes["Stop"]>,
 	findPath?: GraphQLTypes["JourneyPath"] | undefined | null,
+	findOptimalJourney: GraphQLTypes["OptimalJourneyResult"],
 	admin: GraphQLTypes["AdminQuery"],
 	['...on Query']: Omit<GraphQLTypes["Query"], "...on Query">
 };
@@ -2425,7 +2580,18 @@ export type GraphQLTypes = {
 	arrivalTime: string,
 	duration: number,
 	hasIncident: boolean,
+	warning?: GraphQLTypes["PathWarning"] | undefined | null,
 	['...on PathSegment']: Omit<GraphQLTypes["PathSegment"], "...on PathSegment">
+};
+	["PathWarning"]: {
+	__typename: "PathWarning",
+	fromStop?: string | undefined | null,
+	toStop?: string | undefined | null,
+	lineName?: string | undefined | null,
+	description: string,
+	incidentKind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	severity?: string | undefined | null,
+	['...on PathWarning']: Omit<GraphQLTypes["PathWarning"], "...on PathWarning">
 };
 	["JourneyPath"]: {
 	__typename: "JourneyPath",
@@ -2433,7 +2599,6 @@ export type GraphQLTypes = {
 	totalDuration: number,
 	departureTime: string,
 	arrivalTime: string,
-	warnings: Array<string>,
 	hasIncidents: boolean,
 	['...on JourneyPath']: Omit<GraphQLTypes["JourneyPath"], "...on JourneyPath">
 };
@@ -2442,6 +2607,48 @@ export type GraphQLTypes = {
 	to: GraphQLTypes["CoordinatesInput"],
 	departureTime?: string | undefined | null
 };
+	["FindOptimalJourneyInput"]: {
+		fromStopId: GraphQLTypes["ID"],
+	toStopId: GraphQLTypes["ID"],
+	departureTime?: string | undefined | null,
+	maxTransfers?: number | undefined | null,
+	preferredTransportTypes?: Array<GraphQLTypes["TransportType"]> | undefined | null,
+	avoidIncidents?: boolean | undefined | null
+};
+	["OptimalJourneyResult"]: {
+	__typename: "OptimalJourneyResult",
+	journeys: Array<GraphQLTypes["Journey"]>,
+	hasAlternatives: boolean,
+	['...on OptimalJourneyResult']: Omit<GraphQLTypes["OptimalJourneyResult"], "...on OptimalJourneyResult">
+};
+	["Journey"]: {
+	__typename: "Journey",
+	segments: Array<GraphQLTypes["JourneySegment"]>,
+	totalDuration: number,
+	totalDistance: number,
+	transferCount: number,
+	hasIncidents: boolean,
+	departureTime: string,
+	arrivalTime: string,
+	alternativeAvailable: boolean,
+	['...on Journey']: Omit<GraphQLTypes["Journey"], "...on Journey">
+};
+	["JourneySegment"]: {
+	__typename: "JourneySegment",
+	from: GraphQLTypes["SegmentLocation"],
+	to: GraphQLTypes["SegmentLocation"],
+	lineId: GraphQLTypes["ID"],
+	lineName: string,
+	transportType: GraphQLTypes["TransportType"],
+	departureTime: string,
+	arrivalTime: string,
+	duration: number,
+	hasIncident: boolean,
+	incidentDelay?: number | undefined | null,
+	incidentSeverity?: GraphQLTypes["IncidentSeverity"] | undefined | null,
+	['...on JourneySegment']: Omit<GraphQLTypes["JourneySegment"], "...on JourneySegment">
+};
+	["IncidentSeverity"]: IncidentSeverity;
 	["Subscription"]: {
 	__typename: "Subscription",
 	incidentCreated: GraphQLTypes["Incident"],
@@ -2538,6 +2745,12 @@ export enum ReportStatus {
 	PUBLISHED = "PUBLISHED",
 	RESOLVED = "RESOLVED"
 }
+export enum IncidentSeverity {
+	LOW = "LOW",
+	MEDIUM = "MEDIUM",
+	HIGH = "HIGH",
+	CRITICAL = "CRITICAL"
+}
 export enum StatsPeriod {
 	LAST_24H = "LAST_24H",
 	LAST_7D = "LAST_7D",
@@ -2565,6 +2778,8 @@ type ZEUS_VARIABLES = {
 	["UpdateReportInput"]: ValueTypes["UpdateReportInput"];
 	["CoordinatesInput"]: ValueTypes["CoordinatesInput"];
 	["FindPathInput"]: ValueTypes["FindPathInput"];
+	["FindOptimalJourneyInput"]: ValueTypes["FindOptimalJourneyInput"];
+	["IncidentSeverity"]: ValueTypes["IncidentSeverity"];
 	["StatsPeriod"]: ValueTypes["StatsPeriod"];
 	["ID"]: ValueTypes["ID"];
 }

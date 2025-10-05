@@ -11,7 +11,7 @@
     "lint:fix": "eslint --fix ./src/**/*.{js,ts,tsx}",
     "seed:path": "node --import=tsx/esm scripts/seed-path-data.ts",
     "import:gtfs": "node --import=tsx/esm scripts/import-gtfs.ts",
-    "import:gtfs:full": "node --import=tsx/esm scripts/import-gtfs-full.ts",
+    "import:gtfs:full": "node --import=tsx/esm --env-file .env scripts/import-gtfs-full.ts",
     "populate:incidents": "node --import=tsx/esm --env-file .env scripts/populate-incidents.ts",
     "splash": "node scripts/create-placeholder-splash.js"
   },

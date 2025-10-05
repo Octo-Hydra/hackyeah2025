@@ -8,6 +8,7 @@ import { Shield, ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { CreateIncidentForm } from "@/components/create-incident-form";
 import { AdminStatisticsDashboard } from "@/components/admin-statistics-dashboard";
+import { IncidentSimulator } from "@/components/incident-simulator";
 
 export const metadata: Metadata = {
   title: "Panel Administratora",
@@ -82,6 +83,11 @@ export default async function AdminPage() {
             <p className="text-gray-600 dark:text-gray-400">
               Zarządzaj zgłoszeniami, użytkownikami i systemem
             </p>
+          </div>
+
+          {/* Incident Simulator (Test Webhook) */}
+          <div className="mb-6">
+            <IncidentSimulator />
           </div>
 
           {/* Incident Creation Form */}

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { AppStoreProvider } from "@/store/app-store-provider";
-import { ActiveJourneyNotifier } from "@/components/active-journey-notifier";
+import { ActiveJourneyMonitor } from "@/components/active-journey-monitor";
 import { Toaster } from "@/components/ui/sonner";
 import { fetchUserForStore } from "@/store/fetch-user";
 import { JsonLd } from "@/components/json-ld";
@@ -207,6 +207,7 @@ export default async function RootLayout({
         <AuthProvider>
           <AppStoreProvider user={user}>
             {children}
+            <ActiveJourneyMonitor />
             <Toaster />
           </AppStoreProvider>
         </AuthProvider>

@@ -60,9 +60,10 @@ export const Incident = {
       .find({ _id: { $in: validLineIds } })
       .toArray();
 
-    return lines.map((line) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return lines.map((line: any) => ({
       id: line._id?.toString() || "",
-      name: line.name,
+      name: line.name || line.lineName || "Unknown",
       transportType: line.transportType,
     }));
   },

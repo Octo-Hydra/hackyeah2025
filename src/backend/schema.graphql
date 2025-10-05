@@ -80,7 +80,11 @@ type Query {
   # Transit queries
   lines(transportType: TransportType): [Line!]!
   stops(transportType: TransportType): [Stop!]!
+  # Search stops by name
+  searchStops(query: String!, limit: Int): [Stop!]!
   findPath(input: FindPathInput!): JourneyPath
+  # Optimal path finding with A* and incident awareness
+  findOptimalJourney(input: FindOptimalJourneyInput!): OptimalJourneyResult!
   # Admin queries (ADMIN/MODERATOR only)
   admin: AdminQuery!
 }
@@ -364,6 +368,16 @@ type PathSegment {
   arrivalTime: String!
   duration: Int!
   hasIncident: Boolean!
+  warning: PathWarning # Warning for this specific segment
+}
+
+type PathWarning {
+  fromStop: String
+  toStop: String
+  lineName: String
+  description: String!
+  incidentKind: IncidentKind
+  severity: String
 }
 
 type JourneyPath {
@@ -371,7 +385,6 @@ type JourneyPath {
   totalDuration: Int!
   departureTime: String!
   arrivalTime: String!
-  warnings: [String!]!
   hasIncidents: Boolean!
 }
 
@@ -379,6 +392,53 @@ input FindPathInput {
   from: CoordinatesInput!
   to: CoordinatesInput!
   departureTime: String
+}
+
+# A* Pathfinding with incident awareness
+input FindOptimalJourneyInput {
+  fromStopId: ID!
+  toStopId: ID!
+  departureTime: String # ISO datetime, defaults to now
+  maxTransfers: Int # Default: 3
+  preferredTransportTypes: [TransportType!] # Optional: prefer specific types
+  avoidIncidents: Boolean # Default: true - factor in incident delays
+}
+
+type OptimalJourneyResult {
+  journeys: [Journey!]! # Top 3 routes sorted by optimal time
+  hasAlternatives: Boolean!
+}
+
+type Journey {
+  segments: [JourneySegment!]!
+  totalDuration: Int! # Total journey time in minutes
+  totalDistance: Float! # Total distance in km
+  transferCount: Int! # Number of line changes
+  hasIncidents: Boolean! # Any incidents on this route
+  departureTime: String! # ISO datetime
+  arrivalTime: String! # ISO datetime
+  alternativeAvailable: Boolean! # True if other routes exist
+}
+
+type JourneySegment {
+  from: SegmentLocation!
+  to: SegmentLocation!
+  lineId: ID!
+  lineName: String!
+  transportType: TransportType!
+  departureTime: String! # ISO datetime
+  arrivalTime: String! # ISO datetime
+  duration: Int! # Segment duration in minutes
+  hasIncident: Boolean! # Incident on this segment
+  incidentDelay: Int # Additional delay from incident (minutes)
+  incidentSeverity: IncidentSeverity # Severity level
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 type Subscription {

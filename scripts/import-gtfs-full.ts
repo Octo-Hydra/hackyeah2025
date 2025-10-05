@@ -185,7 +185,8 @@ function getRouteType(gtfsType: string): "BUS" | "RAIL" | "TRAM" | "METRO" {
 
 async function importGTFSFull() {
   const client = new MongoClient(
-    "mongodb://admin:admin@localhost:27017/agentsfun?authSource=admin",
+    process.env.MONGODB_URI ||
+      "mongodb://admin:admin@localhost:27017/agentsfun?authSource=admin",
   );
 
   try {
