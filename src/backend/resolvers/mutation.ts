@@ -610,10 +610,16 @@ export const Mutation = {
     { input }: { input: ActiveJourneyInput },
     ctx: GraphQLContext,
   ): Promise<ActiveJourney | null> {
+    console.log("🚀 setActiveJourney called");
+    console.log("   Context session:", !!ctx.session);
+    console.log("   Session user email:", ctx.session?.user?.email);
+
     const db = await DB();
     const userEmail = ctx.session?.user?.email;
 
     if (!userEmail) {
+      console.error("❌ Not authenticated - no email in session");
+      console.error("   Session:", JSON.stringify(ctx.session, null, 2));
       throw new Error("Not authenticated");
     }
 
@@ -711,7 +717,7 @@ export const Mutation = {
 
   async clearActiveJourney(
     _: unknown,
-    __: any,
+    __: unknown,
     ctx: GraphQLContext,
   ): Promise<boolean> {
     const db = await DB();

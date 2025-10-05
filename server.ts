@@ -188,6 +188,12 @@ const yoga = createYoga({
             }
           } catch (altError) {
             console.error("❌ Alternative decoding also failed:", altError);
+            console.warn(
+              "⚠️ Token cannot be decrypted. User may need to log in again.",
+            );
+            console.warn(
+              "💡 This usually happens when AUTH_SECRET was changed after token creation.",
+            );
           }
         }
       } else {
