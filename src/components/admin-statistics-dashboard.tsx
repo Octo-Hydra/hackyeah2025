@@ -635,51 +635,54 @@ export function AdminStatisticsDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {topDelays.slice(0, 10).map((line) => (
-                          <tr
-                            key={line.lineId}
-                            className="border-b last:border-0"
-                          >
-                            <td className="py-3 px-2 text-sm font-medium">
-                              {line.rank}
-                            </td>
-                            <td className="py-3 px-2">
-                              <div className="flex items-center gap-2">
-                                {line.transportType === "BUS" ? (
-                                  <Bus className="h-4 w-4 text-blue-600" />
-                                ) : (
-                                  <Train className="h-4 w-4 text-red-600" />
-                                )}
-                                <span className="font-semibold">
-                                  {line.lineName}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-3 px-2">
-                              <Badge
-                                variant={
-                                  line.transportType === "BUS"
-                                    ? "default"
-                                    : "destructive"
-                                }
-                                className="text-xs"
-                              >
-                                {line.transportType}
-                              </Badge>
-                            </td>
-                            <td className="py-3 px-2 text-right">
-                              <Badge variant="outline" className="text-xs">
-                                {line.totalDelays}
-                              </Badge>
-                            </td>
-                            <td className="py-3 px-2 text-right font-mono text-sm">
-                              {line.averageDelayMinutes.toFixed(1)} min
-                            </td>
-                            <td className="py-3 px-2 text-right text-sm text-muted-foreground">
-                              {line.incidentCount}
-                            </td>
-                          </tr>
-                        ))}
+                        {topDelays.slice(0, 10).map((line) => {
+                          console.log(line);
+                          return (
+                            <tr
+                              key={line.lineId}
+                              className="border-b last:border-0"
+                            >
+                              <td className="py-3 px-2 text-sm font-medium">
+                                {line.rank}
+                              </td>
+                              <td className="py-3 px-2">
+                                <div className="flex items-center gap-2">
+                                  {line.transportType === "BUS" ? (
+                                    <Bus className="h-4 w-4 text-blue-600" />
+                                  ) : (
+                                    <Train className="h-4 w-4 text-red-600" />
+                                  )}
+                                  <span className="font-semibold">
+                                    {line.lineName}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-3 px-2">
+                                <Badge
+                                  variant={
+                                    line.transportType === "BUS"
+                                      ? "default"
+                                      : "destructive"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {line.transportType}
+                                </Badge>
+                              </td>
+                              <td className="py-3 px-2 text-right">
+                                <Badge variant="outline" className="text-xs">
+                                  {line.totalDelays}
+                                </Badge>
+                              </td>
+                              <td className="py-3 px-2 text-right font-mono text-sm">
+                                {line.averageDelayMinutes.toFixed(1)} min
+                              </td>
+                              <td className="py-3 px-2 text-right text-sm text-muted-foreground">
+                                {line.incidentCount}
+                              </td>
+                            </tr>
+                          );
+                        })}
                         {topDelays.length === 0 && (
                           <tr>
                             <td
