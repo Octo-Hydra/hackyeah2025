@@ -225,7 +225,7 @@ export function RouteNotification({
                                 </span>
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                Linia: {seg.lineId}
+                                Linia: {seg.lineName}
                               </span>
                             </div>
                             <div className="text-right">
