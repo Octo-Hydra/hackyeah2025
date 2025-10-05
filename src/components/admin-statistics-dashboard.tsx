@@ -292,10 +292,9 @@ export function AdminStatisticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.resolvedIncidents}</div>
             <p className="text-xs text-muted-foreground">
-              {(
-                (stats.resolvedIncidents / stats.totalIncidents) *
-                100
-              ).toFixed(1)}
+              {((stats.resolvedIncidents / stats.totalIncidents) * 100).toFixed(
+                1,
+              )}
               % rozwiązanych
             </p>
           </CardContent>
@@ -478,7 +477,10 @@ export function AdminStatisticsDashboard() {
                 ))}
                 {topDelays.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
                       Brak danych o opóźnieniach w tym okresie
                     </td>
                   </tr>
@@ -517,17 +519,22 @@ export function AdminStatisticsDashboard() {
                       <p className="font-semibold">{line.lineName}</p>
                       {line.lastIncidentTime && (
                         <p className="text-xs text-muted-foreground">
-                          Ostatnie: {new Date(line.lastIncidentTime).toLocaleString("pl-PL")}
+                          Ostatnie:{" "}
+                          {new Date(line.lastIncidentTime).toLocaleString(
+                            "pl-PL",
+                          )}
                         </p>
                       )}
                     </div>
                   </div>
                   <Badge variant="secondary" className="ml-2">
-                    {line.incidentCount} {line.incidentCount === 1 ? "zdarzenie" : "zdarzeń"}
+                    {line.incidentCount}{" "}
+                    {line.incidentCount === 1 ? "zdarzenie" : "zdarzeń"}
                   </Badge>
                 </div>
               ))}
-            {incidentOverview.filter((l) => l.incidentCount > 0).length === 0 && (
+            {incidentOverview.filter((l) => l.incidentCount > 0).length ===
+              0 && (
               <p className="text-center text-sm text-muted-foreground py-8">
                 Brak zdarzeń w tym okresie
               </p>

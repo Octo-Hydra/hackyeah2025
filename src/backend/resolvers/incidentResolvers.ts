@@ -8,6 +8,13 @@ import { DB } from "../db/client.js";
  */
 export const Incident = {
   /**
+   * Resolve id field - maps MongoDB _id to GraphQL id
+   */
+  id(parent: IncidentModel) {
+    return parent._id?.toString() || "";
+  },
+
+  /**
    * Resolve reporter field - fetches user with dynamic trustScore
    */
   async reporter(parent: IncidentModel) {

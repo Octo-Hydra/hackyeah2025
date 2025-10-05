@@ -34,8 +34,14 @@ const yoga = createYoga({
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  // @ts-expect-error - Context types are complex, runtime is correct
-  schema: createSchema({
+  schema: createSchema<{
+    db: Db;
+    session: {
+      user: { email: string; name: string; image: string; role: string };
+      expires: string;
+    } | null;
+    request: Request;
+  }>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,
@@ -54,7 +60,7 @@ const yoga = createYoga({
           acc[key] = value;
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
@@ -72,7 +78,7 @@ const yoga = createYoga({
           console.log("🔓 Attempting to decode token...");
           console.log(
             "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET
+            !!process.env.NEXTAUTH_SECRET,
           );
 
           const decoded = await decode({
@@ -87,12 +93,14 @@ const yoga = createYoga({
                 email: decoded.email as string,
                 name: decoded.name as string,
                 image: decoded.picture as string,
+                role: (decoded.role as string) || "USER", // Add role from token
               },
               expires: new Date((decoded.exp as number) * 1000).toISOString(),
             };
             console.log("✅ Session decoded successfully:", {
               email: decoded.email,
               name: decoded.name,
+              role: decoded.role,
             });
           }
         } catch (error) {
@@ -149,7 +157,7 @@ const yoga = createYoga({
           console.error(`Error while handling ${req.url}`, err);
           res.writeHead(500).end();
         }
-      }
+      },
     );
 
     // create websocket server
@@ -196,11 +204,11 @@ const yoga = createYoga({
           return args;
         },
       },
-      wsServer
+      wsServer,
     );
 
     await new Promise<void>((resolve, reject) =>
-      server.listen(port, (err?: Error) => (err ? reject(err) : resolve()))
+      server.listen(port, (err?: Error) => (err ? reject(err) : resolve())),
     );
 
     console.log(`

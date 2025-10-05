@@ -56,7 +56,11 @@ interface IncidentFilterInput {
 /**
  * Check if user has admin/moderator privileges
  */
+<<<<<<< HEAD
 function requireAdminOrModerator(context: Context): void {
+=======
+async function requireAdminOrModerator(context: Context): Promise<void> {
+>>>>>>> 6c77b0188366e029f931ebcfdd3ac237dca2f9e2
   if (!context.user) {
     throw new Error("Authentication required");
   }
@@ -189,10 +193,7 @@ async function paginateUsers(
   const users = await query.toArray();
 
   return {
-    edges: users.map((user) => ({
-      node: user,
-      id: user._id?.toString() || "",
-    })),
+    items: users,
     pageInfo: {
       hasNextPage: users.length === limit,
       hasPreviousPage: !!pagination?.after,
@@ -228,10 +229,7 @@ async function paginateIncidents(
   const incidents = await query.toArray();
 
   return {
-    edges: incidents.map((incident) => ({
-      node: incident,
-      id: incident._id?.toString() || "",
-    })),
+    items: incidents,
     pageInfo: {
       hasNextPage: incidents.length === limit,
       hasPreviousPage: !!pagination?.after,

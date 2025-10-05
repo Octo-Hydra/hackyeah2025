@@ -96,7 +96,7 @@ export function CreateIncidentForm() {
       });
 
       console.log("📍 Fetched lines:", result.lines);
-      
+
       if (result.lines) {
         setLines(result.lines as Line[]);
         console.log("📍 Lines state set:", result.lines.length, "lines");
@@ -209,7 +209,7 @@ export function CreateIncidentForm() {
   const availableLines = filteredLines.filter(
     (line) => !selectedLines.find((l) => l.id === line.id),
   );
-  
+
   console.log("📋 Available lines to show:", availableLines.length);
 
   return (
