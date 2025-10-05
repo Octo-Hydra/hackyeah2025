@@ -74,7 +74,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Moje alerty",
         short_name: "Alerty",
         description: "Zobacz swoje alerty",
-        url: "/alerts",
+        url: "/pwa",
         icons: [
           {
             src: "/apple-touch-icon.png",

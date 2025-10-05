@@ -18,6 +18,7 @@ import {
 import { Query, Mutation } from "@/lib/graphql_request";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
+import { useAppStore } from "@/store/app-store";
 
 interface JourneyNotification {
   id: string;
@@ -65,6 +66,9 @@ export function NotificationsList() {
   const [notifications, setNotifications] = useState<JourneyNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Listen to store notifications for real-time updates
+  const storeNotifications = useAppStore((state) => state.notifications);
 
   const fetchNotifications = async () => {
     try {
@@ -97,8 +101,31 @@ export function NotificationsList() {
     }
   };
 
+  // Sync with store notifications when they change
+  useEffect(() => {
+    // Always sync with store, even if empty (to handle initial load)
+    setNotifications((prev) => {
+      if (storeNotifications.length === 0 && prev.length === 0) {
+        // Both empty, nothing to do
+        return prev;
+      }
+      
+      // Merge store notifications with fetched ones, prioritizing store (real-time)
+      const storeIds = new Set(storeNotifications.map((n) => n.id));
+      const fetchedOnly = prev.filter((n) => !storeIds.has(n.id));
+      return [...storeNotifications, ...fetchedOnly];
+    });
+  }, [storeNotifications]);
+
   useEffect(() => {
     fetchNotifications();
+    
+    // Also check if store already has notifications on mount
+    if (storeNotifications.length > 0) {
+      setNotifications(storeNotifications);
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dismissNotification = async (id: string) => {

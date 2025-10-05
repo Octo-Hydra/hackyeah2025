@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   MapPin,
@@ -19,11 +20,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function AlertsFloatingSheet() {
+  const pathname = usePathname();
   const user = useUser();
   const notifications = useAppStore((state) => state.notifications);
   const { dismiss } = useJourneyNotificationActions();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+
+  // Don't show on /pwa page (notifications page)
+  const isOnNotificationsPage = pathname === "/pwa";
 
   const sortedNotifications = useMemo(
     () =>
@@ -45,8 +50,8 @@ export function AlertsFloatingSheet() {
     }
   }, [activeCount, isVisible]);
 
-  // Don't show if no user or no notifications
-  if (!user || activeCount === 0 || !isVisible) {
+  // Don't show if no user, no notifications, hidden, or on notifications page
+  if (!user || activeCount === 0 || !isVisible || isOnNotificationsPage) {
     return null;
   }
 
