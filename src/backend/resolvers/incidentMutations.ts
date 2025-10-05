@@ -141,7 +141,15 @@ export async function submitIncidentReport(
   );
 
   if (!rateLimitResult.allowed) {
-    throw new Error(rateLimitResult.reason || "Rate limit exceeded");
+    const retryAfter = rateLimitResult.retryAfter;
+    const timeStr = retryAfter
+      ? retryAfter < 60
+        ? `${retryAfter}s`
+        : `${Math.ceil(retryAfter / 60)}min`
+      : "";
+    throw new Error(
+      `⏱️ ${rateLimitResult.reason || "Rate limit exceeded"}${timeStr ? ` Spróbuj ponownie za ${timeStr}` : ""}`,
+    );
   }
 
   // Check cooldowns
@@ -155,7 +163,20 @@ export async function submitIncidentReport(
   );
 
   if (!cooldownResult.allowed) {
-    throw new Error(cooldownResult.reason || "Cooldown active");
+    const remainingMs = cooldownResult.remainingMs || 0;
+    const remainingSec = Math.ceil(remainingMs / 1000);
+    const timeStr =
+      remainingSec < 60
+        ? `${remainingSec}s`
+        : `${Math.ceil(remainingSec / 60)}min`;
+
+    let emoji = "⏱️";
+    if (cooldownResult.cooldownType === "sameLocation") emoji = "📍";
+    if (cooldownResult.cooldownType === "sameKind") emoji = "🔄";
+
+    throw new Error(
+      `${emoji} ${cooldownResult.reason || "Cooldown active"}. Spróbuj ponownie za ${timeStr}`,
+    );
   }
 
   // Find similar pending reports

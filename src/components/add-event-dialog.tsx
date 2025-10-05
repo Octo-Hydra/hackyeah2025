@@ -58,41 +58,44 @@ interface LineInfo {
 }
 
 const INCIDENT_TYPES = [
-  { 
-    value: "ACCIDENT", 
-    label: "Wypadek", 
+  {
+    value: "ACCIDENT",
+    label: "Wypadek",
     icon: AlertTriangle,
-    color: "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+    color: "bg-red-100 text-red-700 border-red-200 hover:bg-red-200",
   },
-  { 
-    value: "TRAFFIC_JAM", 
-    label: "Korek", 
+  {
+    value: "TRAFFIC_JAM",
+    label: "Korek",
     icon: Car,
-    color: "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200"
+    color:
+      "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200",
   },
-  { 
-    value: "VEHICLE_FAILURE", 
-    label: "Awaria pojazdu", 
+  {
+    value: "VEHICLE_FAILURE",
+    label: "Awaria pojazdu",
     icon: Wrench,
-    color: "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200"
+    color:
+      "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200",
   },
-  { 
-    value: "NETWORK_FAILURE", 
-    label: "Awaria sieci", 
+  {
+    value: "NETWORK_FAILURE",
+    label: "Awaria sieci",
     icon: Radio,
-    color: "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200"
+    color:
+      "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200",
   },
-  { 
-    value: "PLATFORM_CHANGES", 
-    label: "Zmiana peronu", 
+  {
+    value: "PLATFORM_CHANGES",
+    label: "Zmiana peronu",
     icon: Navigation,
-    color: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+    color: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200",
   },
-  { 
-    value: "INCIDENT", 
-    label: "Inny", 
+  {
+    value: "INCIDENT",
+    label: "Inny",
     icon: AlertCircle,
-    color: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+    color: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200",
   },
 ];
 
@@ -278,9 +281,12 @@ export function AddEventDialog() {
     }
 
     if (!rateLimitInfo?.canSubmit) {
-      toast.error(
-        rateLimitInfo?.reason || "Nie możesz teraz wysłać zgłoszenia",
-      );
+      const reason =
+        rateLimitInfo?.reason || "Nie możesz teraz wysłać zgłoszenia";
+      toast.warning(reason, {
+        duration: 5000,
+        description: "Pomaga nam to chronić przed spamem",
+      });
       return;
     }
 
@@ -337,7 +343,38 @@ export function AddEventDialog() {
       }
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error("Błąd podczas wysyłania zgłoszenia");
+
+      // Extract error message
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Błąd podczas wysyłania zgłoszenia";
+
+      // Check if it's a rate limit or cooldown error (contains emoji or specific keywords)
+      const isRateLimitError =
+        errorMessage.includes("⏱️") ||
+        errorMessage.includes("📍") ||
+        errorMessage.includes("🔄") ||
+        errorMessage.includes("Rate limit") ||
+        errorMessage.includes("Cooldown") ||
+        errorMessage.includes("Too many") ||
+        errorMessage.includes("wait before");
+
+      if (isRateLimitError) {
+        // Show warning toast for rate limit errors
+        toast.warning(errorMessage, {
+          duration: 5000,
+          description: "Pomaga nam to chronić przed spamem",
+        });
+      } else {
+        // Show error toast for other errors
+        toast.error(errorMessage, {
+          description: "Spróbuj ponownie za chwilę",
+        });
+      }
+
+      // Re-check rate limits to update UI
+      checkRateLimits();
     } finally {
       setSubmitting(false);
     }
@@ -384,11 +421,19 @@ export function AddEventDialog() {
             <p className="mt-2 text-sm text-gray-600">Sprawdzanie limitów...</p>
           </div>
         ) : rateLimitInfo && !rateLimitInfo.canSubmit ? (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {rateLimitInfo.reason ||
-                "Nie możesz teraz wysłać zgłoszenia. Spróbuj później."}
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-900">
+              <p className="font-semibold">
+                {rateLimitInfo.reason?.includes("⏱️") ||
+                rateLimitInfo.reason?.includes("📍") ||
+                rateLimitInfo.reason?.includes("🔄")
+                  ? rateLimitInfo.reason
+                  : "⏱️ " + (rateLimitInfo.reason || "Zbyt wiele zgłoszeń")}
+              </p>
+              <p className="mt-1 text-sm text-orange-700">
+                Pomaga nam to chronić przed spamem i zapewnić jakość zgłoszeń.
+              </p>
             </AlertDescription>
           </Alert>
         ) : (
@@ -480,7 +525,11 @@ export function AddEventDialog() {
             <div className="space-y-3">
               <Label htmlFor="kind">Rodzaj zdarzenia *</Label>
               <div className="grid grid-cols-2 gap-2">
-                {INCIDENT_TYPES.filter(type => type.label !== "Zmiana peronu" && type.label !== "Awaria sieci").map((type) => {
+                {INCIDENT_TYPES.filter(
+                  (type) =>
+                    type.label !== "Zmiana peronu" &&
+                    type.label !== "Awaria sieci",
+                ).map((type) => {
                   const Icon = type.icon;
                   return (
                     <button
