@@ -102,7 +102,6 @@ export function MobileNav() {
   // Check if user has admin role
   const userRole = session?.user?.role;
   const isAdmin = userRole === "ADMIN";
-  console.log("isAdmin", isAdmin);
   // Use different nav items based on auth status
   const items = session ? (isAdmin ? adminNavItems : navItems) : guestNavItems;
 

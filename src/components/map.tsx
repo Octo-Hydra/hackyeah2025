@@ -195,6 +195,23 @@ export function Map({ center, zoom = 13, className }: MapProps) {
     }
   }, [activeJourney]);
 
+  // Handle window resize to update map size
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+
+    const handleResize = () => {
+      // Use setTimeout to ensure the container has been resized before invalidating
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [mapReady]);
+
   // Fit map bounds to route when route changes
   useEffect(() => {
     if (!mappedRoute) {
@@ -331,8 +348,9 @@ export function Map({ center, zoom = 13, className }: MapProps) {
           crossOrigin={true}
         />
         <ActiveJourneyNotifier />
+
         {/* Show user location marker when no route is displayed */}
-        {!mappedRoute && (
+        {!mappedRoute && mapCenter && (
           <Marker position={mapCenter}>
             <Popup>
               Your current location
