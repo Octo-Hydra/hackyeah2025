@@ -8,6 +8,7 @@ import {
   clearJourneyNotificationsOnServer,
   upsertJourneyNotificationOnServer,
 } from "@/lib/journey-notifications-api";
+import { isNotificationDismissed } from "@/lib/dismissed-notifications-storage";
 
 /**
  * Component that monitors active journey for real-time incidents
@@ -59,7 +60,11 @@ export function ActiveJourneyMonitor() {
       const { notifications, dismissedNotificationIds } =
         useAppStore.getState();
 
-      if (dismissedNotificationIds.includes(incident.id)) {
+      // Check both store and localStorage for dismissed notifications
+      if (
+        dismissedNotificationIds.includes(incident.id) ||
+        isNotificationDismissed(incident.id)
+      ) {
         return;
       }
 

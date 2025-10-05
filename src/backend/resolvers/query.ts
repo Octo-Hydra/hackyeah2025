@@ -31,11 +31,12 @@ export const Query = {
     const userId =
       typeof user._id === "string" ? user._id : user._id?.toString();
 
+    // Fetch only active notifications (not dismissed)
     const notifications = await db
       .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
       .find({
         userId,
-        dismissedAt: { $in: [null, undefined] },
+        dismissedAt: null,
       })
       .sort({ receivedAt: -1 })
       .toArray();
@@ -61,6 +62,7 @@ export const Query = {
         lineName: notification.lineName ?? null,
         delayMinutes: notification.delayMinutes ?? null,
         receivedAt: notification.receivedAt,
+        dismissedAt: notification.dismissedAt ?? null,
       })),
       activeJourney: user.activeJourney
         ? {

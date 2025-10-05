@@ -931,6 +931,7 @@ export type ValueTypes = {
 	lineName?:boolean | `@${string}`,
 	delayMinutes?:boolean | `@${string}`,
 	receivedAt?:boolean | `@${string}`,
+	dismissedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on JourneyNotification']?: Omit<ValueTypes["JourneyNotification"], "...on JourneyNotification">
 }>;
@@ -1552,6 +1553,7 @@ export type ResolverInputTypes = {
 	lineName?:boolean | `@${string}`,
 	delayMinutes?:boolean | `@${string}`,
 	receivedAt?:boolean | `@${string}`,
+	dismissedAt?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["TrustScoreBreakdown"]: AliasType<{
@@ -2132,7 +2134,8 @@ export type ModelTypes = {
 	lineId?: ModelTypes["ID"] | undefined | null,
 	lineName?: string | undefined | null,
 	delayMinutes?: number | undefined | null,
-	receivedAt: string
+	receivedAt: string,
+	dismissedAt?: string | undefined | null
 };
 	["TrustScoreBreakdown"]: {
 		baseScore: number,
@@ -2671,6 +2674,7 @@ export type GraphQLTypes = {
 	lineName?: string | undefined | null,
 	delayMinutes?: number | undefined | null,
 	receivedAt: string,
+	dismissedAt?: string | undefined | null,
 	['...on JourneyNotification']: Omit<GraphQLTypes["JourneyNotification"], "...on JourneyNotification">
 };
 	["TrustScoreBreakdown"]: {

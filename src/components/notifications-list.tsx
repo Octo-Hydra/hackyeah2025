@@ -19,6 +19,11 @@ import { Query, Mutation } from "@/lib/graphql_request";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useAppStore } from "@/store/app-store";
+import {
+  getDismissedNotificationIds,
+  addDismissedNotificationId,
+  clearDismissedNotifications,
+} from "@/lib/dismissed-notifications-storage";
 
 interface JourneyNotification {
   id: string;
@@ -91,7 +96,20 @@ export function NotificationsList() {
       });
 
       if (result.me?.journeyNotifications) {
-        setNotifications(result.me.journeyNotifications as JourneyNotification[]);
+        // Filter out notifications that are:
+        // 1. Dismissed by backend (dismissedAt != null)
+        // 2. Closed by user (in localStorage)
+        const dismissedIds = new Set(getDismissedNotificationIds());
+        const filtered = (result.me.journeyNotifications as JourneyNotification[])
+          .filter((notif) => {
+            // Skip if dismissed in backend
+            if (notif.dismissedAt) return false;
+            // Skip if closed by user (localStorage)
+            if (dismissedIds.has(notif.id)) return false;
+            return true;
+          });
+        
+        setNotifications(filtered);
       }
     } catch (err) {
       setError("Brak powiadomień na trasie");
@@ -110,10 +128,18 @@ export function NotificationsList() {
         return prev;
       }
       
+      // Get dismissed IDs from localStorage
+      const dismissedIds = new Set(getDismissedNotificationIds());
+      
+      // Filter store notifications (remove dismissed ones)
+      const filteredStore = storeNotifications.filter(
+        (n) => !dismissedIds.has(n.id)
+      );
+      
       // Merge store notifications with fetched ones, prioritizing store (real-time)
-      const storeIds = new Set(storeNotifications.map((n) => n.id));
+      const storeIds = new Set(filteredStore.map((n) => n.id));
       const fetchedOnly = prev.filter((n) => !storeIds.has(n.id));
-      return [...storeNotifications, ...fetchedOnly];
+      return [...filteredStore, ...fetchedOnly];
     });
   }, [storeNotifications]);
 
@@ -130,12 +156,16 @@ export function NotificationsList() {
 
   const dismissNotification = async (id: string) => {
     try {
+      // Save to localStorage first (immediate effect)
+      addDismissedNotificationId(id);
+      
+      // Remove from UI immediately
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      
+      // Also dismiss on server
       await Mutation()({
         dismissJourneyNotification: [{ id }, true],
       });
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, dismissedAt: new Date().toISOString() } : n))
-      );
     } catch (err) {
       console.error("Error dismissing notification:", err);
     }
@@ -143,10 +173,16 @@ export function NotificationsList() {
 
   const clearAllNotifications = async () => {
     try {
+      // Clear localStorage
+      clearDismissedNotifications();
+      
+      // Clear UI
+      setNotifications([]);
+      
+      // Clear on server
       await Mutation()({
         clearJourneyNotifications: true,
       });
-      setNotifications([]);
     } catch (err) {
       console.error("Error clearing notifications:", err);
     }
@@ -176,8 +212,8 @@ export function NotificationsList() {
     );
   }
 
-  const activeNotifications = notifications.filter((n) => !n.dismissedAt);
-  const dismissedNotifications = notifications.filter((n) => n.dismissedAt);
+  // All notifications are active (dismissed ones are filtered out)
+  const activeNotifications = notifications;
 
   return (
     <div className="space-y-6">
@@ -203,7 +239,7 @@ export function NotificationsList() {
         )}
       </div>
 
-      {activeNotifications.length === 0 && dismissedNotifications.length === 0 && (
+      {activeNotifications.length === 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center space-y-2 py-8">
@@ -219,7 +255,6 @@ export function NotificationsList() {
 
       {activeNotifications.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Aktywne</h3>
           {activeNotifications.map((notification) => {
             const Icon = INCIDENT_ICONS[notification.kind || "OTHER"] || AlertCircle;
             const colorClass = INCIDENT_COLORS[notification.kind || "OTHER"];
@@ -271,53 +306,6 @@ export function NotificationsList() {
                         )}
                         <span className="text-gray-400 text-xs">
                           {formatDistanceToNow(new Date(notification.receivedAt), {
-                            addSuffix: true,
-                            locale: pl,
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {dismissedNotifications.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-500">Odrzucone</h3>
-          {dismissedNotifications.map((notification) => {
-            const Icon = INCIDENT_ICONS[notification.kind || "OTHER"] || AlertCircle;
-
-            return (
-              <Card key={notification.id} className="opacity-60">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-gray-100 text-gray-500">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div>
-                        <h3 className="font-semibold text-gray-600">
-                          {notification.title}
-                        </h3>
-                        {notification.description && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {notification.description}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        {notification.lineName && (
-                          <Badge variant="outline" className="font-mono opacity-60">
-                            {notification.lineName}
-                          </Badge>
-                        )}
-                        <span className="text-gray-400 text-xs">
-                          Odrzucone{" "}
-                          {formatDistanceToNow(new Date(notification.dismissedAt!), {
                             addSuffix: true,
                             locale: pl,
                           })}
