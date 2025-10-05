@@ -102,6 +102,7 @@ export async function fetchUserForStore(): Promise<User | null> {
       email: result.me.email ?? null,
       image: null, // Image is not in the User schema, set to null
       reputation: result.me.reputation || 0,
+      journeyNotifications,
       activeJourney: result.me.activeJourney
         ? {
             segments: result.me.activeJourney.segments.map((seg) => ({
@@ -134,7 +135,6 @@ export async function fetchUserForStore(): Promise<User | null> {
               (result.me.activeJourney.expectedEndTime as string) || "",
           }
         : undefined,
-      journeyNotifications,
     };
   } catch (error) {
     // Suppress expected "Dynamic server usage" errors during build

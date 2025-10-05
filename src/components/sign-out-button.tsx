@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAppStore } from "@/store/app-store";
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
+import { closeWSConnection } from "@/hooks/use-graphql-subscriptions";
 
 interface SignOutButtonProps {
   variant?: "default" | "destructive" | "outline" | "ghost";
@@ -26,6 +27,10 @@ export function SignOutButton({
     setIsLoading(true);
 
     try {
+      // Close WebSocket connection first
+      closeWSConnection();
+      console.log("[Logout] WebSocket connection closed");
+
       // Clear Zustand store before signing out
       clearStore();
 

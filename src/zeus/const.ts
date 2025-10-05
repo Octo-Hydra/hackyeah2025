@@ -38,6 +38,12 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		findOptimalJourney:{
 			input:"FindOptimalJourneyInput"
+		},
+		pendingIncident:{
+
+		},
+		allPendingIncidents:{
+			status:"PendingIncidentStatus"
 		}
 	},
 	AdminQuery:{
@@ -126,6 +132,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		dismissJourneyNotification:{
 
+		},
+		submitIncidentReport:{
+			input:"SubmitReportInput"
 		}
 	},
 	AdminMutation:{
@@ -226,6 +235,26 @@ export const AllTypesProps: Record<string,any> = {
 		}
 	},
 	StatsPeriod: "enum" as const,
+	PendingIncidentStatus: "enum" as const,
+	QueuePriority: "enum" as const,
+	ModeratorMutation:{
+		approveReport:{
+
+		},
+		rejectReport:{
+
+		},
+		flagUserForSpam:{
+
+		},
+		resetUserSpamScore:{
+
+		}
+	},
+	SubmitReportInput:{
+		kind:"IncidentKind",
+		reporterLocation:"CoordinatesInput"
+	},
 	ID: `scalar.ID` as const
 }
 
@@ -287,7 +316,12 @@ export const ReturnTypes: Record<string,any> = {
 		searchStops:"Stop",
 		findPath:"JourneyPath",
 		findOptimalJourney:"OptimalJourneyResult",
-		admin:"AdminQuery"
+		admin:"AdminQuery",
+		canSubmitReport:"CanSubmitResult",
+		myPendingIncidents:"PendingIncident",
+		pendingIncident:"PendingIncident",
+		moderatorQueue:"ModeratorQueueItem",
+		allPendingIncidents:"PendingIncident"
 	},
 	AdminQuery:{
 		users:"UserConnection",
@@ -356,7 +390,9 @@ export const ReturnTypes: Record<string,any> = {
 		upsertJourneyNotification:"JourneyNotification",
 		dismissJourneyNotification:"Boolean",
 		clearJourneyNotifications:"Boolean",
-		admin:"AdminMutation"
+		admin:"AdminMutation",
+		submitIncidentReport:"SubmitReportResult",
+		moderator:"ModeratorMutation"
 	},
 	AdminMutation:{
 		createUser:"User",
@@ -520,6 +556,81 @@ export const ReturnTypes: Record<string,any> = {
 		transportType:"TransportType",
 		incidentCount:"Int",
 		lastIncidentTime:"String"
+	},
+	PendingIncident:{
+		id:"ID",
+		kind:"IncidentKind",
+		description:"String",
+		status:"PendingIncidentStatus",
+		location:"Coordinates",
+		lineIds:"ID",
+		lines:"Line",
+		delayMinutes:"Int",
+		reporterIds:"ID",
+		reporters:"User",
+		totalReports:"Int",
+		aggregateReputation:"Int",
+		thresholdScore:"Float",
+		thresholdRequired:"Float",
+		thresholdProgress:"Int",
+		createdAt:"String",
+		lastReportAt:"String",
+		expiresAt:"String",
+		thresholdMetAt:"String",
+		moderatorNotes:"String"
+	},
+	SubmitReportResult:{
+		success:"Boolean",
+		pendingIncident:"PendingIncident",
+		message:"String",
+		isNewReport:"Boolean",
+		wasPublished:"Boolean",
+		publishedIncident:"Incident",
+		reputationGained:"Int"
+	},
+	CanSubmitResult:{
+		canSubmit:"Boolean",
+		reason:"String",
+		cooldownRemaining:"Int",
+		rateLimitInfo:"RateLimitInfo"
+	},
+	RateLimitInfo:{
+		reportsRemaining:"RateLimitRemaining",
+		violations:"Int",
+		suspiciousScore:"Int"
+	},
+	RateLimitRemaining:{
+		perMinute:"Int",
+		perHour:"Int",
+		perDay:"Int"
+	},
+	ModeratorQueueItem:{
+		id:"ID",
+		pendingIncident:"PendingIncident",
+		priority:"QueuePriority",
+		reason:"String",
+		createdAt:"String",
+		assignedTo:"User"
+	},
+	ApproveReportResult:{
+		success:"Boolean",
+		incident:"Incident",
+		rewardedUsers:"UserReputationChange",
+		message:"String"
+	},
+	UserReputationChange:{
+		userId:"ID",
+		user:"User",
+		oldReputation:"Int",
+		newReputation:"Int",
+		change:"Int",
+		reason:"String"
+	},
+	ModeratorMutation:{
+		approveReport:"ApproveReportResult",
+		rejectReport:"Boolean",
+		flagUserForSpam:"Boolean",
+		resetUserSpamScore:"Boolean"
 	},
 	ID: `scalar.ID` as const
 }

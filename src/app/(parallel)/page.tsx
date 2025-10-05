@@ -132,7 +132,7 @@ export default function HomePage() {
           </div>
 
           {/* Action Buttons - Only show when logged in */}
-          {session && (
+          {session && status === "authenticated" && (
             <div className="absolute bottom-8 right-6 z-[1000] flex flex-col gap-3 md:bottom-6">
               <AddJourneyDialog />
               <AddEventDialog />

@@ -6,10 +6,11 @@ import { isMobileDevice } from "@/lib/user-agent";
 import Link from "next/link";
 import { Shield, ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import { CreateIncidentForm } from "@/components/create-incident-form";
+
 import { AdminStatisticsDashboard } from "@/components/admin-statistics-dashboard";
 import { IncidentSimulator } from "@/components/incident-simulator";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ModeratorQueueDashboard } from "@/components/moderator-queue-dashboard";
 
 export const metadata: Metadata = {
   title: "Panel Administratora",
@@ -84,15 +85,20 @@ export default async function AdminPage() {
             </p>
           </div>
 
+          {/* Moderator Queue - Pending User Reports */}
+          <div className="mb-6">
+            <ModeratorQueueDashboard />
+          </div>
+
           {/* Incident Simulator (Test Webhook) */}
           <div className="mb-6">
             <IncidentSimulator />
           </div>
 
           {/* Incident Creation Form */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <CreateIncidentForm />
-          </div>
+          </div> */}
 
           {/* Statistics Dashboard */}
           <div className="mb-6">

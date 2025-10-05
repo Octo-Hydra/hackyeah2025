@@ -34,17 +34,17 @@ export interface TrustScoreBreakdown {
  */
 export async function calculateUserTrustScore(
   db: Db,
-  userId: ObjectId | string
+  userId: ObjectId | string,
 ): Promise<TrustScoreBreakdown> {
   const user = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .findOne({ _id: new ObjectId(userId) });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  const reputation = user.reputation || 100;
+  const reputation = user.reputation || 34;
 
   // 1. Base score from reputation (0.5-2.0)
   // Use same logic as threshold-algorithm.ts
@@ -65,13 +65,13 @@ export async function calculateUserTrustScore(
 
   const recentReportsCount = recentReports.length;
   const validatedReports = recentReports.filter(
-    (r) => r.status === "RESOLVED" && !r.isFake
+    (r) => r.status === "RESOLVED" && !r.isFake,
   ).length;
   const fakeReports = recentReports.filter((r) => r.isFake === true).length;
 
   // 3. Calculate validation rate
   const resolvedReports = recentReports.filter(
-    (r) => r.status === "RESOLVED"
+    (r) => r.status === "RESOLVED",
   ).length;
   const validationRate =
     resolvedReports > 0 ? validatedReports / resolvedReports : 0;
@@ -88,7 +88,7 @@ export async function calculateUserTrustScore(
     // Scale bonus: 100 rep = 0%, 200 rep = 25%, 300+ = 25%
     const bonusMultiplier = Math.min(
       (reputation - HIGH_REP_THRESHOLD) / 100,
-      1.0
+      1.0,
     );
     highRepBonus = baseScore * HIGH_REP_BONUS * bonusMultiplier;
   }
@@ -99,7 +99,7 @@ export async function calculateUserTrustScore(
   // 7. Calculate final score (max 2.5)
   const finalScore = Math.max(
     0.5,
-    Math.min(2.5, baseScore + accuracyBonus + highRepBonus - fakePenalty)
+    Math.min(2.5, baseScore + accuracyBonus + highRepBonus - fakePenalty),
   );
 
   return {
@@ -124,11 +124,11 @@ export async function updateAllUserTrustScores(db: Db): Promise<number> {
     .distinct("reportedBy");
 
   const validUserIds = reportedByIds.filter(
-    (id): id is ObjectId => id !== null && id !== undefined
+    (id): id is ObjectId => id !== null && id !== undefined,
   );
 
   const activeUsers = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .find({
       _id: { $in: validUserIds },
     })
@@ -142,7 +142,7 @@ export async function updateAllUserTrustScores(db: Db): Promise<number> {
     try {
       const trustScore = await calculateUserTrustScore(db, user._id);
 
-      await db.collection<UserModel>("Users").updateOne(
+      await db.collection("users").updateOne(
         { _id: user._id },
         {
           $set: {
@@ -155,7 +155,7 @@ export async function updateAllUserTrustScores(db: Db): Promise<number> {
               updatedAt: new Date().toISOString(),
             },
           },
-        }
+        },
       );
 
       updatedCount++;
@@ -172,10 +172,10 @@ export async function updateAllUserTrustScores(db: Db): Promise<number> {
  */
 export async function getUserTrustScore(
   db: Db,
-  userId: ObjectId | string
+  userId: ObjectId | string,
 ): Promise<number> {
   const user = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .findOne({ _id: new ObjectId(userId) });
 
   // If user doesn't have a trust score yet, calculate it now
@@ -195,17 +195,17 @@ export async function updateUserReputationAfterResolution(
   db: Db,
   userId: ObjectId | string,
   wasCorrect: boolean,
-  incidentCreatedAt: string
+  incidentCreatedAt: string,
 ): Promise<{ newReputation: number; reputationChange: number }> {
   const user = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .findOne({ _id: new ObjectId(userId) });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  const currentReputation = user.reputation || 100;
+  const currentReputation = user.reputation || 34;
 
   // Calculate notification age in minutes
   const incidentDate = new Date(incidentCreatedAt);
@@ -217,19 +217,19 @@ export async function updateUserReputationAfterResolution(
   const reputationChange = calculateReputationChange(
     wasCorrect,
     currentReputation,
-    notificationAge
+    notificationAge,
   );
 
   const newReputation = Math.max(0, currentReputation + reputationChange);
 
   // Update user reputation
-  await db.collection<UserModel>("Users").updateOne(
+  await db.collection("users").updateOne(
     { _id: new ObjectId(userId) },
     {
       $set: {
         reputation: newReputation,
       },
-    }
+    },
   );
 
   // Recalculate trust score

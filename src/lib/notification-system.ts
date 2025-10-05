@@ -133,7 +133,7 @@ async function getAggregateTrustScore(
 
   // Get reporter's trust score
   const reporter = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .findOne({ _id: incident.reportedBy });
 
   const reporterTrustScore = reporter?.trustScore || 1.0;
@@ -163,7 +163,7 @@ async function getAggregateTrustScore(
     .filter((id): id is ObjectId => id !== null && id !== undefined);
 
   const similarReporters = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .find({ _id: { $in: similarReporterIds } })
     .toArray();
 
@@ -189,7 +189,7 @@ async function shouldUserReceiveNotification(
   incident: IncidentModel,
 ): Promise<boolean> {
   const user = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .findOne({ _id: typeof userId === "string" ? userId : userId });
 
   if (!user) {
@@ -278,7 +278,7 @@ export async function processIncidentNotifications(
 
   // Get all users who might be affected
   const allUsers = await db
-    .collection<UserModel>("Users")
+    .collection("users")
     .find({
       $or: [
         { "activeJourney.lineIds": { $in: incident.lineIds || [] } },

@@ -24,7 +24,7 @@ export const Incident = {
 
     const db = await DB();
     const user = await db
-      .collection<UserModel>("Users")
+      .collection("users")
       .findOne({ _id: new ObjectId(parent.reportedBy) });
 
     if (!user) {

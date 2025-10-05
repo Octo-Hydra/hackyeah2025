@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Shield, Bell, LayoutDashboard, LogIn, LogOut } from "lucide-react";
+import {
+  Home,
+  User,
+  Shield,
+  Bell,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
 import { useAppStore } from "@/store/app-store";

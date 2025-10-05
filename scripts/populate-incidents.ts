@@ -142,11 +142,11 @@ async function populateIncidents() {
   console.log(`📍 Found ${lines.length} lines in database\n`);
 
   // Get or create admin user
-  let adminUser = await db.collection("Users").findOne({ role: "ADMIN" });
+  let adminUser = await db.collection("users").findOne({ role: "ADMIN" });
 
   if (!adminUser) {
     console.log("👤 Creating admin user for incidents...");
-    const result = await db.collection("Users").insertOne({
+    const result = await db.collection("users").insertOne({
       name: "System Admin",
       email: "admin@ontime.pl",
       role: "ADMIN",

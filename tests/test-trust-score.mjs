@@ -35,7 +35,7 @@ async function testTrustScore() {
 
     // 2. Get user data
     const user = await db
-      .collection("Users")
+      .collection("users")
       .findOne({ _id: new ObjectId(userId) });
     if (!user) {
       console.log("❌ User not found");
@@ -47,7 +47,7 @@ async function testTrustScore() {
     console.log(`   Email: ${user.email}`);
     console.log(`   Reputation: ${user.reputation || 100}`);
     console.log(
-      `   Current Trust Score: ${user.trustScore || "Not calculated yet"}\n`,
+      `   Current Trust Score: ${user.trustScore || "Not calculated yet"}\n`
     );
 
     // 3. Get user's reports
@@ -59,7 +59,7 @@ async function testTrustScore() {
     console.log(`📝 Reports: ${reports.length} total`);
 
     const validatedReports = reports.filter(
-      (r) => r.status === "RESOLVED" && !r.isFake,
+      (r) => r.status === "RESOLVED" && !r.isFake
     );
     const fakeReports = reports.filter((r) => r.isFake === true);
     const pendingReports = reports.filter((r) => r.status === "PUBLISHED");
@@ -73,7 +73,7 @@ async function testTrustScore() {
     const baseScore = Math.max(0.5, Math.min(2.0, reputation / 100));
 
     const resolvedReports = reports.filter(
-      (r) => r.status === "RESOLVED",
+      (r) => r.status === "RESOLVED"
     ).length;
     const validationRate =
       resolvedReports > 0 ? validatedReports.length / resolvedReports : 0;
@@ -88,13 +88,13 @@ async function testTrustScore() {
     const fakePenalty = fakeReports.length * 0.1;
     const finalScore = Math.max(
       0.5,
-      Math.min(2.5, baseScore + accuracyBonus + highRepBonus - fakePenalty),
+      Math.min(2.5, baseScore + accuracyBonus + highRepBonus - fakePenalty)
     );
 
     console.log("📊 Trust Score Calculation:");
     console.log(`   Base Score: ${baseScore.toFixed(2)} (from reputation)`);
     console.log(
-      `   Accuracy Bonus: +${accuracyBonus.toFixed(2)} (${(validationRate * 100).toFixed(1)}% validation rate)`,
+      `   Accuracy Bonus: +${accuracyBonus.toFixed(2)} (${(validationRate * 100).toFixed(1)}% validation rate)`
     );
     console.log(`   High Rep Bonus: +${highRepBonus.toFixed(2)}`);
     console.log(`   Fake Penalty: -${fakePenalty.toFixed(2)}`);
@@ -112,7 +112,7 @@ async function testTrustScore() {
         console.log("   ✅ Matches manual calculation!\n");
       } else {
         console.log(
-          `   ⚠️  Differs by ${diff.toFixed(2)} from manual calculation\n`,
+          `   ⚠️  Differs by ${diff.toFixed(2)} from manual calculation\n`
         );
       }
     } else {
@@ -124,14 +124,14 @@ async function testTrustScore() {
     if (usersWithReports.length > 1) {
       const userId2 = usersWithReports[1];
       const user2 = await db
-        .collection("Users")
+        .collection("users")
         .findOne({ _id: new ObjectId(userId2) });
 
       if (user2) {
         console.log(`\n📊 Second User: ${user2.name}`);
         console.log(`   Reputation: ${user2.reputation || 100}`);
         console.log(
-          `   Trust Score: ${user2.trustScore?.toFixed(2) || "Not calculated"}`,
+          `   Trust Score: ${user2.trustScore?.toFixed(2) || "Not calculated"}`
         );
       }
     }

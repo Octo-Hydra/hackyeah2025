@@ -1012,6 +1012,11 @@ searchStops?: [{	query: string | Variable<any, string>,	limit?: number | undefin
 findPath?: [{	input: ValueTypes["FindPathInput"] | Variable<any, string>},ValueTypes["JourneyPath"]],
 findOptimalJourney?: [{	input: ValueTypes["FindOptimalJourneyInput"] | Variable<any, string>},ValueTypes["OptimalJourneyResult"]],
 	admin?:ValueTypes["AdminQuery"],
+	canSubmitReport?:ValueTypes["CanSubmitResult"],
+	myPendingIncidents?:ValueTypes["PendingIncident"],
+pendingIncident?: [{	id: ValueTypes["ID"] | Variable<any, string>},ValueTypes["PendingIncident"]],
+	moderatorQueue?:ValueTypes["ModeratorQueueItem"],
+allPendingIncidents?: [{	status?: ValueTypes["PendingIncidentStatus"] | undefined | null | Variable<any, string>},ValueTypes["PendingIncident"]],
 		__typename?: boolean | `@${string}`,
 	['...on Query']?: Omit<ValueTypes["Query"], "...on Query">
 }>;
@@ -1121,6 +1126,8 @@ upsertJourneyNotification?: [{	input: ValueTypes["JourneyNotificationInput"] | V
 dismissJourneyNotification?: [{	id: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
 	clearJourneyNotifications?:boolean | `@${string}`,
 	admin?:ValueTypes["AdminMutation"],
+submitIncidentReport?: [{	input: ValueTypes["SubmitReportInput"] | Variable<any, string>},ValueTypes["SubmitReportResult"]],
+	moderator?:ValueTypes["ModeratorMutation"],
 		__typename?: boolean | `@${string}`,
 	['...on Mutation']?: Omit<ValueTypes["Mutation"], "...on Mutation">
 }>;
@@ -1404,6 +1411,115 @@ smartIncidentNotifications?: [{	userId: ValueTypes["ID"] | Variable<any, string>
 		__typename?: boolean | `@${string}`,
 	['...on LineIncidentOverview']?: Omit<ValueTypes["LineIncidentOverview"], "...on LineIncidentOverview">
 }>;
+	/** PendingIncident: User reports that haven't been published yet.
+Multiple users reporting same incident aggregate into one PendingIncident.
+When threshold is met, a real Incident is created and published to WebSocket. */
+["PendingIncident"]: AliasType<{
+	id?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	location?:ValueTypes["Coordinates"],
+	lineIds?:boolean | `@${string}`,
+	lines?:ValueTypes["Line"],
+	delayMinutes?:boolean | `@${string}`,
+	reporterIds?:boolean | `@${string}`,
+	reporters?:ValueTypes["User"],
+	totalReports?:boolean | `@${string}`,
+	aggregateReputation?:boolean | `@${string}`,
+	thresholdScore?:boolean | `@${string}`,
+	thresholdRequired?:boolean | `@${string}`,
+	thresholdProgress?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	lastReportAt?:boolean | `@${string}`,
+	expiresAt?:boolean | `@${string}`,
+	thresholdMetAt?:boolean | `@${string}`,
+	moderatorNotes?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on PendingIncident']?: Omit<ValueTypes["PendingIncident"], "...on PendingIncident">
+}>;
+	["PendingIncidentStatus"]:PendingIncidentStatus;
+	/** Result when user submits a report */
+["SubmitReportResult"]: AliasType<{
+	success?:boolean | `@${string}`,
+	pendingIncident?:ValueTypes["PendingIncident"],
+	message?:boolean | `@${string}`,
+	isNewReport?:boolean | `@${string}`,
+	wasPublished?:boolean | `@${string}`,
+	publishedIncident?:ValueTypes["Incident"],
+	reputationGained?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on SubmitReportResult']?: Omit<ValueTypes["SubmitReportResult"], "...on SubmitReportResult">
+}>;
+	/** Check if user can submit a report (rate limiting) */
+["CanSubmitResult"]: AliasType<{
+	canSubmit?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	cooldownRemaining?:boolean | `@${string}`,
+	rateLimitInfo?:ValueTypes["RateLimitInfo"],
+		__typename?: boolean | `@${string}`,
+	['...on CanSubmitResult']?: Omit<ValueTypes["CanSubmitResult"], "...on CanSubmitResult">
+}>;
+	["RateLimitInfo"]: AliasType<{
+	reportsRemaining?:ValueTypes["RateLimitRemaining"],
+	violations?:boolean | `@${string}`,
+	suspiciousScore?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on RateLimitInfo']?: Omit<ValueTypes["RateLimitInfo"], "...on RateLimitInfo">
+}>;
+	["RateLimitRemaining"]: AliasType<{
+	perMinute?:boolean | `@${string}`,
+	perHour?:boolean | `@${string}`,
+	perDay?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on RateLimitRemaining']?: Omit<ValueTypes["RateLimitRemaining"], "...on RateLimitRemaining">
+}>;
+	/** Moderator queue item for manual review */
+["ModeratorQueueItem"]: AliasType<{
+	id?:boolean | `@${string}`,
+	pendingIncident?:ValueTypes["PendingIncident"],
+	priority?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	assignedTo?:ValueTypes["User"],
+		__typename?: boolean | `@${string}`,
+	['...on ModeratorQueueItem']?: Omit<ValueTypes["ModeratorQueueItem"], "...on ModeratorQueueItem">
+}>;
+	["QueuePriority"]:QueuePriority;
+	/** Result of moderator approval */
+["ApproveReportResult"]: AliasType<{
+	success?:boolean | `@${string}`,
+	incident?:ValueTypes["Incident"],
+	rewardedUsers?:ValueTypes["UserReputationChange"],
+	message?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on ApproveReportResult']?: Omit<ValueTypes["ApproveReportResult"], "...on ApproveReportResult">
+}>;
+	["UserReputationChange"]: AliasType<{
+	userId?:boolean | `@${string}`,
+	user?:ValueTypes["User"],
+	oldReputation?:boolean | `@${string}`,
+	newReputation?:boolean | `@${string}`,
+	change?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on UserReputationChange']?: Omit<ValueTypes["UserReputationChange"], "...on UserReputationChange">
+}>;
+	["ModeratorMutation"]: AliasType<{
+approveReport?: [{	pendingIncidentId: ValueTypes["ID"] | Variable<any, string>,	notes?: string | undefined | null | Variable<any, string>},ValueTypes["ApproveReportResult"]],
+rejectReport?: [{	pendingIncidentId: ValueTypes["ID"] | Variable<any, string>,	reason: string | Variable<any, string>},boolean | `@${string}`],
+flagUserForSpam?: [{	userId: ValueTypes["ID"] | Variable<any, string>,	reason: string | Variable<any, string>},boolean | `@${string}`],
+resetUserSpamScore?: [{	userId: ValueTypes["ID"] | Variable<any, string>},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`,
+	['...on ModeratorMutation']?: Omit<ValueTypes["ModeratorMutation"], "...on ModeratorMutation">
+}>;
+	["SubmitReportInput"]: {
+	kind: ValueTypes["IncidentKind"] | Variable<any, string>,
+	description?: string | undefined | null | Variable<any, string>,
+	reporterLocation: ValueTypes["CoordinatesInput"] | Variable<any, string>,
+	lineIds?: Array<ValueTypes["ID"]> | undefined | null | Variable<any, string>,
+	delayMinutes?: number | undefined | null | Variable<any, string>
+};
 	["ID"]:unknown
   }
 
@@ -1507,6 +1623,11 @@ searchStops?: [{	query: string,	limit?: number | undefined | null},ResolverInput
 findPath?: [{	input: ResolverInputTypes["FindPathInput"]},ResolverInputTypes["JourneyPath"]],
 findOptimalJourney?: [{	input: ResolverInputTypes["FindOptimalJourneyInput"]},ResolverInputTypes["OptimalJourneyResult"]],
 	admin?:ResolverInputTypes["AdminQuery"],
+	canSubmitReport?:ResolverInputTypes["CanSubmitResult"],
+	myPendingIncidents?:ResolverInputTypes["PendingIncident"],
+pendingIncident?: [{	id: ResolverInputTypes["ID"]},ResolverInputTypes["PendingIncident"]],
+	moderatorQueue?:ResolverInputTypes["ModeratorQueueItem"],
+allPendingIncidents?: [{	status?: ResolverInputTypes["PendingIncidentStatus"] | undefined | null},ResolverInputTypes["PendingIncident"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["AdminQuery"]: AliasType<{
@@ -1608,6 +1729,8 @@ upsertJourneyNotification?: [{	input: ResolverInputTypes["JourneyNotificationInp
 dismissJourneyNotification?: [{	id: ResolverInputTypes["ID"]},boolean | `@${string}`],
 	clearJourneyNotifications?:boolean | `@${string}`,
 	admin?:ResolverInputTypes["AdminMutation"],
+submitIncidentReport?: [{	input: ResolverInputTypes["SubmitReportInput"]},ResolverInputTypes["SubmitReportResult"]],
+	moderator?:ResolverInputTypes["ModeratorMutation"],
 		__typename?: boolean | `@${string}`
 }>;
 	["AdminMutation"]: AliasType<{
@@ -1869,6 +1992,106 @@ smartIncidentNotifications?: [{	userId: ResolverInputTypes["ID"]},ResolverInputT
 	lastIncidentTime?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	/** PendingIncident: User reports that haven't been published yet.
+Multiple users reporting same incident aggregate into one PendingIncident.
+When threshold is met, a real Incident is created and published to WebSocket. */
+["PendingIncident"]: AliasType<{
+	id?:boolean | `@${string}`,
+	kind?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	location?:ResolverInputTypes["Coordinates"],
+	lineIds?:boolean | `@${string}`,
+	lines?:ResolverInputTypes["Line"],
+	delayMinutes?:boolean | `@${string}`,
+	reporterIds?:boolean | `@${string}`,
+	reporters?:ResolverInputTypes["User"],
+	totalReports?:boolean | `@${string}`,
+	aggregateReputation?:boolean | `@${string}`,
+	thresholdScore?:boolean | `@${string}`,
+	thresholdRequired?:boolean | `@${string}`,
+	thresholdProgress?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	lastReportAt?:boolean | `@${string}`,
+	expiresAt?:boolean | `@${string}`,
+	thresholdMetAt?:boolean | `@${string}`,
+	moderatorNotes?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["PendingIncidentStatus"]:PendingIncidentStatus;
+	/** Result when user submits a report */
+["SubmitReportResult"]: AliasType<{
+	success?:boolean | `@${string}`,
+	pendingIncident?:ResolverInputTypes["PendingIncident"],
+	message?:boolean | `@${string}`,
+	isNewReport?:boolean | `@${string}`,
+	wasPublished?:boolean | `@${string}`,
+	publishedIncident?:ResolverInputTypes["Incident"],
+	reputationGained?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Check if user can submit a report (rate limiting) */
+["CanSubmitResult"]: AliasType<{
+	canSubmit?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	cooldownRemaining?:boolean | `@${string}`,
+	rateLimitInfo?:ResolverInputTypes["RateLimitInfo"],
+		__typename?: boolean | `@${string}`
+}>;
+	["RateLimitInfo"]: AliasType<{
+	reportsRemaining?:ResolverInputTypes["RateLimitRemaining"],
+	violations?:boolean | `@${string}`,
+	suspiciousScore?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RateLimitRemaining"]: AliasType<{
+	perMinute?:boolean | `@${string}`,
+	perHour?:boolean | `@${string}`,
+	perDay?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Moderator queue item for manual review */
+["ModeratorQueueItem"]: AliasType<{
+	id?:boolean | `@${string}`,
+	pendingIncident?:ResolverInputTypes["PendingIncident"],
+	priority?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+	createdAt?:boolean | `@${string}`,
+	assignedTo?:ResolverInputTypes["User"],
+		__typename?: boolean | `@${string}`
+}>;
+	["QueuePriority"]:QueuePriority;
+	/** Result of moderator approval */
+["ApproveReportResult"]: AliasType<{
+	success?:boolean | `@${string}`,
+	incident?:ResolverInputTypes["Incident"],
+	rewardedUsers?:ResolverInputTypes["UserReputationChange"],
+	message?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["UserReputationChange"]: AliasType<{
+	userId?:boolean | `@${string}`,
+	user?:ResolverInputTypes["User"],
+	oldReputation?:boolean | `@${string}`,
+	newReputation?:boolean | `@${string}`,
+	change?:boolean | `@${string}`,
+	reason?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["ModeratorMutation"]: AliasType<{
+approveReport?: [{	pendingIncidentId: ResolverInputTypes["ID"],	notes?: string | undefined | null},ResolverInputTypes["ApproveReportResult"]],
+rejectReport?: [{	pendingIncidentId: ResolverInputTypes["ID"],	reason: string},boolean | `@${string}`],
+flagUserForSpam?: [{	userId: ResolverInputTypes["ID"],	reason: string},boolean | `@${string}`],
+resetUserSpamScore?: [{	userId: ResolverInputTypes["ID"]},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`
+}>;
+	["SubmitReportInput"]: {
+	kind: ResolverInputTypes["IncidentKind"],
+	description?: string | undefined | null,
+	reporterLocation: ResolverInputTypes["CoordinatesInput"],
+	lineIds?: Array<ResolverInputTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
+};
 	["schema"]: AliasType<{
 	query?:ResolverInputTypes["Query"],
 	mutation?:ResolverInputTypes["Mutation"],
@@ -1970,7 +2193,12 @@ export type ModelTypes = {
 	searchStops: Array<ModelTypes["Stop"]>,
 	findPath?: ModelTypes["JourneyPath"] | undefined | null,
 	findOptimalJourney: ModelTypes["OptimalJourneyResult"],
-	admin: ModelTypes["AdminQuery"]
+	admin: ModelTypes["AdminQuery"],
+	canSubmitReport: ModelTypes["CanSubmitResult"],
+	myPendingIncidents: Array<ModelTypes["PendingIncident"]>,
+	pendingIncident?: ModelTypes["PendingIncident"] | undefined | null,
+	moderatorQueue: Array<ModelTypes["ModeratorQueueItem"]>,
+	allPendingIncidents: Array<ModelTypes["PendingIncident"]>
 };
 	["AdminQuery"]: {
 		users: ModelTypes["UserConnection"],
@@ -2063,7 +2291,9 @@ export type ModelTypes = {
 	upsertJourneyNotification: ModelTypes["JourneyNotification"],
 	dismissJourneyNotification: boolean,
 	clearJourneyNotifications: boolean,
-	admin: ModelTypes["AdminMutation"]
+	admin: ModelTypes["AdminMutation"],
+	submitIncidentReport: ModelTypes["SubmitReportResult"],
+	moderator: ModelTypes["ModeratorMutation"]
 };
 	["AdminMutation"]: {
 		createUser: ModelTypes["User"],
@@ -2303,6 +2533,97 @@ export type ModelTypes = {
 	incidentCount: number,
 	lastIncidentTime?: string | undefined | null
 };
+	/** PendingIncident: User reports that haven't been published yet.
+Multiple users reporting same incident aggregate into one PendingIncident.
+When threshold is met, a real Incident is created and published to WebSocket. */
+["PendingIncident"]: {
+		id: ModelTypes["ID"],
+	kind: ModelTypes["IncidentKind"],
+	description?: string | undefined | null,
+	status: ModelTypes["PendingIncidentStatus"],
+	location: ModelTypes["Coordinates"],
+	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
+	lines?: Array<ModelTypes["Line"]> | undefined | null,
+	delayMinutes?: number | undefined | null,
+	reporterIds: Array<ModelTypes["ID"]>,
+	reporters: Array<ModelTypes["User"]>,
+	totalReports: number,
+	aggregateReputation: number,
+	thresholdScore: number,
+	thresholdRequired: number,
+	thresholdProgress: number,
+	createdAt: string,
+	lastReportAt: string,
+	expiresAt: string,
+	thresholdMetAt?: string | undefined | null,
+	moderatorNotes?: string | undefined | null
+};
+	["PendingIncidentStatus"]:PendingIncidentStatus;
+	/** Result when user submits a report */
+["SubmitReportResult"]: {
+		success: boolean,
+	pendingIncident: ModelTypes["PendingIncident"],
+	message: string,
+	isNewReport: boolean,
+	wasPublished: boolean,
+	publishedIncident?: ModelTypes["Incident"] | undefined | null,
+	reputationGained?: number | undefined | null
+};
+	/** Check if user can submit a report (rate limiting) */
+["CanSubmitResult"]: {
+		canSubmit: boolean,
+	reason?: string | undefined | null,
+	cooldownRemaining?: number | undefined | null,
+	rateLimitInfo?: ModelTypes["RateLimitInfo"] | undefined | null
+};
+	["RateLimitInfo"]: {
+		reportsRemaining: ModelTypes["RateLimitRemaining"],
+	violations: number,
+	suspiciousScore: number
+};
+	["RateLimitRemaining"]: {
+		perMinute: number,
+	perHour: number,
+	perDay: number
+};
+	/** Moderator queue item for manual review */
+["ModeratorQueueItem"]: {
+		id: ModelTypes["ID"],
+	pendingIncident: ModelTypes["PendingIncident"],
+	priority: ModelTypes["QueuePriority"],
+	reason: string,
+	createdAt: string,
+	assignedTo?: ModelTypes["User"] | undefined | null
+};
+	["QueuePriority"]:QueuePriority;
+	/** Result of moderator approval */
+["ApproveReportResult"]: {
+		success: boolean,
+	incident: ModelTypes["Incident"],
+	rewardedUsers: Array<ModelTypes["UserReputationChange"]>,
+	message: string
+};
+	["UserReputationChange"]: {
+		userId: ModelTypes["ID"],
+	user: ModelTypes["User"],
+	oldReputation: number,
+	newReputation: number,
+	change: number,
+	reason: string
+};
+	["ModeratorMutation"]: {
+		approveReport: ModelTypes["ApproveReportResult"],
+	rejectReport: boolean,
+	flagUserForSpam: boolean,
+	resetUserSpamScore: boolean
+};
+	["SubmitReportInput"]: {
+	kind: ModelTypes["IncidentKind"],
+	description?: string | undefined | null,
+	reporterLocation: ModelTypes["CoordinatesInput"],
+	lineIds?: Array<ModelTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
+};
 	["schema"]: {
 	query?: ModelTypes["Query"] | undefined | null,
 	mutation?: ModelTypes["Mutation"] | undefined | null,
@@ -2333,6 +2654,26 @@ export type GraphQLTypes = {
 	// A* Pathfinding with incident awareness;
 	// Smart notifications with deduplication and trust-based filtering;
 	// Admin-only analytics types;
+	// ============================================;
+	// SPAM PREVENTION & THRESHOLD SYSTEM;
+	// ============================================;
+	// Location and affected lines;
+	// Threshold tracking;
+	// Metadata;
+	// Moderator actions;
+	// ============================================;
+	// EXTEND EXISTING TYPES;
+	// ============================================;
+	// Check if user can submit report;
+	// Get pending incidents (user can see their own);
+	// Get specific pending incident;
+	// Moderator queries;
+	// User submits incident report;
+	// Moderator actions;
+	// Approve pending incident (creates real Incident + rewards users);
+	// Reject pending incident (marks as fake);
+	// Flag user for spam;
+	// Reset user's suspicious score;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
@@ -2440,6 +2781,11 @@ export type GraphQLTypes = {
 	findPath?: GraphQLTypes["JourneyPath"] | undefined | null,
 	findOptimalJourney: GraphQLTypes["OptimalJourneyResult"],
 	admin: GraphQLTypes["AdminQuery"],
+	canSubmitReport: GraphQLTypes["CanSubmitResult"],
+	myPendingIncidents: Array<GraphQLTypes["PendingIncident"]>,
+	pendingIncident?: GraphQLTypes["PendingIncident"] | undefined | null,
+	moderatorQueue: Array<GraphQLTypes["ModeratorQueueItem"]>,
+	allPendingIncidents: Array<GraphQLTypes["PendingIncident"]>,
 	['...on Query']: Omit<GraphQLTypes["Query"], "...on Query">
 };
 	["AdminQuery"]: {
@@ -2549,6 +2895,8 @@ export type GraphQLTypes = {
 	dismissJourneyNotification: boolean,
 	clearJourneyNotifications: boolean,
 	admin: GraphQLTypes["AdminMutation"],
+	submitIncidentReport: GraphQLTypes["SubmitReportResult"],
+	moderator: GraphQLTypes["ModeratorMutation"],
 	['...on Mutation']: Omit<GraphQLTypes["Mutation"], "...on Mutation">
 };
 	["AdminMutation"]: {
@@ -2831,6 +3179,115 @@ export type GraphQLTypes = {
 	lastIncidentTime?: string | undefined | null,
 	['...on LineIncidentOverview']: Omit<GraphQLTypes["LineIncidentOverview"], "...on LineIncidentOverview">
 };
+	/** PendingIncident: User reports that haven't been published yet.
+Multiple users reporting same incident aggregate into one PendingIncident.
+When threshold is met, a real Incident is created and published to WebSocket. */
+["PendingIncident"]: {
+	__typename: "PendingIncident",
+	id: GraphQLTypes["ID"],
+	kind: GraphQLTypes["IncidentKind"],
+	description?: string | undefined | null,
+	status: GraphQLTypes["PendingIncidentStatus"],
+	location: GraphQLTypes["Coordinates"],
+	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
+	lines?: Array<GraphQLTypes["Line"]> | undefined | null,
+	delayMinutes?: number | undefined | null,
+	reporterIds: Array<GraphQLTypes["ID"]>,
+	reporters: Array<GraphQLTypes["User"]>,
+	totalReports: number,
+	aggregateReputation: number,
+	thresholdScore: number,
+	thresholdRequired: number,
+	thresholdProgress: number,
+	createdAt: string,
+	lastReportAt: string,
+	expiresAt: string,
+	thresholdMetAt?: string | undefined | null,
+	moderatorNotes?: string | undefined | null,
+	['...on PendingIncident']: Omit<GraphQLTypes["PendingIncident"], "...on PendingIncident">
+};
+	["PendingIncidentStatus"]: PendingIncidentStatus;
+	/** Result when user submits a report */
+["SubmitReportResult"]: {
+	__typename: "SubmitReportResult",
+	success: boolean,
+	pendingIncident: GraphQLTypes["PendingIncident"],
+	message: string,
+	isNewReport: boolean,
+	wasPublished: boolean,
+	publishedIncident?: GraphQLTypes["Incident"] | undefined | null,
+	reputationGained?: number | undefined | null,
+	['...on SubmitReportResult']: Omit<GraphQLTypes["SubmitReportResult"], "...on SubmitReportResult">
+};
+	/** Check if user can submit a report (rate limiting) */
+["CanSubmitResult"]: {
+	__typename: "CanSubmitResult",
+	canSubmit: boolean,
+	reason?: string | undefined | null,
+	cooldownRemaining?: number | undefined | null,
+	rateLimitInfo?: GraphQLTypes["RateLimitInfo"] | undefined | null,
+	['...on CanSubmitResult']: Omit<GraphQLTypes["CanSubmitResult"], "...on CanSubmitResult">
+};
+	["RateLimitInfo"]: {
+	__typename: "RateLimitInfo",
+	reportsRemaining: GraphQLTypes["RateLimitRemaining"],
+	violations: number,
+	suspiciousScore: number,
+	['...on RateLimitInfo']: Omit<GraphQLTypes["RateLimitInfo"], "...on RateLimitInfo">
+};
+	["RateLimitRemaining"]: {
+	__typename: "RateLimitRemaining",
+	perMinute: number,
+	perHour: number,
+	perDay: number,
+	['...on RateLimitRemaining']: Omit<GraphQLTypes["RateLimitRemaining"], "...on RateLimitRemaining">
+};
+	/** Moderator queue item for manual review */
+["ModeratorQueueItem"]: {
+	__typename: "ModeratorQueueItem",
+	id: GraphQLTypes["ID"],
+	pendingIncident: GraphQLTypes["PendingIncident"],
+	priority: GraphQLTypes["QueuePriority"],
+	reason: string,
+	createdAt: string,
+	assignedTo?: GraphQLTypes["User"] | undefined | null,
+	['...on ModeratorQueueItem']: Omit<GraphQLTypes["ModeratorQueueItem"], "...on ModeratorQueueItem">
+};
+	["QueuePriority"]: QueuePriority;
+	/** Result of moderator approval */
+["ApproveReportResult"]: {
+	__typename: "ApproveReportResult",
+	success: boolean,
+	incident: GraphQLTypes["Incident"],
+	rewardedUsers: Array<GraphQLTypes["UserReputationChange"]>,
+	message: string,
+	['...on ApproveReportResult']: Omit<GraphQLTypes["ApproveReportResult"], "...on ApproveReportResult">
+};
+	["UserReputationChange"]: {
+	__typename: "UserReputationChange",
+	userId: GraphQLTypes["ID"],
+	user: GraphQLTypes["User"],
+	oldReputation: number,
+	newReputation: number,
+	change: number,
+	reason: string,
+	['...on UserReputationChange']: Omit<GraphQLTypes["UserReputationChange"], "...on UserReputationChange">
+};
+	["ModeratorMutation"]: {
+	__typename: "ModeratorMutation",
+	approveReport: GraphQLTypes["ApproveReportResult"],
+	rejectReport: boolean,
+	flagUserForSpam: boolean,
+	resetUserSpamScore: boolean,
+	['...on ModeratorMutation']: Omit<GraphQLTypes["ModeratorMutation"], "...on ModeratorMutation">
+};
+	["SubmitReportInput"]: {
+		kind: GraphQLTypes["IncidentKind"],
+	description?: string | undefined | null,
+	reporterLocation: GraphQLTypes["CoordinatesInput"],
+	lineIds?: Array<GraphQLTypes["ID"]> | undefined | null,
+	delayMinutes?: number | undefined | null
+};
 	["ID"]: "scalar" & { name: "ID" }
     }
 export enum UserRole {
@@ -2865,6 +3322,18 @@ export enum StatsPeriod {
 	LAST_7D = "LAST_7D",
 	LAST_31D = "LAST_31D"
 }
+export enum PendingIncidentStatus {
+	PENDING = "PENDING",
+	THRESHOLD_MET = "THRESHOLD_MET",
+	MANUALLY_APPROVED = "MANUALLY_APPROVED",
+	REJECTED = "REJECTED",
+	EXPIRED = "EXPIRED"
+}
+export enum QueuePriority {
+	HIGH = "HIGH",
+	MEDIUM = "MEDIUM",
+	LOW = "LOW"
+}
 
 type ZEUS_VARIABLES = {
 	["UserRole"]: ValueTypes["UserRole"];
@@ -2891,5 +3360,8 @@ type ZEUS_VARIABLES = {
 	["FindOptimalJourneyInput"]: ValueTypes["FindOptimalJourneyInput"];
 	["IncidentSeverity"]: ValueTypes["IncidentSeverity"];
 	["StatsPeriod"]: ValueTypes["StatsPeriod"];
+	["PendingIncidentStatus"]: ValueTypes["PendingIncidentStatus"];
+	["QueuePriority"]: ValueTypes["QueuePriority"];
+	["SubmitReportInput"]: ValueTypes["SubmitReportInput"];
 	["ID"]: ValueTypes["ID"];
 }

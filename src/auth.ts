@@ -97,9 +97,9 @@ export const authConfig: NextAuthConfig = {
           const db = client.db();
 
           // Check if user already exists with this email
-          const existingUser = await db
-            .collection("users")
-            .findOne({ email: user.email });
+          const existingUser = await db.collection("users").findOne({
+            email: user.email,
+          });
 
           if (existingUser) {
             // Check if this account is already linked

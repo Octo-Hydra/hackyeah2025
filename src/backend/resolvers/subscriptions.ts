@@ -264,7 +264,7 @@ export const subscriptionResolvers = {
               // Get user's preferences
               const db = await DB();
               const user = await db
-                .collection("Users")
+                .collection
                 .findOne({ _id: new ObjectId(userId) });
 
               if (!user) return;
