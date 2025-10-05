@@ -52,7 +52,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { transportType }: { transportType?: string },
-        _ctx: GraphQLContext
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const unsubscribe = pubsub.subscribe(
@@ -66,7 +66,7 @@ export const subscriptionResolvers = {
                   .find({
                     _id: {
                       $in: incident.lineIds.filter(
-                        (id): id is ObjectId => id !== null
+                        (id): id is ObjectId => id !== null,
                       ),
                     },
                     transportType,
@@ -79,7 +79,7 @@ export const subscriptionResolvers = {
               } else {
                 push({ incidentCreated: incident });
               }
-            }
+            },
           );
 
           await stop;
@@ -95,7 +95,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { transportType }: { transportType?: string },
-        _ctx: GraphQLContext
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const unsubscribe = pubsub.subscribe(
@@ -108,7 +108,7 @@ export const subscriptionResolvers = {
                   .find({
                     _id: {
                       $in: incident.lineIds.filter(
-                        (id): id is ObjectId => id !== null
+                        (id): id is ObjectId => id !== null,
                       ),
                     },
                     transportType,
@@ -121,7 +121,7 @@ export const subscriptionResolvers = {
               } else {
                 push({ incidentUpdated: incident });
               }
-            }
+            },
           );
 
           await stop;
@@ -137,11 +137,8 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { lineId }: { lineId: string },
-        ctx: GraphQLContext
+        ctx: GraphQLContext,
       ) => {
-        console.log(`📡 New subscription for line: ${lineId}`);
-        console.log(`   User: ${ctx.session?.user?.email || "anonymous"}`);
-
         return new Repeater(async (push, stop) => {
           let lineExists = null;
 
@@ -156,46 +153,35 @@ export const subscriptionResolvers = {
               console.warn(`⚠️ Line ${lineId} not found in database`);
             } else {
               console.log(
-                `✅ Line ${lineId} exists: ${lineExists.name || lineExists.lineName}`
+                `✅ Line ${lineId} exists: ${lineExists.name || lineExists.lineName}`,
               );
             }
           } catch (error) {
             console.error(`❌ Error checking line ${lineId}:`, error);
           }
 
-          // Subscribe to PubSub channel
-          console.log(`🔌 Setting up PubSub subscription for line ${lineId}`);
           const channelName = `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`;
 
           const handler = (incident: IncidentModel) => {
             const affectsLine = incident.lineIds?.some(
-              (id) => id?.toString() === lineId
+              (id) => id?.toString() === lineId,
             );
 
             if (affectsLine) {
-              console.log(
-                `🚨 Pushing incident to subscriber for line ${lineId}`,
-                incident._id
-              );
               push({ lineIncidentUpdates: incident });
             }
           };
 
           const unsubscribeGeneral = pubsub.subscribe(
             CHANNELS.LINE_INCIDENT_UPDATES,
-            handler
+            handler,
           );
 
           const unsubscribeSpecific = pubsub.subscribe(channelName, handler);
 
-          console.log(
-            `✅ Subscription active for line ${lineId}, waiting for incidents...`
-          );
-
           // Keep connection alive - wait for stop signal from client
           // This promise will only resolve when client disconnects
           stop.then(() => {
-            console.log(`📡 Stop signal received for line: ${lineId}`);
             unsubscribeGeneral();
             unsubscribeSpecific();
           });
@@ -210,7 +196,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { lineIds }: { lineIds: string[] },
-        _ctx: GraphQLContext
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const lineIdSet = new Set(lineIds);
@@ -220,13 +206,13 @@ export const subscriptionResolvers = {
             async (incident: IncidentModel) => {
               // Check if incident affects any of user's favorite lines
               const affectsUserLines = incident.lineIds?.some((id) =>
-                id ? lineIdSet.has(id.toString()) : false
+                id ? lineIdSet.has(id.toString()) : false,
               );
 
               if (affectsUserLines) {
                 push({ myLinesIncidents: incident });
               }
-            }
+            },
           );
 
           await stop;
@@ -244,7 +230,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { userId }: { userId: string },
-        _ctx: GraphQLContext
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           // Track sent incidents to prevent duplicates
@@ -276,12 +262,12 @@ export const subscriptionResolvers = {
               if (user.activeJourney?.lineIds) {
                 const activeLineIds = user.activeJourney.lineIds.map(
                   (id: string | ObjectId) =>
-                    typeof id === "string" ? id : id.toString()
+                    typeof id === "string" ? id : id.toString(),
                 );
 
                 shouldNotify =
                   incident.lineIds?.some((lineId) =>
-                    lineId ? activeLineIds.includes(lineId.toString()) : false
+                    lineId ? activeLineIds.includes(lineId.toString()) : false,
                   ) || false;
               }
 
@@ -300,10 +286,10 @@ export const subscriptionResolvers = {
                   () => {
                     sentIncidents.delete(incidentId);
                   },
-                  60 * 60 * 1000
+                  60 * 60 * 1000,
                 );
               }
-            }
+            },
           );
 
           await stop;

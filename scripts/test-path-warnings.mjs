@@ -65,9 +65,9 @@ async function testPathWithWarnings() {
       path.segments.forEach((seg, i) => {
         const incidentIcon = seg.hasIncident ? "⚠️" : "✅";
         console.log(
-          `  ${i + 1}. ${incidentIcon} ${seg.from.stopName} → ${seg.to.stopName} (Line: ${seg.lineName})`
+          `  ${i + 1}. ${incidentIcon} ${seg.from.stopName} → ${seg.to.stopName} (Line: ${seg.lineName})`,
         );
-        
+
         // Show warning details for this segment if exists
         if (seg.warning) {
           console.log(`      ⚠️  ${seg.warning.description}`);

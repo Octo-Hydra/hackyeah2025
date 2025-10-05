@@ -32,10 +32,7 @@ export async function canSubmitReport(
   }
 
   const db = ctx.db;
-
-  console.log(`🔍 Looking for user with email: ${userEmail}`);
   const user = await db.collection("users").findOne({ email: userEmail });
-  console.log(`🔍 User found:`, user ? `Yes (id: ${user._id})` : "No");
 
   // If user doesn't exist in DB yet, create them
   if (!user) {

@@ -46,7 +46,6 @@ export async function subscribeUser(sub: PushSubscription) {
           },
         },
       );
-      console.log("Push subscription updated:", sub.endpoint);
     } else {
       // Create new subscription
       await db.collection("pushSubscriptions").insertOne({
@@ -54,7 +53,6 @@ export async function subscribeUser(sub: PushSubscription) {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      console.log("Push subscription created:", sub.endpoint);
     }
 
     return { success: true };
@@ -76,10 +74,6 @@ export async function unsubscribeUser(endpoint: string) {
     const result = await db
       .collection("pushSubscriptions")
       .deleteOne({ endpoint });
-
-    console.log(
-      `Push subscription removed: ${endpoint} (${result.deletedCount} deleted)`,
-    );
 
     return { success: true };
   } catch (error) {
@@ -157,9 +151,6 @@ export async function sendNotification(
             (error.statusCode === 410 || error.statusCode === 404)
           ) {
             await unsubscribeUser(subscription.endpoint);
-            console.log(
-              `Removed invalid subscription: ${subscription.endpoint}`,
-            );
           }
           throw error;
         }
@@ -168,10 +159,6 @@ export async function sendNotification(
 
     const successful = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
-
-    console.log(
-      `Notifications sent: ${successful} successful, ${failed} failed`,
-    );
 
     return { success: true, sent: successful, failed };
   } catch (error) {

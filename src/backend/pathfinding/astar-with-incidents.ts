@@ -205,8 +205,6 @@ export async function findOptimalPath(
     avoidIncidents = true,
   } = options;
 
-  console.log("🚀 Starting A* pathfinding:", { fromStopId, toStopId });
-
   // Convert string IDs to ObjectId for MongoDB queries
   let fromObjectId: ObjectId;
   let toObjectId: ObjectId;
@@ -214,29 +212,17 @@ export async function findOptimalPath(
   try {
     fromObjectId = new ObjectId(fromStopId);
     toObjectId = new ObjectId(toStopId);
-    console.log("✅ ObjectIds created:", {
-      fromObjectId: fromObjectId.toString(),
-      toObjectId: toObjectId.toString(),
-    });
   } catch (err) {
     console.error("❌ Invalid ObjectId format:", { fromStopId, toStopId, err });
     throw new Error("Invalid stop ID format");
   }
 
-  // Test query first
-  console.log("🔍 Testing direct query...");
-  const testStop = await db.collection("Stops").findOne({ _id: fromObjectId });
-  console.log("🧪 Test result:", testStop ? "FOUND" : "NOT FOUND", {
-    testStopName: testStop?.name,
-    testStopId: testStop?._id?.toString(),
-  });
-
   // Fetch all required data
   // Use ObjectId for stop lookups (cast as any to bypass TypeScript issues)
   const [fromStop, toStop, allStops, allRoutes, allLines, incidentMap] =
     await Promise.all([
-      db.collection("Stops").findOne({ _id: fromObjectId as never }),
-      db.collection("Stops").findOne({ _id: toObjectId as never }),
+      db.collection("Stops").findOne({ _id: fromObjectId }),
+      db.collection("Stops").findOne({ _id: toObjectId }),
       db.collection("Stops").find({}).toArray(),
       db.collection("Routes").find({}).toArray(),
       db.collection("Lines").find({}).toArray(),
@@ -252,15 +238,6 @@ export async function findOptimalPath(
       line,
     ]),
   );
-
-  console.log("📊 Data fetched:", {
-    fromStopFound: !!fromStop,
-    toStopFound: !!toStop,
-    totalStops: allStops.length,
-    totalRoutes: allRoutes.length,
-    totalLines: allLines.length,
-    incidentsCount: incidentMap.size,
-  });
 
   if (!fromStop || !toStop) {
     console.error("❌ Stops not found:", {
@@ -401,16 +378,6 @@ export async function findOptimalPath(
       });
     }
   }
-
-  console.log("🗺️  Graph built:", {
-    totalNodes: graph.size,
-    totalEdges: Array.from(graph.values()).reduce(
-      (sum, edges) => sum + edges.length,
-      0,
-    ),
-    startNodeConnections: graph.get(normalizedFromStop.stopId!)?.length || 0,
-    endNodeConnections: graph.get(normalizedToStop.stopId!)?.length || 0,
-  });
 
   // A* main loop - find multiple paths
   const foundPaths: PathNode[] = [];
@@ -614,18 +581,13 @@ export async function findOptimalPathCached(
 
   const cacheKey = `path:${fromStopId}:${toStopId}:${options?.maxTransfers || 3}:${options?.avoidIncidents ? "safe" : "fast"}`;
 
-  console.log("💾 Checking cache for key:", cacheKey);
-
   // Check cache (5 minute TTL)
   const cached = await db
     .collection<{ journeys: Journey[]; timestamp: number }>("PathCache")
     .findOne({ _id: cacheKey as never });
   if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
-    console.log("✅ Cache hit!");
     return cached.journeys;
   }
-
-  console.log("❌ Cache miss, calculating new paths...");
 
   // Calculate new paths
   const journeys = await findOptimalPath(
@@ -634,8 +596,6 @@ export async function findOptimalPathCached(
     departureTime,
     options,
   );
-
-  console.log(`📊 Calculated ${journeys.length} journey paths`);
 
   // Save to cache
   await db

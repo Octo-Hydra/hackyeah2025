@@ -103,13 +103,6 @@ export const ModeratorMutationResolvers = {
         .collection<ModeratorQueueItemModel>("ModeratorQueue")
         .deleteOne({ pendingIncidentId: pendingIncidentIdObj });
 
-      console.log(
-        `✅ Moderator ${user._id} approved PendingIncident ${pendingIncidentId}`,
-      );
-      console.log(
-        `🎁 Rewarded ${rewardResult.rewardedUsers.length} reporters with ${rewardResult.totalRewarded} total reputation`,
-      );
-
       return {
         success: true,
         incident: {
@@ -170,10 +163,6 @@ export const ModeratorMutationResolvers = {
         .collection<ModeratorQueueItemModel>("ModeratorQueue")
         .deleteOne({ pendingIncidentId: new ObjectId(pendingIncidentId) });
 
-      console.log(
-        `❌ Moderator ${user._id} rejected PendingIncident ${pendingIncidentId}: ${reason}`,
-      );
-
       return {
         success: true,
         message: "Report rejected successfully",
@@ -230,11 +219,6 @@ export const ModeratorMutationResolvers = {
         },
         { upsert: true },
       );
-
-      console.log(
-        `🚩 Admin ${user._id} flagged user ${userId} for spam: ${reason}`,
-      );
-      console.log(`   Suspicious score: ${currentScore} → ${newScore}`);
 
       return {
         success: true,

@@ -97,8 +97,6 @@ async function parseStopTimesForTrips(
     return tripStopTimes;
   }
 
-  console.log("   📖 Reading stop_times.txt (this may take a moment)...");
-
   const fileStream = fs.createReadStream(filePath);
   const rl = readline.createInterface({
     input: fileStream,
@@ -145,10 +143,6 @@ async function parseStopTimesForTrips(
     }
   }
 
-  console.log(
-    `\r   ✅ Processed ${processed} stop times for ${tripStopTimes.size} trips`,
-  );
-
   // Sort by sequence
   for (const [tripId, stops] of tripStopTimes) {
     stops.sort((a, b) => a.stopSequence - b.stopSequence);
@@ -191,11 +185,7 @@ async function importGTFSFull() {
 
   try {
     await client.connect();
-    console.log("✅ Connected to MongoDB");
-
     const db = client.db();
-
-    console.log("\n🗑️  Clearing existing data...");
     await db.collection("Stops").deleteMany({});
     await db.collection("Lines").deleteMany({});
     await db.collection("Routes").deleteMany({});
@@ -206,9 +196,6 @@ async function importGTFSFull() {
 
     const stopsMap = new Map<string, ObjectId>();
     const linesMap = new Map<string, ObjectId>();
-
-    // Import Stops
-    console.log("\n📍 Importing Stops...");
 
     const busStops = parseCSV<GTFSStop>(
       path.join(process.cwd(), "populate-gtfs", "bus", "stops.txt"),
@@ -270,11 +257,6 @@ async function importGTFSFull() {
       }
     }
 
-    console.log(`✅ Imported ${busStops.length + trainStops.length} stops`);
-
-    // Import Lines
-    console.log("\n🚌 Importing Lines...");
-
     const busRoutes = parseCSV<GTFSRoute>(
       path.join(process.cwd(), "populate-gtfs", "bus", "routes.txt"),
       CONFIG.MAX_ROUTES,
@@ -323,11 +305,6 @@ async function importGTFSFull() {
       }
     }
 
-    console.log(`✅ Imported ${busRoutes.length + trainRoutes.length} lines`);
-
-    // Import Schedules with Stop Times
-    console.log("\n⏰ Importing Schedules with Stop Times...");
-
     // BUS ROUTES
     const busTrips = parseCSV<GTFSTrip>(
       path.join(process.cwd(), "populate-gtfs", "bus", "trips.txt"),
@@ -369,8 +346,6 @@ async function importGTFSFull() {
       busRoutesCreated++;
     }
 
-    console.log(`✅ Created ${busRoutesCreated} bus routes with schedules`);
-
     // TRAIN ROUTES
     const trainTrips = parseCSV<GTFSTrip>(
       path.join(process.cwd(), "populate-gtfs", "train", "trips.txt"),
@@ -379,7 +354,12 @@ async function importGTFSFull() {
 
     const selectedTrainTripIds = new Set(trainTrips.map((t) => t.trip_id));
 
-    let trainStopTimes: Map<string, Array<any>> | null = null;
+    let trainStopTimes: Map<
+      string,
+      Array<{
+        stopId: ObjectId;
+      }>
+    > | null = null;
     if (CONFIG.ENABLE_STOP_TIMES) {
       trainStopTimes = await parseStopTimesForTrips(
         path.join(process.cwd(), "populate-gtfs", "train", "stop_times.txt"),
@@ -388,7 +368,6 @@ async function importGTFSFull() {
       );
     }
 
-    let trainRoutesCreated = 0;
     for (const trip of trainTrips) {
       if (!linesMap.has(trip.route_id)) continue;
 
@@ -409,32 +388,7 @@ async function importGTFSFull() {
       };
 
       await db.collection("Routes").insertOne(routeDoc);
-      trainRoutesCreated++;
     }
-
-    console.log(`✅ Created ${trainRoutesCreated} train routes with schedules`);
-
-    // Summary
-    console.log("\n" + "=".repeat(60));
-    console.log("📊 Full Import Summary:");
-    console.log("=".repeat(60));
-    console.log(
-      `Total Stops:           ${busStops.length + trainStops.length}`,
-    );
-    console.log(
-      `Total Lines:           ${busRoutes.length + trainRoutes.length}`,
-    );
-    console.log(`Bus Routes:            ${busRoutesCreated}`);
-    console.log(`Train Routes:          ${trainRoutesCreated}`);
-    console.log(
-      `Total Routes:          ${busRoutesCreated + trainRoutesCreated}`,
-    );
-    console.log(
-      `Stop Times Enabled:    ${CONFIG.ENABLE_STOP_TIMES ? "YES ✅" : "NO ❌"}`,
-    );
-    console.log("=".repeat(60));
-
-    console.log("\n✅ Full GTFS import completed!");
   } catch (error) {
     console.error("❌ Error:", error);
     throw error;

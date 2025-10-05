@@ -31,7 +31,6 @@ export function ActiveJourneyNotifier() {
   }
 
   const { activeJourney } = user;
-  console.log("Active Journey:", activeJourney);
   // Don't render if segments are not available or empty
   if (!activeJourney.segments || activeJourney.segments.length === 0) {
     return null;

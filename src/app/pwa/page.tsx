@@ -2,13 +2,39 @@
 
 import { NotificationsList } from "@/components/notifications-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Settings } from "lucide-react";
+import { Bell, Settings, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useAppStore, type JourneyNotification } from "@/store/app-store";
+import { toast } from "sonner";
 
 export default function PWADemoPage() {
   const { isMobile } = useIsMobile();
+  const notifications = useAppStore((state) => state.notifications);
+  const addNotification = useAppStore((state) => state.addNotification);
+
+  const handleDebug = () => {
+    console.log("Store notifications:", notifications);
+    toast.info(`Powiadomienia w store: ${notifications.length}`);
+  };
+
+  const handleAddTest = () => {
+    const testNotification: JourneyNotification = {
+      id: `test-${Date.now()}`,
+      incidentId: `incident-${Date.now()}`,
+      title: "🧪 Testowe powiadomienie",
+      description: "To jest testowe powiadomienie dodane ręcznie",
+      kind: "DELAY",
+      status: "PUBLISHED",
+      lineId: "test-line",
+      lineName: "Linia Testowa",
+      delayMinutes: 15,
+      receivedAt: new Date().toISOString(),
+    };
+    addNotification(testNotification);
+    toast.success("Dodano testowe powiadomienie!");
+  };
 
   return (
     <MobileLayout isMobile={isMobile}>
@@ -23,6 +49,24 @@ export default function PWADemoPage() {
                 <p className=" text-gray-600 dark:text-gray-400">
                   Śledź zmiany i opóźnienia w Twoich trasach
                 </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDebug}
+                title="Debug - pokaż liczbę powiadomień w store"
+              >
+                <Bug className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddTest}
+                title="Dodaj testowe powiadomienie"
+              >
+                Test
+              </Button>
             </div>
           </div>
         </div>
