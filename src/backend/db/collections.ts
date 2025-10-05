@@ -8,7 +8,55 @@ export interface SegmentLocation {
   stopName: string;
   coordinates: Coordinates;
 }
+export type PendingIncidentStatus =
+  | "PENDING"
+  | "THRESHOLD_MET"
+  | "MANUALLY_APPROVED"
+  | "REJECTED"
+  | "EXPIRED";
 
+export type QueuePriority = "HIGH" | "MEDIUM" | "LOW";
+
+export interface ModeratorQueueItemModel {
+  _id?: ObjectId | string;
+  pendingIncidentId: ObjectId | string;
+  priority: QueuePriority;
+  reason: string;
+  assignedTo?: ObjectId | string | null; // Moderator ID
+  createdAt: string;
+  reviewedAt?: string | null;
+}
+
+export interface PendingIncidentModel {
+  _id?: ObjectId | string;
+  kind: IncidentKind;
+  description?: string | null;
+  status: PendingIncidentStatus;
+
+  // Location and affected lines
+  location: Coordinates; // Center point of all reports
+  lineIds: Array<ObjectId | string | null>;
+  delayMinutes?: number | null;
+
+  // Threshold tracking
+  reporterIds: ObjectId[]; // All users who reported this
+  reporterReputations: number[]; // Reputation at time of report
+  totalReports: number;
+  aggregateReputation: number;
+  thresholdScore: number; // Current score from calculateThreshold()
+  thresholdRequired: number; // Usually 1.0
+  thresholdMetAt?: string | null;
+
+  // Metadata
+  createdAt: string;
+  lastReportAt: string;
+  expiresAt: string; // Auto-reject after 24h
+
+  // Moderator
+  moderatorNotes?: string | null;
+  moderatorId?: ObjectId | string | null; // Who approved/rejected
+  publishedIncidentId?: ObjectId | string | null; // Reference to created Incident
+}
 // Journey segment (stored in user's activeJourney)
 export interface JourneySegment {
   from: SegmentLocation;
