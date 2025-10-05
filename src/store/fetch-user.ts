@@ -5,7 +5,7 @@
 
 import { auth } from "@/auth";
 import { prepareSSRquery } from "@/lib/graphql_request_ssr";
-import type { User } from "./app-store";
+import type { JourneyNotification, User } from "./app-store";
 
 /**
  * Fetch current user data on server-side
@@ -63,6 +63,18 @@ export async function fetchUserForStore(): Promise<User | null> {
           startTime: true,
           expectedEndTime: true,
         },
+        journeyNotifications: {
+          id: true,
+          incidentId: true,
+          title: true,
+          description: true,
+          kind: true,
+          status: true,
+          lineId: true,
+          lineName: true,
+          delayMinutes: true,
+          receivedAt: true,
+        },
       },
     });
 
@@ -70,12 +82,27 @@ export async function fetchUserForStore(): Promise<User | null> {
       return null;
     }
 
+    const journeyNotifications: JourneyNotification[] =
+      result.me.journeyNotifications?.map((notification) => ({
+        id: notification.id,
+        incidentId: notification.incidentId ?? notification.id,
+        title: notification.title,
+        description: notification.description ?? null,
+        kind: notification.kind ?? null,
+        status: notification.status ?? undefined,
+        lineId: notification.lineId ?? null,
+        lineName: notification.lineName ?? null,
+        delayMinutes: notification.delayMinutes ?? null,
+        receivedAt: notification.receivedAt,
+      })) ?? [];
+
     return {
       id: result.me.id || "",
       name: result.me.name ?? null,
       email: result.me.email ?? null,
       image: null, // Image is not in the User schema, set to null
       reputation: result.me.reputation || 0,
+      journeyNotifications,
       activeJourney: result.me.activeJourney
         ? {
             segments: result.me.activeJourney.segments.map((seg) => ({

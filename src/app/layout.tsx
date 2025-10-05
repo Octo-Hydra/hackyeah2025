@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { AppStoreProvider } from "@/store/app-store-provider";
 import { ActiveJourneyMonitor } from "@/components/active-journey-monitor";
+import { JourneyNotificationCenter } from "@/components/journey-notification-center";
 import { Toaster } from "@/components/ui/sonner";
 import { fetchUserForStore } from "@/store/fetch-user";
 import { JsonLd } from "@/components/json-ld";
@@ -208,6 +209,7 @@ export default async function RootLayout({
           <AppStoreProvider user={user}>
             {children}
             <ActiveJourneyMonitor />
+            <JourneyNotificationCenter />
             <Toaster />
           </AppStoreProvider>
         </AuthProvider>

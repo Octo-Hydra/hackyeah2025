@@ -22,16 +22,17 @@
  * ├─────────────────────────────────┤
  * │        Page Content             │
  * │        [+] FAB Button           │  <- Floating Action Button
+ * │        [Alert Box]              │  <- Floating Alerts (on map)
  * ├─────────────────────────────────┤
- * │ [🏠] [🔔] [📊] [👤] [🛡️]       │  <- Bottom Nav (5 items)
- * │ Home Alert Dash Profile Mod     │
+ * │ [🏠] [📊] [👤] [🛡️]            │  <- Bottom Nav (4 items)
+ * │ Home Dash Profile Mod           │
  * └─────────────────────────────────┘
  *
  * Features:
  * - Active tab highlighted in blue
  * - Icons scale up when active
  * - Blue indicator bar under active tab
- * - Alerts tab hidden for non-logged users
+ * - Alerts shown as floating sheet on map (not in nav)
  * - Dashboard tab added for logged users
  * - Moderator tab auto-hides if not moderator
  * - Respects safe area for iPhone notch/home indicator
@@ -45,12 +46,7 @@
  * ├── FAB for journey planning (logged in)
  * └── Sign in prompt (if not authenticated)
  *
- * /alerts (Alerts) - Requires Auth
- * ├── Alert stats cards
- * ├── Alert list with severity badges
- * ├── "View on Map" buttons
- * ├── FAB for creating new alerts
- * └── Empty state with CTA
+ * /alerts - DEPRECATED (Alerts now shown as floating sheet on map)
  *
  * /dashboard (Dashboard) - Requires Auth
  * ├── Welcome card with user info
@@ -83,7 +79,6 @@ export const MOBILE_NAV_CONFIG = {
   safeAreaBottom: "env(safe-area-inset-bottom)",
   authenticatedItems: [
     { name: "Home", href: "/", icon: "Home" },
-    { name: "Alerts", href: "/alerts", icon: "Bell", requireAuth: true },
     {
       name: "Dashboard",
       href: "/dashboard",

@@ -64,6 +64,18 @@ function SessionSync() {
                 startTime: true,
                 expectedEndTime: true,
               },
+              journeyNotifications: {
+                id: true,
+                incidentId: true,
+                title: true,
+                description: true,
+                kind: true,
+                status: true,
+                lineId: true,
+                lineName: true,
+                delayMinutes: true,
+                receivedAt: true,
+              },
             },
           });
 
@@ -103,12 +115,27 @@ function SessionSync() {
             console.log("📦 GraphQL me result:", result.me);
             console.log("🚗 Active journey data:", activeJourneyData);
 
+            const notifications =
+              result.me.journeyNotifications?.map((notification) => ({
+                id: notification.id,
+                incidentId: notification.incidentId ?? notification.id,
+                title: notification.title,
+                description: notification.description ?? null,
+                kind: notification.kind ?? null,
+                status: notification.status ?? undefined,
+                lineId: notification.lineId ?? null,
+                lineName: notification.lineName ?? null,
+                delayMinutes: notification.delayMinutes ?? null,
+                receivedAt: notification.receivedAt,
+              })) ?? [];
+
             setUser({
               id: result.me.id,
               name: result.me.name,
               email: result.me.email,
               reputation: result.me.reputation ?? undefined,
               activeJourney: activeJourneyData,
+              journeyNotifications: notifications,
             });
 
             lastFetchedUserId.current = sessionUserId;

@@ -5,7 +5,6 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { MappedRoute } from "@/lib/map-utils";
 
 export interface SegmentLocation {
   stopId: string;
@@ -28,6 +27,19 @@ export interface PathSegment {
   hasIncident?: boolean;
 }
 
+export interface JourneyNotification {
+  id: string;
+  incidentId?: string;
+  title: string;
+  description?: string | null;
+  kind?: string | null;
+  status?: "DRAFT" | "PUBLISHED" | "RESOLVED";
+  lineId?: string | null;
+  lineName?: string | null;
+  delayMinutes?: number | null;
+  receivedAt: string;
+}
+
 export interface User {
   id: string;
   name?: string | null;
@@ -39,24 +51,26 @@ export interface User {
     startTime: string;
     expectedEndTime: string;
   };
+  journeyNotifications?: JourneyNotification[];
 }
 
-export interface ActiveJourney {
-  id: string;
-  startPoint: {
-    address: string;
-    lat: number;
-    lon: number;
+function normalizeNotification(
+  notification: JourneyNotification,
+): JourneyNotification {
+  const fallbackId = notification.id ?? notification.incidentId;
+  const id =
+    fallbackId ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const incidentId = notification.incidentId ?? fallbackId ?? id;
+
+  return {
+    ...notification,
+    id,
+    incidentId,
+    status:
+      notification.status === null || notification.status === undefined
+        ? undefined
+        : notification.status,
   };
-  endPoint: {
-    address: string;
-    lat: number;
-    lon: number;
-  };
-  route: MappedRoute | null;
-  startedAt: string;
-  totalDuration?: number;
-  warnings?: string[];
 }
 
 interface AppState {
@@ -64,6 +78,15 @@ interface AppState {
   user: User | null;
   setUser: (user: User | null) => void;
   setUserActiveJourney: (activeJourney: User["activeJourney"]) => void;
+
+  // Journey notifications
+  notifications: JourneyNotification[];
+  dismissedNotificationIds: string[];
+  addNotification: (notification: JourneyNotification) => void;
+  setNotifications: (notifications: JourneyNotification[]) => void;
+  dismissNotification: (notificationId: string) => void;
+  clearNotifications: () => void;
+  resetDismissedNotifications: () => void;
 
   // Journey state
 
@@ -87,25 +110,118 @@ export const useAppStore = create<AppState>()(
       (set) => ({
         // User state
         user: null,
-        setUser: (user) => set({ user }),
+        setUser: (user) =>
+          set(() => {
+            if (!user) {
+              return {
+                user: null,
+                notifications: [],
+                dismissedNotificationIds: [],
+              } as Partial<AppState>;
+            }
+
+            const { journeyNotifications, ...rest } = user;
+
+            const updates: Partial<AppState> = {
+              user: rest,
+            };
+
+            if (journeyNotifications) {
+              updates.notifications = journeyNotifications.map(
+                normalizeNotification,
+              );
+              updates.dismissedNotificationIds = [];
+            }
+
+            return updates;
+          }),
         setUserActiveJourney: (activeJourney) => {
-          set((state) => ({
-            user: state.user
-              ? {
-                  ...state.user,
-                  activeJourney,
-                }
-              : null,
-            mapCenter:
-              activeJourney?.segments?.[0]?.from.coordinates.latitude &&
-              activeJourney?.segments?.[0]?.from.coordinates.longitude
-                ? [
-                    activeJourney.segments[0].from.coordinates.latitude,
-                    activeJourney.segments[0].from.coordinates.longitude,
-                  ]
-                : undefined,
-          }));
+          set((state) => {
+            const nextState: Partial<AppState> = {
+              user: state.user
+                ? {
+                    ...state.user,
+                    activeJourney,
+                  }
+                : null,
+            };
+
+            const firstSegment = activeJourney?.segments?.[0];
+            if (firstSegment?.from.coordinates) {
+              nextState.mapCenter = [
+                firstSegment.from.coordinates.latitude,
+                firstSegment.from.coordinates.longitude,
+              ];
+            }
+
+            if (!activeJourney) {
+              nextState.notifications = [];
+              nextState.dismissedNotificationIds = [];
+            }
+
+            return nextState;
+          });
         },
+
+        // Journey notifications
+        notifications: [],
+        dismissedNotificationIds: [],
+        setNotifications: (notifications) =>
+          set({
+            notifications: notifications.map(normalizeNotification),
+            dismissedNotificationIds: [],
+          }),
+        addNotification: (notification) =>
+          set((state) => {
+            const normalized = normalizeNotification(notification);
+
+            if (state.dismissedNotificationIds.includes(normalized.id)) {
+              return {} as Partial<AppState>;
+            }
+
+            const existingIndex = state.notifications.findIndex(
+              (item) => item.id === normalized.id,
+            );
+
+            if (existingIndex >= 0) {
+              const updated = [...state.notifications];
+              const existing = updated[existingIndex];
+              updated[existingIndex] = {
+                ...existing,
+                ...normalized,
+                receivedAt: existing.receivedAt,
+              };
+
+              return {
+                notifications: updated,
+              } as Partial<AppState>;
+            }
+
+            return {
+              notifications: [normalized, ...state.notifications],
+            } as Partial<AppState>;
+          }),
+        dismissNotification: (notificationId) =>
+          set((state) => {
+            const alreadyDismissed =
+              state.dismissedNotificationIds.includes(notificationId);
+
+            return {
+              notifications: state.notifications.filter(
+                (notification) => notification.id !== notificationId,
+              ),
+              dismissedNotificationIds: alreadyDismissed
+                ? state.dismissedNotificationIds
+                : [...state.dismissedNotificationIds, notificationId],
+            } as Partial<AppState>;
+          }),
+        clearNotifications: () =>
+          set({
+            notifications: [],
+            dismissedNotificationIds: [],
+          }),
+        resetDismissedNotifications: () =>
+          set({ dismissedNotificationIds: [] }),
 
         // Journey state
 
@@ -119,6 +235,8 @@ export const useAppStore = create<AppState>()(
         clearStore: () =>
           set({
             user: null,
+            notifications: [],
+            dismissedNotificationIds: [],
             mapCenter: null,
             mapZoom: 13,
           }),
