@@ -512,3 +512,171 @@ type LineIncidentOverview {
   incidentCount: Int!
   lastIncidentTime: String # ISO date of most recent incident
 }
+
+# ============================================
+# SPAM PREVENTION & THRESHOLD SYSTEM
+# ============================================
+
+"""
+PendingIncident: User reports that haven't been published yet.
+Multiple users reporting same incident aggregate into one PendingIncident.
+When threshold is met, a real Incident is created and published to WebSocket.
+"""
+type PendingIncident {
+  id: ID!
+  kind: IncidentKind!
+  description: String
+  status: PendingIncidentStatus!
+
+  # Location and affected lines
+  location: Coordinates!
+  lineIds: [ID!]
+  lines: [Line!]
+  delayMinutes: Int
+
+  # Threshold tracking
+  reporterIds: [ID!]! # Users who reported
+  reporters: [User!]! # Full user objects
+  totalReports: Int!
+  aggregateReputation: Int!
+  thresholdScore: Float! # Current score (0.0-1.0+)
+  thresholdRequired: Float! # Usually 1.0
+  thresholdProgress: Int! # Percentage (0-100)
+  # Metadata
+  createdAt: String!
+  lastReportAt: String!
+  expiresAt: String!
+  thresholdMetAt: String
+
+  # Moderator actions
+  moderatorNotes: String
+}
+
+enum PendingIncidentStatus {
+  PENDING # Waiting for threshold
+  THRESHOLD_MET # Auto-approved, incident will be created
+  MANUALLY_APPROVED # Moderator approved
+  REJECTED # Moderator rejected as fake
+  EXPIRED # Timed out without meeting threshold
+}
+
+"""
+Result when user submits a report
+"""
+type SubmitReportResult {
+  success: Boolean!
+  pendingIncident: PendingIncident!
+  message: String!
+  isNewReport: Boolean! # True if user created new pending incident
+  wasPublished: Boolean! # True if threshold met and incident published
+  publishedIncident: Incident # The real incident if published
+  reputationGained: Int # Reputation points earned (if published)
+}
+
+"""
+Check if user can submit a report (rate limiting)
+"""
+type CanSubmitResult {
+  canSubmit: Boolean!
+  reason: String
+  cooldownRemaining: Int # Seconds until can report again
+  rateLimitInfo: RateLimitInfo
+}
+
+type RateLimitInfo {
+  reportsRemaining: RateLimitRemaining!
+  violations: Int!
+  suspiciousScore: Int! # 0-100
+}
+
+type RateLimitRemaining {
+  perMinute: Int!
+  perHour: Int!
+  perDay: Int!
+}
+
+"""
+Moderator queue item for manual review
+"""
+type ModeratorQueueItem {
+  id: ID!
+  pendingIncident: PendingIncident!
+  priority: QueuePriority!
+  reason: String!
+  createdAt: String!
+  assignedTo: User # Moderator assigned to review
+}
+
+enum QueuePriority {
+  HIGH # Near threshold or suspicious
+  MEDIUM # Normal review needed
+  LOW # Low priority
+}
+
+"""
+Result of moderator approval
+"""
+type ApproveReportResult {
+  success: Boolean!
+  incident: Incident! # The published incident
+  rewardedUsers: [UserReputationChange!]!
+  message: String!
+}
+
+type UserReputationChange {
+  userId: ID!
+  user: User!
+  oldReputation: Int!
+  newReputation: Int!
+  change: Int!
+  reason: String!
+}
+
+# ============================================
+# EXTEND EXISTING TYPES
+# ============================================
+
+extend type Query {
+  # Check if user can submit report
+  canSubmitReport: CanSubmitResult!
+
+  # Get pending incidents (user can see their own)
+  myPendingIncidents: [PendingIncident!]!
+
+  # Get specific pending incident
+  pendingIncident(id: ID!): PendingIncident
+
+  # Moderator queries
+  moderatorQueue: [ModeratorQueueItem!]! # Requires ADMIN/MODERATOR
+  allPendingIncidents(status: PendingIncidentStatus): [PendingIncident!]! # Requires ADMIN/MODERATOR
+}
+
+extend type Mutation {
+  # User submits incident report
+  submitIncidentReport(input: SubmitReportInput!): SubmitReportResult!
+
+  # Moderator actions
+  moderator: ModeratorMutation!
+}
+
+type ModeratorMutation {
+  # Approve pending incident (creates real Incident + rewards users)
+  approveReport(pendingIncidentId: ID!, notes: String): ApproveReportResult!
+
+  # Reject pending incident (marks as fake)
+  rejectReport(pendingIncidentId: ID!, reason: String!): Boolean!
+
+  # Flag user for spam
+  flagUserForSpam(userId: ID!, reason: String!): Boolean!
+
+  # Reset user's suspicious score
+  resetUserSpamScore(userId: ID!): Boolean!
+}
+
+input SubmitReportInput {
+  kind: IncidentKind!
+  description: String
+  reporterLocation: CoordinatesInput! # REQUIRED for users
+  lineIds: [ID!]
+  delayMinutes: Int
+}

@@ -417,6 +417,12 @@ export class NotificationWebSocketServer {
   private extractUserIdFromToken(token: string): string | null {
     // TODO: Implement proper JWT verification
     // For development, you can decode the token
+    
+    // Safety check for null/undefined token
+    if (!token || typeof token !== "string") {
+      return null;
+    }
+    
     try {
       // Simple base64 decode (NOT SECURE, just for demo)
       const parts = token.split(".");

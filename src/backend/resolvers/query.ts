@@ -19,7 +19,7 @@ export const Query = {
 
     // Find user by email
     const user = await db
-      .collection<UserModel>("users")
+      .collection("users")
       .findOne({ email: userEmail });
 
     if (!user) {

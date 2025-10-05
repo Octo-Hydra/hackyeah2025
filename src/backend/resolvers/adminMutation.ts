@@ -123,7 +123,7 @@ export const AdminMutationResolvers = {
 
       // Check if email already exists
       const existingUser = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOne({ email });
 
       if (existingUser) {
@@ -138,12 +138,12 @@ export const AdminMutationResolvers = {
         name,
         email,
         role,
-        reputation: reputation || 100,
+        reputation: reputation || 34,
         trustScore: 1.0,
       };
 
       const result = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .insertOne(newUser as any);
 
       return {
@@ -177,7 +177,7 @@ export const AdminMutationResolvers = {
       }
 
       const result = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: updateData },
@@ -198,7 +198,7 @@ export const AdminMutationResolvers = {
       requireAdmin(context);
 
       const result = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .deleteOne({ _id: new ObjectId(args.id) });
 
       return result.deletedCount > 0;
@@ -215,7 +215,7 @@ export const AdminMutationResolvers = {
       requireAdmin(context);
 
       const result = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { role: args.role } },
@@ -240,7 +240,7 @@ export const AdminMutationResolvers = {
       requireAdmin(context);
 
       const result = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { reputation: args.reputation } },

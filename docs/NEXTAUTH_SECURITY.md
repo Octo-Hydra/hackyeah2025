@@ -5,6 +5,7 @@
 ### Problem: Użytkownicy z tym samym emailem na różnych providerach
 
 Gdy użytkownik ma ten sam email na Google i Facebook, mogą wystąpić konflikty:
+
 - Tworzenie duplikatów użytkowników
 - Błędy podczas logowania
 - Niezgodne dane między kontami
@@ -12,6 +13,7 @@ Gdy użytkownik ma ten sam email na Google i Facebook, mogą wystąpić konflikt
 ### Rozwiązanie: Inteligentne łączenie kont
 
 Zaimplementowano system, który:
+
 1. ✅ **Automatycznie łączy konta** z tym samym emailem
 2. ✅ **Zapobiega duplikatom** użytkowników
 3. ✅ **Bezpiecznie obsługuje** różne providery
@@ -28,14 +30,14 @@ async signIn({ user, account }) {
   if (account && account.provider !== "credentials" && user.email) {
     // Sprawdza czy użytkownik już istnieje
     const existingUser = await db.collection("users").findOne({ email: user.email });
-    
+
     if (existingUser) {
       // Sprawdza czy konto jest już połączone
       const existingAccount = await db.collection("accounts").findOne({
         userId: existingUser._id,
         provider: account.provider,
       });
-      
+
       if (!existingAccount) {
         // Łączy nowe konto z istniejącym użytkownikiem
         console.log(`[Auth] Linking ${account.provider} to ${user.email}`);
@@ -47,6 +49,7 @@ async signIn({ user, account }) {
 ```
 
 **Działanie:**
+
 - Przy każdym logowaniu sprawdza czy email już istnieje
 - Jeśli tak, łączy nowe konto z istniejącym użytkownikiem
 - Wszystko logowane dla audytu
@@ -63,6 +66,7 @@ interface Session {
 ```
 
 **Funkcje:**
+
 - Role użytkowników (USER, MODERATOR, ADMIN)
 - Pobierane z bazy danych przy każdym JWT token refresh
 - Dostępne w całej aplikacji przez `session.user.role`
@@ -84,6 +88,7 @@ async jwt({ token, user }) {
 ```
 
 **Korzyści:**
+
 - Zawsze aktualna rola użytkownika
 - Synchronizacja z bazą danych
 - Bezpieczne przechowywanie w JWT
@@ -102,6 +107,7 @@ events: {
 ```
 
 **Monitoring:**
+
 - Wszystkie logowania śledzone
 - Łączenie kont logowane
 - Łatwe debugowanie problemów
@@ -117,6 +123,7 @@ useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
 ```
 
 **Bezpieczeństwo:**
+
 - JWT strategy (bezstanowe)
 - 30-dniowa ważność sesji
 - Secure cookies na HTTPS
@@ -134,11 +141,11 @@ import { auth } from "@/auth";
 
 export default async function AdminPage() {
   const session = await auth();
-  
+
   if (!session || session.user.role !== "ADMIN") {
     return <div>Access denied</div>;
   }
-  
+
   return <div>Admin panel</div>;
 }
 ```
@@ -151,15 +158,15 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const session = await auth();
-  
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   if (session.user.role !== "MODERATOR" && session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  
+
   // Moderator/Admin logic here
   return NextResponse.json({ success: true });
 }
@@ -173,18 +180,18 @@ import { useSession } from "next-auth/react";
 
 export function UserMenu() {
   const { data: session } = useSession();
-  
+
   if (!session) return null;
-  
+
   return (
     <div>
       <p>Welcome, {session.user.name}</p>
       <p>Role: {session.user.role}</p>
-      
+
       {session.user.role === "ADMIN" && (
         <button>Admin Settings</button>
       )}
-      
+
       {(session.user.role === "MODERATOR" || session.user.role === "ADMIN") && (
         <button>Moderate Content</button>
       )}
@@ -200,6 +207,7 @@ export function UserMenu() {
 ### Collections
 
 #### users
+
 ```typescript
 {
   _id: ObjectId,
@@ -215,6 +223,7 @@ export function UserMenu() {
 ```
 
 #### accounts (zarządzane przez MongoDBAdapter)
+
 ```typescript
 {
   _id: ObjectId,
@@ -233,8 +242,9 @@ export function UserMenu() {
 ```
 
 **Kluczowe punkty:**
+
 - Jeden user może mieć wiele accounts
-- accounts.userId wskazuje na users._id
+- accounts.userId wskazuje na users.\_id
 - Adapter automatycznie zarządza relacjami
 
 ---
@@ -242,6 +252,7 @@ export function UserMenu() {
 ## 🔄 Flow logowania
 
 ### Scenariusz 1: Nowy użytkownik (Google)
+
 ```
 1. User klika "Sign in with Google"
 2. Google OAuth redirect → user autoryzuje
@@ -253,6 +264,7 @@ export function UserMenu() {
 ```
 
 ### Scenariusz 2: Istniejący użytkownik loguje się przez Facebook
+
 ```
 1. User (email: john@example.com) wcześniej zalogowany przez Google
 2. User klika "Sign in with Facebook"
@@ -267,6 +279,7 @@ export function UserMenu() {
 ```
 
 ### Scenariusz 3: Credentials + OAuth
+
 ```
 1. User rejestruje się przez email/password
 2. Tworzy user + account (provider: credentials)
@@ -293,12 +306,14 @@ export function UserMenu() {
 ### 🔒 Best Practices
 
 1. **Zawsze sprawdzaj session**
+
    ```typescript
    const session = await auth();
    if (!session) return redirect("/auth/signin");
    ```
 
 2. **Weryfikuj role**
+
    ```typescript
    if (session.user.role !== "ADMIN") {
      return { error: "Forbidden" };
@@ -306,6 +321,7 @@ export function UserMenu() {
    ```
 
 3. **Używaj env variables**
+
    ```bash
    AUTH_SECRET=długi-losowy-string
    AUTH_URL=https://your-domain.com
@@ -313,7 +329,7 @@ export function UserMenu() {
 
 4. **Secure cookies na produkcji**
    ```typescript
-   useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://")
+   useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://");
    ```
 
 ---
@@ -344,7 +360,10 @@ db.users.createIndex({ role: 1 });
 
 // accounts collection
 db.accounts.createIndex({ userId: 1 });
-db.accounts.createIndex({ provider: 1, providerAccountId: 1 }, { unique: true });
+db.accounts.createIndex(
+  { provider: 1, providerAccountId: 1 },
+  { unique: true }
+);
 ```
 
 ---
@@ -361,14 +380,14 @@ db.users.aggregate([
       from: "accounts",
       localField: "_id",
       foreignField: "userId",
-      as: "accounts"
-    }
+      as: "accounts",
+    },
   },
   {
     $match: {
-      "accounts.1": { $exists: true }  // Ma więcej niż 1 konto
-    }
-  }
+      "accounts.1": { $exists: true }, // Ma więcej niż 1 konto
+    },
+  },
 ]);
 ```
 

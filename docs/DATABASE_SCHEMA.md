@@ -328,8 +328,7 @@ const userCount = await db.collection("users").countDocuments();
 const subCount = await db.collection("pushSubscriptions").countDocuments();
 
 // Find users with push subscriptions
-const usersWithPush = await db
-  .collection("users")
+const usersWithPush = await db.collection
   .aggregate([
     {
       $lookup: {

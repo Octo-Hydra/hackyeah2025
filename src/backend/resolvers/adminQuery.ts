@@ -11,12 +11,7 @@
 
 import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
-import type {
-  UserModel,
-  IncidentModel,
-  LineModel,
-} from "@/backend/db/collections";
-import { DB } from "../db/client.js";
+import type { IncidentModel } from "@/backend/db/collections";
 
 interface Context {
   db: Db;
@@ -173,13 +168,16 @@ async function paginateUsers(
   pagination?: PaginationInput,
 ) {
   const limit = pagination?.first || pagination?.last || 20;
-  const collection = db.collection<UserModel>("Users");
+  const collection = db.collection("users");
 
   // Count total
-  const totalCount = await collection.countDocuments(filter);
+  const totalCount = await collection("users").countDocuments(filter);
 
   // Get users
-  let query = collection.find(filter).sort({ createdAt: -1 }).limit(limit);
+  let query = collection("users")
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .limit(limit);
 
   if (pagination?.after) {
     const afterId = new ObjectId(pagination.after);
@@ -212,10 +210,13 @@ async function paginateIncidents(
   const collection = db.collection<IncidentModel>("Incidents");
 
   // Count total
-  const totalCount = await collection.countDocuments(filter);
+  const totalCount = await collection("users").countDocuments(filter);
 
   // Get incidents
-  let query = collection.find(filter).sort({ createdAt: -1 }).limit(limit);
+  let query = collection("users")
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .limit(limit);
 
   if (pagination?.after) {
     const afterId = new ObjectId(pagination.after);
@@ -262,7 +263,7 @@ export const AdminQueryResolvers = {
      */
     user: async (_: any, args: { id: string }, context: Context) => {
       const user = await context.db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOne({ _id: new ObjectId(args.id) });
 
       return user;
@@ -312,11 +313,9 @@ export const AdminQueryResolvers = {
       const db = context.db;
 
       // Count users
-      const totalUsers = await db
-        .collection<UserModel>("Users")
-        .countDocuments();
+      const totalUsers = await db.collection("users").countDocuments();
       const usersByRole = await db
-        .collection<UserModel>("Users")
+        .collection("users")
         .aggregate([
           {
             $group: {
@@ -363,7 +362,7 @@ export const AdminQueryResolvers = {
 
       // Average reputation and trust score
       const userStats = await db
-        .collection<UserModel>("Users")
+        .collection("users")
         .aggregate([
           {
             $group: {

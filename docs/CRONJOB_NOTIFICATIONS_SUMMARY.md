@@ -5,6 +5,7 @@
 ### 1. **CronJob Library Migration**
 
 #### Przed (setInterval):
+
 ```typescript
 let cronInterval: NodeJS.Timeout | null = null;
 
@@ -14,19 +15,21 @@ cronInterval = setInterval(async () => {
 ```
 
 #### Po (CronJob library):
+
 ```typescript
-import { CronJob } from 'cron';
+import { CronJob } from "cron";
 
 trustScoreCronJob = new CronJob(
-  '*/5 * * * * *', // Cron pattern - co 5 sekund
+  "*/5 * * * * *", // Cron pattern - co 5 sekund
   runTrustScoreUpdate,
   null,
   true, // Start automatically
-  'Europe/Warsaw' // Timezone
+  "Europe/Warsaw" // Timezone
 );
 ```
 
 #### Zalety Nowego Rozwiązania:
+
 - ✅ **Standardowe cron patterns** zamiast milisekund
 - ✅ **Timezone support** - Europa/Warszawa
 - ✅ **Lepsze zarządzanie** - `start()`, `stop()`, `nextDate()`, `lastDate()`
@@ -44,12 +47,14 @@ trustScoreCronJob = new CronJob(
 #### Kluczowe Funkcje:
 
 ##### A. **Threshold-based Notifications**
+
 ```typescript
 const TRUST_SCORE_THRESHOLD = 1.2; // Wymagany trust score
 const MIN_SIMILAR_REPORTS = 3; // Min. liczba podobnych raportów
 ```
 
 ##### B. **Agregowany Trust Score**
+
 ```typescript
 async function getAggregateTrustScore(
   db: Db,
@@ -57,7 +62,7 @@ async function getAggregateTrustScore(
 ): Promise<number> {
   // 1. Pobierz trust score reportera
   const reporterTrustScore = reporter?.trustScore || 1.0;
-  
+
   // 2. Znajdź podobne raporty (24h, ta sama linia, ten sam rodzaj)
   const similarReports = await db
     .collection<IncidentModel>("Incidents")
@@ -68,34 +73,34 @@ async function getAggregateTrustScore(
       createdAt: { $gte: oneDayAgo.toISOString() },
     })
     .toArray();
-  
+
   // 3. Oblicz średni trust score ze wszystkich raportów
-  const averageTrustScore = 
+  const averageTrustScore =
     allScores.reduce((sum, score) => sum + score, 0) / allScores.length;
-  
+
   return averageTrustScore;
 }
 ```
 
 ##### C. **Intelligent Notification Processing**
+
 ```typescript
 export async function processIncidentNotifications(
   db: Db,
   incident: IncidentModel,
   reporterRole: "USER" | "MODERATOR" | "ADMIN"
 ): Promise<void> {
-  
   // 1. INSTANT dla ADMIN/MODERATOR
   if (reporterRole === "ADMIN" || reporterRole === "MODERATOR") {
     pubsub.publish(CHANNELS.INCIDENT_CREATED, incident);
     // Natychmiastowe powiadomienie!
   }
-  
+
   // 2. TRUST-BASED dla USER
   else {
     const aggregateTrustScore = await getAggregateTrustScore(db, incident);
     const similarCount = await countSimilarReports(db, incident);
-    
+
     // Walidacja wiarygodności
     if (
       aggregateTrustScore >= TRUST_SCORE_THRESHOLD &&
@@ -109,6 +114,7 @@ export async function processIncidentNotifications(
 ```
 
 ##### D. **Deduplication (Anti-spam)**
+
 ```typescript
 // Cache zapobiega duplikatom
 const deliveryCache = new Map<string, number>();
@@ -116,35 +122,36 @@ const deliveryCache = new Map<string, number>();
 function wasNotificationDelivered(incidentId: string, userId: string): boolean {
   const cacheKey = `${incidentId}:${userId}`;
   const deliveredAt = deliveryCache.get(cacheKey);
-  
+
   // TTL = 1 godzina
   if (now - deliveredAt > CACHE_TTL_MS) {
     return false; // Wygasło - można wysłać ponownie
   }
-  
+
   return true; // Już wysłano - pomiń
 }
 ```
 
 ##### E. **Smart User Filtering**
+
 ```typescript
 async function shouldUserReceiveNotification(
   db: Db,
   userId: ObjectId | string,
   incident: IncidentModel
 ): Promise<boolean> {
-  const user = await db.collection<UserModel>("Users").findOne({ _id: userId });
-  
+  const user = await db.collection("users").findOne({ _id: userId });
+
   // Sprawdź czy incydent dotyczy:
   // - Aktywnej podróży użytkownika
   // - Zapisanych ulubionych tras
-  
+
   const decision = shouldNotifyUser(
     incidentLineIds,
     activeJourneyLineIds,
     favoriteLineIds
   );
-  
+
   return decision.shouldNotify;
 }
 ```
@@ -154,6 +161,7 @@ async function shouldUserReceiveNotification(
 ### 3. **Jak Działa System Powiadomień**
 
 #### Scenariusz 1: Admin/Moderator zgłasza incydent
+
 ```
 1. createReport({ kind: "ACCIDENT", ... })
    ↓
@@ -165,6 +173,7 @@ async function shouldUserReceiveNotification(
 ```
 
 #### Scenariusz 2: User zgłasza incydent (wymaga walidacji)
+
 ```
 1. createReport({ kind: "TRAFFIC_JAM", ... })
    ↓
@@ -185,6 +194,7 @@ async function shouldUserReceiveNotification(
 ```
 
 #### Scenariusz 3: User zgłasza incydent (zbyt mało raportów)
+
 ```
 1. createReport({ kind: "PLATFORM_CHANGES", ... })
    ↓
@@ -208,12 +218,14 @@ async function shouldUserReceiveNotification(
 ### 4. **Pliki Systemu**
 
 #### Notification System:
+
 - `src/lib/notification-system.ts` - główna logika
 - `src/lib/threshold-algorithm.ts` - algorytmy threshold
 - `src/backend/resolvers/mutation.ts` - wywołanie `processIncidentNotifications()`
 - `src/backend/resolvers/subscriptions.ts` - GraphQL subscriptions
 
 #### Cron Job:
+
 - `src/backend/cron/trust-score-cron.ts` - **ZMIENIONY** (CronJob library)
 - `src/lib/trust-score-calculator.ts` - kalkulacja trust score
 
@@ -222,6 +234,7 @@ async function shouldUserReceiveNotification(
 ### 5. **Konfiguracja i Parametry**
 
 #### Threshold Notification System:
+
 ```typescript
 // src/lib/notification-system.ts
 const TRUST_SCORE_THRESHOLD = 1.2; // Min trust score dla notyfikacji
@@ -230,14 +243,15 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1h cache
 ```
 
 #### CronJob Schedule:
+
 ```typescript
 // src/backend/cron/trust-score-cron.ts
-'*/5 * * * * *' // Obecnie: co 5 sekund (testing)
+"*/5 * * * * *"; // Obecnie: co 5 sekund (testing)
 
 // Produkcja (zmień na):
-'0 */6 * * *' // Co 6 godzin
-'0 0 * * *'   // Codziennie o północy
-'0 */1 * * *' // Co godzinę
+"0 */6 * * *"; // Co 6 godzin
+"0 0 * * *"; // Codziennie o północy
+"0 */1 * * *"; // Co godzinę
 ```
 
 ---
@@ -245,8 +259,9 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1h cache
 ### 6. **API CronJob**
 
 #### Status Query:
+
 ```typescript
-import { getTrustScoreCronStatus } from '@/backend/cron/trust-score-cron';
+import { getTrustScoreCronStatus } from "@/backend/cron/trust-score-cron";
 
 const status = getTrustScoreCronStatus();
 // {
@@ -258,8 +273,12 @@ const status = getTrustScoreCronStatus();
 ```
 
 #### Manual Control:
+
 ```typescript
-import { startTrustScoreCron, stopTrustScoreCron } from '@/backend/cron/trust-score-cron';
+import {
+  startTrustScoreCron,
+  stopTrustScoreCron,
+} from "@/backend/cron/trust-score-cron";
 
 // Uruchom
 await startTrustScoreCron();
@@ -273,6 +292,7 @@ stopTrustScoreCron();
 ### 7. **Testing**
 
 #### Test Notification System:
+
 ```bash
 # 1. Stwórz użytkownika z wysokim trust score (>1.2)
 # 2. Zgłoś incydent jako ten użytkownik
@@ -281,6 +301,7 @@ stopTrustScoreCron();
 ```
 
 #### Test CronJob:
+
 ```bash
 # Ustaw zmienną środowiskową
 RUN_CRON=true npm run dev

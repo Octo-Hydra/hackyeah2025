@@ -68,11 +68,11 @@ async function testThresholdIntegration() {
       const change = calculateReputationChange(
         testCase.wasCorrect,
         testCase.userReputation,
-        testCase.notificationAge,
+        testCase.notificationAge
       );
 
       console.log(
-        `\n${testCase.wasCorrect ? "✅" : "❌"} Report ${testCase.wasCorrect ? "correct" : "incorrect"}`,
+        `\n${testCase.wasCorrect ? "✅" : "❌"} Report ${testCase.wasCorrect ? "correct" : "incorrect"}`
       );
       console.log(`   Current reputation: ${testCase.userReputation}`);
       console.log(`   Report age: ${testCase.notificationAge} minutes`);
@@ -113,7 +113,7 @@ async function testThresholdIntegration() {
         scenario.incidentLineIds,
         scenario.activeJourneyLineIds,
         scenario.favoriteLineIds,
-        scenario.incidentClass,
+        scenario.incidentClass
       );
 
       console.log(`\n${decision.shouldNotify ? "✅" : "❌"} ${scenario.name}`);
@@ -125,7 +125,7 @@ async function testThresholdIntegration() {
       }
       if (decision.affectedRoutes) {
         console.log(
-          `   Affected routes: ${decision.affectedRoutes.join(", ")}`,
+          `   Affected routes: ${decision.affectedRoutes.join(", ")}`
         );
       }
     }
@@ -157,7 +157,7 @@ async function testThresholdIntegration() {
       const lineIds = extractActiveJourneyLineIds(testCase.journey);
       console.log(`\n${testCase.name}:`);
       console.log(
-        `   Extracted line IDs: ${lineIds.length > 0 ? lineIds.join(", ") : "[]"}`,
+        `   Extracted line IDs: ${lineIds.length > 0 ? lineIds.join(", ") : "[]"}`
       );
     }
 
@@ -167,53 +167,53 @@ async function testThresholdIntegration() {
 
     console.log("\nCurrent configuration:");
     console.log(
-      `   Base report count: ${DEFAULT_THRESHOLD_CONFIG.baseReportCount}`,
+      `   Base report count: ${DEFAULT_THRESHOLD_CONFIG.baseReportCount}`
     );
     console.log(
-      `   Base reputation required: ${DEFAULT_THRESHOLD_CONFIG.baseReputationRequired}`,
+      `   Base reputation required: ${DEFAULT_THRESHOLD_CONFIG.baseReputationRequired}`
     );
     console.log(
-      `   Reputation weight: ${DEFAULT_THRESHOLD_CONFIG.reputationWeight * 100}%`,
+      `   Reputation weight: ${DEFAULT_THRESHOLD_CONFIG.reputationWeight * 100}%`
     );
     console.log(
-      `   Report weight: ${DEFAULT_THRESHOLD_CONFIG.reportWeight * 100}%`,
+      `   Report weight: ${DEFAULT_THRESHOLD_CONFIG.reportWeight * 100}%`
     );
     console.log(
-      `   Min reputation per user: ${DEFAULT_THRESHOLD_CONFIG.minReputationPerUser}`,
+      `   Min reputation per user: ${DEFAULT_THRESHOLD_CONFIG.minReputationPerUser}`
     );
     console.log(
-      `   High reputation bonus: ${DEFAULT_THRESHOLD_CONFIG.highReputationBonus * 100}%`,
+      `   High reputation bonus: ${DEFAULT_THRESHOLD_CONFIG.highReputationBonus * 100}%`
     );
     console.log(
-      `   High reputation threshold: ${DEFAULT_THRESHOLD_CONFIG.highReputationThreshold}`,
+      `   High reputation threshold: ${DEFAULT_THRESHOLD_CONFIG.highReputationThreshold}`
     );
 
     // Test 5: Real User Data (if available)
     console.log("\n\n👤 Test 5: Real User Data");
     console.log("=========================");
 
-    const sampleUser = await db.collection("Users").findOne({});
+    const sampleUser = await db.collection("users").findOne({});
 
     if (sampleUser) {
       console.log(`\nFound user: ${sampleUser.name || sampleUser.email}`);
       console.log(`   Reputation: ${sampleUser.reputation || 100}`);
       console.log(
-        `   Trust score: ${sampleUser.trustScore || "Not calculated yet"}`,
+        `   Trust score: ${sampleUser.trustScore || "Not calculated yet"}`
       );
 
       if (sampleUser.trustScoreBreakdown) {
         console.log(`   Trust score breakdown:`);
         console.log(
-          `      Base score: ${sampleUser.trustScoreBreakdown.baseScore.toFixed(2)}`,
+          `      Base score: ${sampleUser.trustScoreBreakdown.baseScore.toFixed(2)}`
         );
         console.log(
-          `      Accuracy bonus: ${sampleUser.trustScoreBreakdown.accuracyBonus.toFixed(2)}`,
+          `      Accuracy bonus: ${sampleUser.trustScoreBreakdown.accuracyBonus.toFixed(2)}`
         );
         console.log(
-          `      High rep bonus: ${sampleUser.trustScoreBreakdown.highRepBonus.toFixed(2)}`,
+          `      High rep bonus: ${sampleUser.trustScoreBreakdown.highRepBonus.toFixed(2)}`
         );
         console.log(
-          `      Validation rate: ${(sampleUser.trustScoreBreakdown.validationRate * 100).toFixed(1)}%`,
+          `      Validation rate: ${(sampleUser.trustScoreBreakdown.validationRate * 100).toFixed(1)}%`
         );
       }
 
@@ -221,13 +221,13 @@ async function testThresholdIntegration() {
       const testReputationChange = calculateReputationChange(
         true,
         sampleUser.reputation || 100,
-        10,
+        10
       );
 
       console.log(`\n   If this user reports correctly (10min old):`);
       console.log(`      Reputation change: +${testReputationChange}`);
       console.log(
-        `      New reputation: ${(sampleUser.reputation || 100) + testReputationChange}`,
+        `      New reputation: ${(sampleUser.reputation || 100) + testReputationChange}`
       );
     } else {
       console.log("\n   No users found in database");
@@ -241,7 +241,7 @@ async function testThresholdIntegration() {
     console.log("   • trust-score-calculator.ts:");
     console.log("     - calculateReputationChange()");
     console.log(
-      "     - DEFAULT_THRESHOLD_CONFIG (highReputationThreshold, highReputationBonus)",
+      "     - DEFAULT_THRESHOLD_CONFIG (highReputationThreshold, highReputationBonus)"
     );
     console.log("\n   • notification-system.ts:");
     console.log("     - shouldNotifyUser()");

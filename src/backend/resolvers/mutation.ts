@@ -130,17 +130,17 @@ async function updateUserReputation(
     // Deduct points from the reporter who made the fake report
     if (incident.reportedBy) {
       const user = await db
-        .collection<UserModel>("Users")
+        .collection("users")
         .findOne({ _id: new ObjectId(incident.reportedBy) });
 
       if (user) {
         const newReputation = Math.max(
           MIN_REPUTATION,
-          (user.reputation || 100) + FAKE_REPORT_PENALTY,
+          (user.reputation || 34) + FAKE_REPORT_PENALTY,
         );
 
         await db
-          .collection<UserModel>("Users")
+          .collection("users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
             { $set: { reputation: newReputation } },
@@ -153,7 +153,7 @@ async function updateUserReputation(
       // Award points to the original reporter
       if (incident.reportedBy) {
         await db
-          .collection<UserModel>("Users")
+          .collection("users")
           .updateOne(
             { _id: new ObjectId(incident.reportedBy) },
             { $inc: { reputation: VALIDATED_REPORT_REWARD } },
@@ -166,7 +166,7 @@ async function updateUserReputation(
         .filter((id): id is ObjectId | string => id != null);
 
       if (similarReporterIds.length > 0) {
-        await db.collection<UserModel>("Users").updateMany(
+        await db.collection("users").updateMany(
           {
             _id: {
               $in: similarReporterIds.map((id) =>
@@ -242,9 +242,7 @@ export const Mutation = {
     }
 
     // Get user to check role
-    const user = await db
-      .collection<UserModel>("Users")
-      .findOne({ email: userEmail });
+    const user = await db.collection("users").findOne({ email: userEmail });
     if (!user) {
       throw new Error("User not found");
     }
@@ -542,9 +540,7 @@ export const Mutation = {
     }
 
     // Get user to check role
-    const user = await db
-      .collection<UserModel>("Users")
-      .findOne({ email: userEmail });
+    const user = await db.collection("users").findOne({ email: userEmail });
     if (!user) {
       throw new Error("User not found");
     }
@@ -666,7 +662,7 @@ export const Mutation = {
     );
 
     const result = await db
-      .collection<UserModel>("users")
+      .collection("users")
       .updateOne({ email: userEmail }, { $set: { activeJourney } });
 
     console.log("Set active journey result:", {
@@ -728,7 +724,7 @@ export const Mutation = {
     }
 
     const result = await db
-      .collection<UserModel>("users")
+      .collection("users")
       .updateOne({ email: userEmail }, { $unset: { activeJourney: "" } });
 
     return result.modifiedCount > 0;
@@ -755,7 +751,7 @@ export const Mutation = {
     };
 
     await db
-      .collection<UserModel>("users")
+      .collection("users")
       .updateOne(
         { email: userEmail },
         { $push: { favoriteConnections: favorite } },
@@ -777,7 +773,7 @@ export const Mutation = {
     }
 
     const result = await db
-      .collection<UserModel>("users")
+      .collection("users")
       .updateOne(
         { email: userEmail },
         { $pull: { favoriteConnections: { id } } },

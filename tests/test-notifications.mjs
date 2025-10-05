@@ -22,12 +22,12 @@ async function testNotificationSystem() {
 
     // 1. Find users with different roles
     console.log("📊 Finding users...");
-    const admin = await db.collection("Users").findOne({ role: "ADMIN" });
+    const admin = await db.collection("users").findOne({ role: "ADMIN" });
     const moderator = await db
-      .collection("Users")
+      .collection("users")
       .findOne({ role: "MODERATOR" });
     const users = await db
-      .collection("Users")
+      .collection("users")
       .find({ role: "USER" })
       .limit(3)
       .toArray();
@@ -46,16 +46,16 @@ async function testNotificationSystem() {
       .toArray();
 
     for (const incident of recentIncidents) {
-      const reporter = await db
-        .collection("Users")
-        .findOne({ _id: new ObjectId(incident.reportedBy) });
+      const reporter = await db.collection("users").findOne({
+        _id: new ObjectId(incident.reportedBy),
+      });
 
       console.log(`   ${incident.title}`);
       console.log(
-        `      By: ${reporter?.name || "Unknown"} (${reporter?.role})`,
+        `      By: ${reporter?.name || "Unknown"} (${reporter?.role})`
       );
       console.log(
-        `      Trust Score: ${reporter?.trustScore?.toFixed(2) || "N/A"}`,
+        `      Trust Score: ${reporter?.trustScore?.toFixed(2) || "N/A"}`
       );
       console.log(`      Status: ${incident.status}`);
       console.log(`      Created: ${incident.createdAt}\n`);
@@ -65,9 +65,9 @@ async function testNotificationSystem() {
     console.log("🔍 Notification Logic Test:\n");
 
     for (const incident of recentIncidents.slice(0, 3)) {
-      const reporter = await db
-        .collection("Users")
-        .findOne({ _id: new ObjectId(incident.reportedBy) });
+      const reporter = await db.collection("users").findOne({
+        _id: new ObjectId(incident.reportedBy),
+      });
 
       if (!reporter) continue;
 
@@ -112,8 +112,7 @@ async function testNotificationSystem() {
 
     // 4. Check users with active journeys/favorites
     console.log("👥 Users with active journeys/favorites:\n");
-    const usersWithJourneys = await db
-      .collection("Users")
+    const usersWithJourneys = await db.collection
       .find({
         $or: [
           { activeJourney: { $exists: true, $ne: null } },
@@ -128,13 +127,13 @@ async function testNotificationSystem() {
 
       if (user.activeJourney) {
         console.log(
-          `      Active Journey: ${user.activeJourney.lineIds?.length || 0} lines`,
+          `      Active Journey: ${user.activeJourney.lineIds?.length || 0} lines`
         );
       }
 
       if (user.favoriteConnections?.length > 0) {
         console.log(
-          `      Favorites: ${user.favoriteConnections.length} connections`,
+          `      Favorites: ${user.favoriteConnections.length} connections`
         );
       }
 
@@ -180,17 +179,17 @@ async function testNotificationSystem() {
       resolvedIncidents: await db
         .collection("Incidents")
         .countDocuments({ status: "RESOLVED" }),
-      totalUsers: await db.collection("Users").countDocuments(),
-      admins: await db.collection("Users").countDocuments({ role: "ADMIN" }),
+      totalUsers: await db.collection("users").countDocuments(),
+      admins: await db.collection("users").countDocuments({ role: "ADMIN" }),
       moderators: await db
-        .collection("Users")
+        .collection("users")
         .countDocuments({ role: "MODERATOR" }),
       regularUsers: await db
-        .collection("Users")
+        .collection("users")
         .countDocuments({ role: "USER" }),
-      usersWithTrustScore: await db
-        .collection("Users")
-        .countDocuments({ trustScore: { $exists: true } }),
+      usersWithTrustScore: await db.collection("users").countDocuments({
+        trustScore: { $exists: true },
+      }),
     };
 
     console.log(`   Total Incidents: ${stats.totalIncidents}`);

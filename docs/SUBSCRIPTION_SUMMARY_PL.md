@@ -54,19 +54,23 @@ type PathAffectedPayload {
 Dodano publikację zdarzeń w mutacjach:
 
 **createReport:**
+
 - Publikuje `INCIDENT_CREATED` dla wszystkich subskrybentów
 - Publikuje na kanały specyficzne dla linii (`LINE_INCIDENT_UPDATES:{lineId}`)
 
 **updateReport:**
+
 - Publikuje `INCIDENT_UPDATED` dla normalnych aktualizacji
 - Publikuje `INCIDENT_RESOLVED` gdy status = "RESOLVED"
 - Publikuje na kanały linii
 
 **publishReport:**
+
 - Gdy draft staje się publiczny, publikuje `INCIDENT_CREATED`
 - Publikuje na kanały linii
 
 **saveDraft:**
+
 - Nie publikuje zdarzeń (drafty są prywatne)
 
 ## Jak używać z frontendu
@@ -149,7 +153,7 @@ const MY_LINES = gql`
 
 function FavoriteLinesMonitor() {
   const favoriteLines = ['line1_id', 'line2_id', 'line3_id'];
-  
+
   const { data } = useSubscription(MY_LINES, {
     variables: { lineIds: favoriteLines }
   });
@@ -166,6 +170,7 @@ function FavoriteLinesMonitor() {
 1. **Uruchom serwer**: `npm run dev`
 2. **Otwórz**: `http://localhost:4000/graphql`
 3. **Zakładka 1** - Subskrypcja:
+
 ```graphql
 subscription {
   incidentCreated {
@@ -177,14 +182,17 @@ subscription {
 ```
 
 4. **Zakładka 2** - Utwórz incydent:
+
 ```graphql
 mutation {
-  createReport(input: {
-    title: "Test incydentu"
-    description: "Testowy opis"
-    kind: DELAY
-    status: PUBLISHED
-  }) {
+  createReport(
+    input: {
+      title: "Test incydentu"
+      description: "Testowy opis"
+      kind: DELAY
+      status: PUBLISHED
+    }
+  ) {
     id
     title
   }
@@ -210,25 +218,26 @@ MongoDB
 ## Przepływ zdarzeń
 
 1. **Przewoźnik tworzy incydent** → `createReport` mutation
-2. **Backend zapisuje do MongoDB** → `db.collection.insertOne()`
+2. **Backend zapisuje do MongoDB** → `db.collection("users").insertOne()`
 3. **Backend publikuje zdarzenie** → `pubsub.publish(CHANNELS.INCIDENT_CREATED, incident)`
 4. **Wszyscy subskrybenci otrzymują** → WebSocket push do wszystkich połączonych klientów
 5. **Frontend aktualizuje UI** → Natychmiastowe powiadomienie użytkownika
 
 ## Typy zdarzeń
 
-| Zdarzenie | Kiedy | Użycie |
-|-----------|-------|--------|
-| `incidentCreated` | Nowy incydent opublikowany | Powiadomienia push dla wszystkich użytkowników |
-| `incidentUpdated` | Zmiana w incydencie | Aktualizacja szczegółów w UI |
-| `incidentResolved` | Incydent rozwiązany | Usunięcie ostrzeżeń, zielony status |
-| `lineIncidentUpdates` | Zmiana na konkretnej linii | Monitoring pojedynczej linii |
-| `myLinesIncidents` | Zmiana na ulubionych liniach | Personalizowane powiadomienia |
-| `pathAffectedByIncident` | Incydent wpływa na trasę | Alternatywne trasy (TODO) |
+| Zdarzenie                | Kiedy                        | Użycie                                         |
+| ------------------------ | ---------------------------- | ---------------------------------------------- |
+| `incidentCreated`        | Nowy incydent opublikowany   | Powiadomienia push dla wszystkich użytkowników |
+| `incidentUpdated`        | Zmiana w incydencie          | Aktualizacja szczegółów w UI                   |
+| `incidentResolved`       | Incydent rozwiązany          | Usunięcie ostrzeżeń, zielony status            |
+| `lineIncidentUpdates`    | Zmiana na konkretnej linii   | Monitoring pojedynczej linii                   |
+| `myLinesIncidents`       | Zmiana na ulubionych liniach | Personalizowane powiadomienia                  |
+| `pathAffectedByIncident` | Incydent wpływa na trasę     | Alternatywne trasy (TODO)                      |
 
 ## Status implementacji
 
 ### ✅ Zrobione:
+
 - [x] GraphQL schema z wszystkimi subskrypcjami
 - [x] PubSub klasa (in-memory)
 - [x] 6 resolverów subskrypcji z Repeater
@@ -240,6 +249,7 @@ MongoDB
 - [x] Przewodnik testowania (SUBSCRIPTION_TESTING.md)
 
 ### 🔄 Do zrobienia (opcjonalnie):
+
 - [ ] Redis PubSub dla wielu serwerów (production)
 - [ ] Implementacja `pathAffectedByIncident` (sprawdzanie trasy)
 - [ ] Autentykacja w subskrypcjach
@@ -267,6 +277,7 @@ MongoDB
 ⚠️ **Obecnie brak ograniczeń** - każdy może subskrybować wszystkie incydenty
 
 **Zalecane usprawnienia:**
+
 - Dodaj auth do subscription context
 - Filtruj incydenty według uprawnień użytkownika
 - Rate limiting dla subskrypcji
@@ -283,6 +294,7 @@ MongoDB
 ## Dokumentacja
 
 Pełna dokumentacja z przykładami kodu:
+
 - `docs/WEBSOCKET_SUBSCRIPTIONS.md` - Szczegółowy przewodnik integracji
 - `docs/SUBSCRIPTION_TESTING.md` - Testowanie w GraphQL Playground
 

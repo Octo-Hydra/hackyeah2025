@@ -3,6 +3,7 @@
 ## 🎯 Overview
 
 System reputacji i powiadomień używa **funkcji z `threshold-algorithm.ts`** jako single source of truth dla wszystkich kalkulacji związanych z:
+
 - Trust score calculation
 - Reputation changes
 - Notification decisions
@@ -20,19 +21,21 @@ Oblicza zmianę reputacji po resolution incydentu.
 import { calculateReputationChange } from "@/lib/threshold-algorithm";
 
 const reputationChange = calculateReputationChange(
-  wasCorrect,      // true = correct report, false = fake
-  userReputation,  // Current user reputation
-  notificationAge  // Age in minutes
+  wasCorrect, // true = correct report, false = fake
+  userReputation, // Current user reputation
+  notificationAge // Age in minutes
 );
 
 // Returns: number (e.g., +10, -5)
 ```
 
 **Używane w**:
+
 - `trust-score-calculator.ts` → `updateUserReputationAfterResolution()`
 - Automatyczne po oznaczeniu incydentu jako RESOLVED/FAKE
 
 **Logika**:
+
 ```typescript
 // Base reward/penalty
 wasCorrect ? +10 : -5
@@ -76,10 +79,12 @@ const decision = shouldNotifyUser(
 ```
 
 **Używane w**:
+
 - `notification-system.ts` → `shouldUserReceiveNotification()`
 - Decision making dla WebSocket notifications
 
 **Priority Logic**:
+
 ```typescript
 // CRITICAL - Active journey + CLASS_1 incident
 { shouldNotify: true, priority: "CRITICAL" }
@@ -104,7 +109,7 @@ Wyciąga line IDs z active journey.
 import { extractActiveJourneyLineIds } from "@/lib/threshold-algorithm";
 
 const activeJourney = {
-  lineIds: [ObjectId("..."), "lineId2", null]
+  lineIds: [ObjectId("..."), "lineId2", null],
 };
 
 const lineIds = extractActiveJourneyLineIds(activeJourney);
@@ -112,6 +117,7 @@ const lineIds = extractActiveJourneyLineIds(activeJourney);
 ```
 
 **Używane w**:
+
 - `notification-system.ts` → converting user.activeJourney to line IDs
 
 ---
@@ -136,6 +142,7 @@ console.log(DEFAULT_THRESHOLD_CONFIG);
 ```
 
 **Używane w**:
+
 - `trust-score-calculator.ts` → HIGH_REP_THRESHOLD, HIGH_REP_BONUS
 - `notification-system.ts` → MIN_SIMILAR_REPORTS
 
@@ -154,13 +161,13 @@ export async function calculateUserTrustScore(db: Db, userId: ObjectId) {
   // Use constants from threshold-algorithm.ts
   const HIGH_REP_THRESHOLD = DEFAULT_THRESHOLD_CONFIG.highReputationThreshold;
   const HIGH_REP_BONUS = DEFAULT_THRESHOLD_CONFIG.highReputationBonus;
-  
+
   // Calculate bonus using shared constants
   if (reputation >= HIGH_REP_THRESHOLD) {
     const bonusMultiplier = Math.min((reputation - HIGH_REP_THRESHOLD) / 100, 1.0);
     highRepBonus = baseScore * HIGH_REP_BONUS * bonusMultiplier;
   }
-  
+
   return { finalScore, ... };
 }
 ```
@@ -178,28 +185,27 @@ export async function updateUserReputationAfterResolution(
   wasCorrect: boolean,
   incidentCreatedAt: string
 ) {
-  const user = await db.collection("Users").findOne({ _id: userId });
+  const user = await db.collection("users").findOne({ _id: userId });
   const currentReputation = user.reputation || 100;
-  
+
   // Calculate age in minutes
   const incidentDate = new Date(incidentCreatedAt);
   const notificationAge = (Date.now() - incidentDate.getTime()) / (1000 * 60);
-  
+
   // Use threshold-algorithm.ts function
   const reputationChange = calculateReputationChange(
     wasCorrect,
     currentReputation,
     notificationAge
   );
-  
+
   const newReputation = Math.max(0, currentReputation + reputationChange);
-  
+
   // Update DB
-  await db.collection("Users").updateOne(
-    { _id: userId },
-    { $set: { reputation: newReputation } }
-  );
-  
+  await db
+    .collection("users")
+    .updateOne({ _id: userId }, { $set: { reputation: newReputation } });
+
   return { newReputation, reputationChange };
 }
 ```
@@ -212,7 +218,7 @@ export async function updateUserReputationAfterResolution(
 import {
   shouldNotifyUser,
   extractActiveJourneyLineIds,
-  DEFAULT_THRESHOLD_CONFIG
+  DEFAULT_THRESHOLD_CONFIG,
 } from "./threshold-algorithm";
 
 // Use shared constant
@@ -223,19 +229,19 @@ async function shouldUserReceiveNotification(
   userId: ObjectId,
   incident: IncidentModel
 ): Promise<boolean> {
-  const user = await db.collection("Users").findOne({ _id: userId });
-  
-  const incidentLineIds = (incident.lineIds || []).map(id => id.toString());
+  const user = await db.collection("users").findOne({ _id: userId });
+
+  const incidentLineIds = (incident.lineIds || []).map((id) => id.toString());
   const activeJourneyLineIds = extractActiveJourneyLineIds(user.activeJourney);
-  
+
   // Use threshold-algorithm.ts function
   const decision = shouldNotifyUser(
     incidentLineIds,
     activeJourneyLineIds.length > 0 ? activeJourneyLineIds : undefined,
     undefined, // No favorite line IDs yet
-    undefined  // No incident class yet
+    undefined // No incident class yet
   );
-  
+
   return decision.shouldNotify;
 }
 ```
@@ -256,6 +262,7 @@ mutation ResolveIncident {
 ```
 
 **Backend processing**:
+
 ```typescript
 // In resolvers/mutation.ts
 import { updateUserReputationAfterResolution } from "@/lib/trust-score-calculator";
@@ -270,7 +277,7 @@ if (incident.reportedBy) {
     !incident.isFake, // wasCorrect
     incident.createdAt
   );
-  
+
   console.log(`Reputation change: ${result.reputationChange}`);
   console.log(`New reputation: ${result.newReputation}`);
 }
@@ -282,13 +289,13 @@ if (incident.reportedBy) {
 import { shouldNotifyUser } from "@/lib/threshold-algorithm";
 
 const incident = {
-  lineIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+  lineIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"],
 };
 
 const user = {
   activeJourney: {
-    lineIds: ["507f1f77bcf86cd799439011"] // Match!
-  }
+    lineIds: ["507f1f77bcf86cd799439011"], // Match!
+  },
 };
 
 const decision = shouldNotifyUser(
@@ -314,7 +321,7 @@ console.log(decision);
 import { DEFAULT_THRESHOLD_CONFIG } from "@/lib/threshold-algorithm";
 import { calculateUserTrustScore } from "@/lib/trust-score-calculator";
 
-const user = await db.collection("Users").findOne({ _id: userId });
+const user = await db.collection("users").findOne({ _id: userId });
 
 // Check if user can report
 if (user.reputation < DEFAULT_THRESHOLD_CONFIG.minReputationPerUser) {
@@ -325,7 +332,9 @@ if (user.reputation < DEFAULT_THRESHOLD_CONFIG.minReputationPerUser) {
 const trustScore = await calculateUserTrustScore(db, userId);
 
 console.log(`Trust score: ${trustScore.finalScore}`);
-console.log(`High rep threshold: ${DEFAULT_THRESHOLD_CONFIG.highReputationThreshold}`);
+console.log(
+  `High rep threshold: ${DEFAULT_THRESHOLD_CONFIG.highReputationThreshold}`
+);
 ```
 
 ---
@@ -338,17 +347,18 @@ Edit `src/lib/threshold-algorithm.ts`:
 
 ```typescript
 export const DEFAULT_THRESHOLD_CONFIG: ThresholdConfig = {
-  baseReportCount: 3,              // Change to 2 for easier notifications
-  baseReputationRequired: 100,     // Change to 50 for lower bar
-  reputationWeight: 0.6,           // Change to 0.7 for more reputation focus
-  reportWeight: 0.4,               // Change to 0.3 accordingly
-  minReputationPerUser: 10,        // Change to 5 for lower entry barrier
-  highReputationBonus: 0.25,       // Change to 0.3 for bigger bonus
-  highReputationThreshold: 100,    // Change to 150 for stricter high-rep
+  baseReportCount: 3, // Change to 2 for easier notifications
+  baseReputationRequired: 100, // Change to 50 for lower bar
+  reputationWeight: 0.6, // Change to 0.7 for more reputation focus
+  reportWeight: 0.4, // Change to 0.3 accordingly
+  minReputationPerUser: 10, // Change to 5 for lower entry barrier
+  highReputationBonus: 0.25, // Change to 0.3 for bigger bonus
+  highReputationThreshold: 100, // Change to 150 for stricter high-rep
 };
 ```
 
 **Impact**:
+
 - `trust-score-calculator.ts` automatycznie używa nowych wartości
 - `notification-system.ts` automatycznie używa nowych wartości
 - Brak potrzeby zmiany w innych plikach
@@ -395,9 +405,9 @@ console.log("Decision:", decision);
 
 ```typescript
 const reputationChange = calculateReputationChange(
-  wasCorrect,      // Must be boolean
+  wasCorrect, // Must be boolean
   currentReputation, // Must be number
-  notificationAge  // Must be in MINUTES
+  notificationAge // Must be in MINUTES
 );
 
 // Check calculation
