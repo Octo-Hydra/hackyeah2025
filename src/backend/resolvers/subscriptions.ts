@@ -13,17 +13,21 @@ export const CHANNELS = {
 } as const;
 
 // In-memory event emitter for subscriptions
-class PubSub {
-  private listeners = new Map<string, Set<(data: any) => void>>();
+type Listener<TPayload> = (data: TPayload) => void | Promise<void>;
 
-  publish(channel: string, payload: any) {
+class PubSub<TPayload> {
+  private listeners = new Map<string, Set<Listener<TPayload>>>();
+
+  publish(channel: string, payload: TPayload) {
     const channelListeners = this.listeners.get(channel);
     if (channelListeners) {
-      channelListeners.forEach((listener) => listener(payload));
+      channelListeners.forEach((listener) => {
+        void listener(payload);
+      });
     }
   }
 
-  subscribe(channel: string, callback: (data: any) => void) {
+  subscribe(channel: string, callback: Listener<TPayload>) {
     if (!this.listeners.has(channel)) {
       this.listeners.set(channel, new Set());
     }
@@ -39,7 +43,7 @@ class PubSub {
   }
 }
 
-export const pubsub = new PubSub();
+export const pubsub = new PubSub<IncidentModel>();
 
 export const subscriptionResolvers = {
   Subscription: {
@@ -48,7 +52,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { transportType }: { transportType?: string },
-        ctx: GraphQLContext,
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const unsubscribe = pubsub.subscribe(
@@ -82,7 +86,8 @@ export const subscriptionResolvers = {
           unsubscribe();
         });
       },
-      resolve: (payload: any) => payload.incidentCreated,
+      resolve: (payload: { incidentCreated: IncidentModel }) =>
+        payload.incidentCreated,
     },
 
     // Incident updated
@@ -90,7 +95,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { transportType }: { transportType?: string },
-        ctx: GraphQLContext,
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const unsubscribe = pubsub.subscribe(
@@ -123,7 +128,8 @@ export const subscriptionResolvers = {
           unsubscribe();
         });
       },
-      resolve: (payload: any) => payload.incidentUpdated,
+      resolve: (payload: { incidentUpdated: IncidentModel }) =>
+        payload.incidentUpdated,
     },
 
     // Line-specific incident updates
@@ -159,23 +165,28 @@ export const subscriptionResolvers = {
 
           // Subscribe to PubSub channel
           console.log(`🔌 Setting up PubSub subscription for line ${lineId}`);
-          const unsubscribe = pubsub.subscribe(
-            CHANNELS.LINE_INCIDENT_UPDATES,
-            (incident: IncidentModel) => {
-              // Check if incident affects this line
-              const affectsLine = incident.lineIds?.some(
-                (id) => id?.toString() === lineId,
-              );
+          const channelName = `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`;
 
-              if (affectsLine) {
-                console.log(
-                  `🚨 Pushing incident to subscriber for line ${lineId}`,
-                  incident._id,
-                );
-                push({ lineIncidentUpdates: incident });
-              }
-            },
+          const handler = (incident: IncidentModel) => {
+            const affectsLine = incident.lineIds?.some(
+              (id) => id?.toString() === lineId,
+            );
+
+            if (affectsLine) {
+              console.log(
+                `🚨 Pushing incident to subscriber for line ${lineId}`,
+                incident._id,
+              );
+              push({ lineIncidentUpdates: incident });
+            }
+          };
+
+          const unsubscribeGeneral = pubsub.subscribe(
+            CHANNELS.LINE_INCIDENT_UPDATES,
+            handler,
           );
+
+          const unsubscribeSpecific = pubsub.subscribe(channelName, handler);
 
           console.log(
             `✅ Subscription active for line ${lineId}, waiting for incidents...`,
@@ -185,11 +196,13 @@ export const subscriptionResolvers = {
           // This promise will only resolve when client disconnects
           stop.then(() => {
             console.log(`📡 Stop signal received for line: ${lineId}`);
-            unsubscribe();
+            unsubscribeGeneral();
+            unsubscribeSpecific();
           });
         });
       },
-      resolve: (payload: any) => payload.lineIncidentUpdates,
+      resolve: (payload: { lineIncidentUpdates: IncidentModel }) =>
+        payload.lineIncidentUpdates,
     },
 
     // My lines incidents (user subscribes to multiple favorite lines)
@@ -197,7 +210,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { lineIds }: { lineIds: string[] },
-        ctx: GraphQLContext,
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           const lineIdSet = new Set(lineIds);
@@ -220,7 +233,8 @@ export const subscriptionResolvers = {
           unsubscribe();
         });
       },
-      resolve: (payload: any) => payload.myLinesIncidents,
+      resolve: (payload: { myLinesIncidents: IncidentModel }) =>
+        payload.myLinesIncidents,
     },
 
     // Smart incident notifications (with deduplication)
@@ -230,7 +244,7 @@ export const subscriptionResolvers = {
       subscribe: (
         _: unknown,
         { userId }: { userId: string },
-        ctx: GraphQLContext,
+        _ctx: GraphQLContext,
       ) => {
         return new Repeater(async (push, stop) => {
           // Track sent incidents to prevent duplicates
@@ -261,7 +275,8 @@ export const subscriptionResolvers = {
               // Check active journey
               if (user.activeJourney?.lineIds) {
                 const activeLineIds = user.activeJourney.lineIds.map(
-                  (id: any) => (typeof id === "string" ? id : id.toString()),
+                  (id: string | ObjectId) =>
+                    typeof id === "string" ? id : id.toString(),
                 );
 
                 shouldNotify =
@@ -295,7 +310,8 @@ export const subscriptionResolvers = {
           unsubscribe();
         });
       },
-      resolve: (payload: any) => payload.smartIncidentNotifications,
+      resolve: (payload: { smartIncidentNotifications: IncidentModel }) =>
+        payload.smartIncidentNotifications,
     },
   },
 };
