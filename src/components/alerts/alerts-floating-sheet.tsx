@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Bell, MapPin, X, ChevronUp, AlertTriangle, ChevronDown } from "lucide-react";
+import {
+  Bell,
+  MapPin,
+  X,
+  ChevronUp,
+  AlertTriangle,
+  ChevronDown,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useAppStore } from "@/store/app-store";
@@ -46,7 +53,7 @@ export function AlertsFloatingSheet() {
   const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     void dismiss(id);
-    
+
     // If dismissing the last notification, hide the sheet
     if (sortedNotifications.length === 1) {
       setIsVisible(false);
@@ -62,7 +69,7 @@ export function AlertsFloatingSheet() {
   return (
     <div
       className={cn(
-        "fixed bottom-20 left-4 right-4 z-[999] transition-all duration-300 ease-out md:bottom-6 md:left-auto md:right-6 md:w-96",
+        "fixed bottom-20 left-4 right-4 z-[99999] transition-all duration-300 ease-out md:bottom-6 md:left-6 md:right-auto md:w-96",
         isExpanded ? "max-h-[70vh]" : "max-h-auto",
       )}
     >
@@ -106,7 +113,10 @@ export function AlertsFloatingSheet() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               {latestNotification.kind && (
-                <Badge variant="secondary" className="text-xs font-semibold uppercase">
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-semibold uppercase"
+                >
                   {latestNotification.kind.replaceAll("_", " ")}
                 </Badge>
               )}
@@ -133,10 +143,21 @@ export function AlertsFloatingSheet() {
             )}
           </div>
 
-          {/* Expand indicator */}
-          <div className="mt-3 flex items-center justify-center gap-1 text-xs font-medium text-gray-500">
-            <span>Dotknij aby rozwinąć</span>
-            <ChevronUp className="h-4 w-4 animate-bounce" />
+          {/* Action buttons */}
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={(e) => handleDismiss(latestNotification.id, e)}
+              className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Odrzuć alert
+            </button>
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-blue-100 px-3 py-2 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
+            >
+              <span>Rozwiń</span>
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       )}
@@ -153,7 +174,9 @@ export function AlertsFloatingSheet() {
               <h3 className="font-bold text-gray-900 dark:text-white">
                 Alerty na trasie
               </h3>
-              <Badge variant="destructive" className="font-bold shadow-sm">{activeCount}</Badge>
+              <Badge variant="destructive" className="font-bold shadow-sm">
+                {activeCount}
+              </Badge>
             </div>
             <Button
               variant="ghost"
@@ -181,7 +204,7 @@ export function AlertsFloatingSheet() {
                   key={notification.id}
                   className={cn(
                     "group relative rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-3.5 transition-all hover:scale-[1.02] hover:shadow-md dark:from-gray-800 dark:to-gray-850",
-                    index === 0 && "ring-2 ring-red-200 dark:ring-red-900/50"
+                    index === 0 && "ring-2 ring-red-200 dark:ring-red-900/50",
                   )}
                 >
                   {/* Dismiss button */}
@@ -197,7 +220,10 @@ export function AlertsFloatingSheet() {
                     {/* Kind and time */}
                     <div className="flex items-center gap-2 flex-wrap">
                       {notification.kind && (
-                        <Badge variant="secondary" className="text-xs font-semibold uppercase shadow-sm">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs font-semibold uppercase shadow-sm"
+                        >
                           {notification.kind.replaceAll("_", " ")}
                         </Badge>
                       )}

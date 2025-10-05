@@ -142,26 +142,26 @@ export function ActiveJourneyMonitor() {
         })();
       }
 
-      if (!existing) {
-        const affectedLines =
-          incident.lines?.map((line) => line.name).filter(Boolean) ?? [];
+      // if (!existing) {
+      //   const affectedLines =
+      //     incident.lines?.map((line) => line.name).filter(Boolean) ?? [];
 
-        const delayInfo = incident.delayMinutes
-          ? ` (opóźnienie: ${incident.delayMinutes} min)`
-          : "";
+      //   const delayInfo = incident.delayMinutes
+      //     ? ` (opóźnienie: ${incident.delayMinutes} min)`
+      //     : "";
 
-        const lineLabel =
-          affectedLines.length > 0
-            ? affectedLines.join(", ")
-            : lineName
-              ? `${lineName}`
-              : "Trasa";
+      //   const lineLabel =
+      //     affectedLines.length > 0
+      //       ? affectedLines.join(", ")
+      //       : lineName
+      //         ? `${lineName}`
+      //         : "Trasa";
 
-        toast.error(`🚨 Nowy incydent na linii: ${lineLabel}`, {
-          description: `${incident.title}${delayInfo}`,
-          duration: 10000,
-        });
-      }
+      //   toast.error(`🚨 Nowy incydent na linii: ${lineLabel}`, {
+      //     description: `${incident.title}${delayInfo}`,
+      //     duration: 10000,
+      //   });
+      // }
     });
   }, [incidents, activeJourney, addNotification, clearNotifications]);
 

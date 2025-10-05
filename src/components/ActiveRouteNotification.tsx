@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -7,6 +7,7 @@ interface RouteNotificationProps {
   endCity: string;
   distance?: string;
   duration?: string;
+  delayMinutes?: number;
   className?: string;
 }
 
@@ -15,6 +16,7 @@ export function RouteNotification({
   endCity,
   distance,
   duration,
+  delayMinutes,
   className,
 }: RouteNotificationProps) {
   return (
@@ -99,6 +101,16 @@ export function RouteNotification({
             </div>
           </div>
         </div>
+
+        {/* Delay warning */}
+        {delayMinutes !== undefined && delayMinutes > 0 && (
+          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2 dark:bg-red-950/30">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              Opóźnienie: +{delayMinutes} min
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Bottom accent glow */}

@@ -8,9 +8,13 @@
 import { useEffect, useState } from "react";
 import { RouteNotification } from "./ActiveRouteNotification";
 import { useUser } from "@/store/hooks";
+import { useAppStore } from "@/store/app-store";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
 
 export function ActiveJourneyNotifier() {
   const user = useUser();
+  const notifications = useAppStore((state) => state.notifications);
   const [mounted, setMounted] = useState(false);
 
   // Handle hydration
@@ -38,12 +42,26 @@ export function ActiveJourneyNotifier() {
   const firstSegment = activeJourney.segments[0];
   const lastSegment = activeJourney.segments[activeJourney.segments.length - 1];
 
+  // Format the time properly
+  const startTime = format(new Date(activeJourney.startTime), "HH:mm", {
+    locale: pl,
+  });
+  const endTime = format(new Date(activeJourney.expectedEndTime), "HH:mm", {
+    locale: pl,
+  });
+
+  // Calculate total delay from all active notifications
+  const totalDelay = notifications.reduce((sum, notification) => {
+    return sum + (notification.delayMinutes || 0);
+  }, 0);
+
   return (
     <div className="fixed top-0 left-0 right-0 px-4 pt-4 md:top-16 md:pt-6 pointer-events-none z-[9999]">
       <RouteNotification
         startCity={firstSegment.from.stopName}
         endCity={lastSegment.to.stopName}
-        duration={`${activeJourney.startTime} - ${activeJourney.expectedEndTime}`}
+        duration={`${startTime} - ${endTime}`}
+        delayMinutes={totalDelay > 0 ? totalDelay : undefined}
         className="pointer-events-auto"
       />
     </div>
