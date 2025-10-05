@@ -240,7 +240,7 @@ export const AdminQueryResolvers = {
   Query: {
     admin: (_: any, __: any, context: Context) => {
       // requireAdminOrModerator(context);
-      return {}; // Return empty object for nested resolvers
+      return {};
     },
   },
 

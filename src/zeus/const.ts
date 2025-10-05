@@ -382,14 +382,22 @@ export const ReturnTypes: Record<string,any> = {
 		departureTime:"String",
 		arrivalTime:"String",
 		duration:"Int",
-		hasIncident:"Boolean"
+		hasIncident:"Boolean",
+		warning:"PathWarning"
+	},
+	PathWarning:{
+		fromStop:"String",
+		toStop:"String",
+		lineName:"String",
+		description:"String",
+		incidentKind:"IncidentKind",
+		severity:"String"
 	},
 	JourneyPath:{
 		segments:"PathSegment",
 		totalDuration:"Int",
 		departureTime:"String",
 		arrivalTime:"String",
-		warnings:"String",
 		hasIncidents:"Boolean"
 	},
 	Subscription:{

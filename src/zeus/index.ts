@@ -1231,15 +1231,25 @@ bulkDeleteIncidents?: [{	ids: Array<ValueTypes["ID"]> | Variable<any, string>},b
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
+	warning?:ValueTypes["PathWarning"],
 		__typename?: boolean | `@${string}`,
 	['...on PathSegment']?: Omit<ValueTypes["PathSegment"], "...on PathSegment">
+}>;
+	["PathWarning"]: AliasType<{
+	fromStop?:boolean | `@${string}`,
+	toStop?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	incidentKind?:boolean | `@${string}`,
+	severity?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`,
+	['...on PathWarning']?: Omit<ValueTypes["PathWarning"], "...on PathWarning">
 }>;
 	["JourneyPath"]: AliasType<{
 	segments?:ValueTypes["PathSegment"],
 	totalDuration?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
-	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`,
 	['...on JourneyPath']?: Omit<ValueTypes["JourneyPath"], "...on JourneyPath">
@@ -1629,6 +1639,16 @@ bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${str
 	arrivalTime?:boolean | `@${string}`,
 	duration?:boolean | `@${string}`,
 	hasIncident?:boolean | `@${string}`,
+	warning?:ResolverInputTypes["PathWarning"],
+		__typename?: boolean | `@${string}`
+}>;
+	["PathWarning"]: AliasType<{
+	fromStop?:boolean | `@${string}`,
+	toStop?:boolean | `@${string}`,
+	lineName?:boolean | `@${string}`,
+	description?:boolean | `@${string}`,
+	incidentKind?:boolean | `@${string}`,
+	severity?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["JourneyPath"]: AliasType<{
@@ -1636,7 +1656,6 @@ bulkDeleteIncidents?: [{	ids: Array<ResolverInputTypes["ID"]>},boolean | `@${str
 	totalDuration?:boolean | `@${string}`,
 	departureTime?:boolean | `@${string}`,
 	arrivalTime?:boolean | `@${string}`,
-	warnings?:boolean | `@${string}`,
 	hasIncidents?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -2000,14 +2019,22 @@ export type ModelTypes = {
 	departureTime: string,
 	arrivalTime: string,
 	duration: number,
-	hasIncident: boolean
+	hasIncident: boolean,
+	warning?: ModelTypes["PathWarning"] | undefined | null
+};
+	["PathWarning"]: {
+		fromStop?: string | undefined | null,
+	toStop?: string | undefined | null,
+	lineName?: string | undefined | null,
+	description: string,
+	incidentKind?: ModelTypes["IncidentKind"] | undefined | null,
+	severity?: string | undefined | null
 };
 	["JourneyPath"]: {
 		segments: Array<ModelTypes["PathSegment"]>,
 	totalDuration: number,
 	departureTime: string,
 	arrivalTime: string,
-	warnings: Array<string>,
 	hasIncidents: boolean
 };
 	["FindPathInput"]: {
@@ -2425,7 +2452,18 @@ export type GraphQLTypes = {
 	arrivalTime: string,
 	duration: number,
 	hasIncident: boolean,
+	warning?: GraphQLTypes["PathWarning"] | undefined | null,
 	['...on PathSegment']: Omit<GraphQLTypes["PathSegment"], "...on PathSegment">
+};
+	["PathWarning"]: {
+	__typename: "PathWarning",
+	fromStop?: string | undefined | null,
+	toStop?: string | undefined | null,
+	lineName?: string | undefined | null,
+	description: string,
+	incidentKind?: GraphQLTypes["IncidentKind"] | undefined | null,
+	severity?: string | undefined | null,
+	['...on PathWarning']: Omit<GraphQLTypes["PathWarning"], "...on PathWarning">
 };
 	["JourneyPath"]: {
 	__typename: "JourneyPath",
@@ -2433,7 +2471,6 @@ export type GraphQLTypes = {
 	totalDuration: number,
 	departureTime: string,
 	arrivalTime: string,
-	warnings: Array<string>,
 	hasIncidents: boolean,
 	['...on JourneyPath']: Omit<GraphQLTypes["JourneyPath"], "...on JourneyPath">
 };

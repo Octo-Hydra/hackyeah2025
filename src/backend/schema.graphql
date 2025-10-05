@@ -364,6 +364,16 @@ type PathSegment {
   arrivalTime: String!
   duration: Int!
   hasIncident: Boolean!
+  warning: PathWarning # Warning for this specific segment
+}
+
+type PathWarning {
+  fromStop: String
+  toStop: String
+  lineName: String
+  description: String!
+  incidentKind: IncidentKind
+  severity: String
 }
 
 type JourneyPath {
@@ -371,7 +381,6 @@ type JourneyPath {
   totalDuration: Int!
   departureTime: String!
   arrivalTime: String!
-  warnings: [String!]!
   hasIncidents: Boolean!
 }
 

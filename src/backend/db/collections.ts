@@ -160,10 +160,18 @@ export interface PathSegment {
   duration: number; // minutes
   distance?: number; // meters for walking
   platformNumber?: string;
-  warnings?: string[]; // Incidents affecting this segment
-  hasIncident?: boolean; // Whether this segment has active incidents
-  incidentWarning?: string; // Human-readable incident warning
-  incidentSeverity?: "HIGH" | "MEDIUM" | "LOW"; // Severity of incident
+  hasIncident: boolean; // Whether this segment has active incidents (non-nullable)
+  warning?: PathWarning; // Warning for this specific segment
+}
+
+// Structured warning for path finding
+export interface PathWarning {
+  fromStop?: string; // Start stop name
+  toStop?: string; // End stop name
+  lineName?: string; // Affected line name
+  description: string; // Human-readable description
+  incidentKind?: IncidentKind; // Type of incident
+  severity?: "HIGH" | "MEDIUM" | "LOW"; // Severity level
 }
 
 // Complete journey path
@@ -173,9 +181,7 @@ export interface JourneyPath {
   totalTransfers: number;
   departureTime: string;
   arrivalTime: string;
-  warnings: string[]; // Overall journey warnings
-  hasIncidents?: boolean; // Whether any segment has incidents
-  affectedSegments?: number[]; // Indices of segments with incidents
+  hasIncidents: boolean; // Whether any segment has incidents
 }
 
 // NextAuth Session type
