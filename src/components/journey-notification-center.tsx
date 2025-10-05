@@ -45,7 +45,7 @@ export function JourneyNotificationCenter() {
 
   return (
     <div>
-    {/* <div
+      {/* <div
       className={cn(
         "pointer-events-none fixed left-4 z-[99998]",
         "bottom-[calc(env(safe-area-inset-top,0px)+1rem)] md:bottom-6",
@@ -246,6 +246,6 @@ export function JourneyNotificationCenter() {
     //   </Sheet>
     // </div>
     */}
-      </div>
+    </div>
   );
 }
