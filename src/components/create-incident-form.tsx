@@ -95,8 +95,11 @@ export function CreateIncidentForm() {
         ],
       });
 
+      console.log("📍 Fetched lines:", result.lines);
+      
       if (result.lines) {
         setLines(result.lines as Line[]);
+        console.log("📍 Lines state set:", result.lines.length, "lines");
       }
     } catch (error) {
       console.error("Error fetching lines:", error);
@@ -196,9 +199,18 @@ export function CreateIncidentForm() {
     return line.transportType === transportFilter;
   });
 
+  console.log("🔍 Filter state:", {
+    transportFilter,
+    totalLines: lines.length,
+    filteredLines: filteredLines.length,
+    selectedLines: selectedLines.length,
+  });
+
   const availableLines = filteredLines.filter(
     (line) => !selectedLines.find((l) => l.id === line.id),
   );
+  
+  console.log("📋 Available lines to show:", availableLines.length);
 
   return (
     <Card className="w-full">

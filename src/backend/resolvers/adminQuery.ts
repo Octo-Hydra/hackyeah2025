@@ -56,15 +56,7 @@ interface IncidentFilterInput {
 /**
  * Check if user has admin/moderator privileges
  */
-async function requireAdminOrModerator(context: Context): Promise<void> {
-  const user = await DB().then((db) =>
-    db
-      .collection<UserModel>("Users")
-      .findOne({ _id: new ObjectId("68e1a480e89cbf703a58a160") })
-  );
-  context.user = user
-    ? { id: user._id?.toString() || "", role: user.role }
-    : undefined;
+function requireAdminOrModerator(context: Context): void {
   if (!context.user) {
     throw new Error("Authentication required");
   }
@@ -253,7 +245,7 @@ async function paginateIncidents(
 export const AdminQueryResolvers = {
   Query: {
     admin: (_: any, __: any, context: Context) => {
-      // requireAdminOrModerator(context);
+      requireAdminOrModerator(context);
       return {}; // Return empty object for nested resolvers
     },
   },

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { Shield, ArrowLeft, Users, Flag, Settings } from "lucide-react";
 import type { Metadata } from "next";
 import { CreateIncidentForm } from "@/components/create-incident-form";
+import { AdminStatisticsDashboard } from "@/components/admin-statistics-dashboard";
 
 export const metadata: Metadata = {
   title: "Panel Administratora",
@@ -93,6 +94,11 @@ export default async function AdminPage() {
           {/* Incident Creation Form */}
           <div className="mb-6">
             <CreateIncidentForm />
+          </div>
+
+          {/* Statistics Dashboard */}
+          <div className="mb-6">
+            <AdminStatisticsDashboard />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -9,10 +9,11 @@ import clientPromise from "@/lib/mongodb";
 import type { IncidentModel, LineModel } from "@/backend/db/collections";
 
 interface Context {
-  auth: () => Promise<{
-    user?: { id?: string; email?: string; role?: string };
-  } | null>;
   db: Db;
+  user?: {
+    id: string;
+    role: "USER" | "MODERATOR" | "ADMIN";
+  };
 }
 
 // Period to milliseconds conversion
@@ -52,12 +53,11 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
@@ -147,12 +147,11 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
@@ -311,12 +310,11 @@ export const adminAnalyticsResolvers = {
       context: Context
     ) => {
       // Authorization check
-      const session = await context.auth();
-      if (
-        !session?.user?.role ||
-        !["ADMIN", "MODERATOR"].includes(session.user.role)
-      ) {
-        throw new Error("Unauthorized: Admin or Moderator access required");
+      if (!context.user) {
+        throw new Error("Authentication required");
+      }
+      if (context.user.role !== "ADMIN" && context.user.role !== "MODERATOR") {
+        throw new Error("Admin or Moderator privileges required");
       }
 
       const client = await clientPromise;
