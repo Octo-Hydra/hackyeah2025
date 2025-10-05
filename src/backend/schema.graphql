@@ -222,6 +222,7 @@ type Mutation {
   ): JourneyNotification!
   dismissJourneyNotification(id: ID!): Boolean!
   clearJourneyNotifications: Boolean!
+  updateProfile(input: UpdateProfileInput!): User!
   admin: AdminMutation!
 }
 
@@ -254,6 +255,10 @@ input UpdateUserInput {
   password: String
   role: UserRole
   reputation: Int
+}
+
+input UpdateProfileInput {
+  name: String
 }
 
 input CreateAdminIncidentInput {

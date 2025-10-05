@@ -9,7 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
-import { SignOutButton } from "@/components/sign-out-button";
+import { DesktopMenu } from "@/components/desktop-menu";
 import { AlertsFloatingSheet } from "@/components/alerts/alerts-floating-sheet";
 
 // Load dialogs only on client side to avoid SSR issues with leaflet-geosearch
@@ -83,20 +83,7 @@ export default function HomePage() {
               {status === "loading" ? (
                 <div className="h-8 w-24 animate-pulse rounded-md bg-gray-200" />
               ) : session ? (
-                <>
-                  <span className="hidden text-sm text-gray-600 dark:text-gray-400 lg:inline">
-                    {session.user?.email}
-                  </span>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/user">Profil</Link>
-                  </Button>
-                  {session.user?.role === "ADMIN" && (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href="/admin">Admin</Link>
-                    </Button>
-                  )}
-                  <SignOutButton size="sm" className="" showIcon />
-                </>
+                <DesktopMenu session={session} />
               ) : (
                 <Button asChild size="sm">
                   <Link href="/auth/signin">Zaloguj</Link>

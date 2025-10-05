@@ -299,8 +299,13 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+        url={`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY || "Xo1X4DbPOorRiDOi8L4W"}`}
+        tileSize={512}
+        zoomOffset={-1}
+        minZoom={1}
+        maxZoom={19}
+        crossOrigin={true}
       />
       <ActiveJourneyNotifier />
       {/* Show user location marker when no route is displayed */}

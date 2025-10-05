@@ -919,11 +919,16 @@ export const Mutation = {
     const userId =
       typeof user._id === "string" ? user._id : user._id.toString();
 
+    // Mark notification as dismissed instead of deleting it
+    // This preserves the notification for delay tracking
     const result = await db
       .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
-      .deleteOne({ userId, incidentId: id });
+      .updateOne(
+        { userId, incidentId: id },
+        { $set: { dismissedAt: new Date().toISOString() } }
+      );
 
-    return result.deletedCount > 0;
+    return result.modifiedCount > 0;
   },
 
   async clearJourneyNotifications(
@@ -949,11 +954,69 @@ export const Mutation = {
     const userId =
       typeof user._id === "string" ? user._id : user._id.toString();
 
+    // Mark all notifications as dismissed instead of deleting them
+    // This preserves the notifications for delay tracking
     const result = await db
       .collection<JourneyNotificationModel>(COLLECTIONS.JOURNEY_NOTIFICATIONS)
-      .deleteMany({ userId });
+      .updateMany(
+        { userId, dismissedAt: { $in: [null, undefined] } },
+        { $set: { dismissedAt: new Date().toISOString() } }
+      );
 
     return result.acknowledged;
+  },
+
+  async updateProfile(
+    _: unknown,
+    { input }: { input: { name?: string } },
+    ctx: GraphQLContext
+  ): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    reputation: number;
+  }> {
+    const db = await DB();
+    const userEmail = ctx.session?.user?.email;
+
+    if (!userEmail) {
+      throw new Error("Not authenticated");
+    }
+
+    // Validate input
+    if (!input.name || input.name.trim().length === 0) {
+      throw new Error("Name cannot be empty");
+    }
+
+    if (input.name.trim().length > 100) {
+      throw new Error("Name is too long (max 100 characters)");
+    }
+
+    const trimmedName = input.name.trim();
+
+    // Update user profile
+    const result = await db
+      .collection<UserModel>("users")
+      .findOneAndUpdate(
+        { email: userEmail },
+        { $set: { name: trimmedName } },
+        { returnDocument: "after" }
+      );
+
+    if (!result) {
+      throw new Error("User not found");
+    }
+
+    console.log(`✅ Profile updated for ${userEmail}: name="${trimmedName}"`);
+
+    return {
+      id: result._id?.toString() ?? "",
+      name: result.name,
+      email: result.email,
+      role: result.role,
+      reputation: result.reputation ?? 0,
+    };
   },
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, useSession, signOut } from "next-auth/react";
 import { ReactNode, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/app-store";
 import { Query } from "@/lib/graphql_request";
@@ -12,14 +12,18 @@ function SessionSync() {
   const currentUserId = useAppStore((state) => state.user?.id ?? null);
   const lastFetchedUserId = useRef<string | null>(null);
   const sessionUserId = session?.user?.id ?? null;
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
     const syncUser = async () => {
       if (status === "authenticated" && sessionUserId) {
-        if (
-          currentUserId === sessionUserId &&
-          lastFetchedUserId.current === sessionUserId
-        ) {
+        // Always refetch on initial mount or when user changes
+        const shouldRefetch =
+          !hasInitialized.current ||
+          currentUserId !== sessionUserId ||
+          lastFetchedUserId.current !== sessionUserId;
+
+        if (!shouldRefetch) {
           return;
         }
 
@@ -139,6 +143,7 @@ function SessionSync() {
             });
 
             lastFetchedUserId.current = sessionUserId;
+            hasInitialized.current = true;
 
             console.log("✅ User synced to store with active journey");
 
@@ -153,15 +158,41 @@ function SessionSync() {
                 activeJourneyData.segments[0].from.stopName,
               );
             }
+          } else {
+            // User was deleted from database but session still exists
+            console.log(
+              "⚠️ User not found in database, signing out and clearing store"
+            );
+            setUser(null);
+            lastFetchedUserId.current = null;
+            hasInitialized.current = false;
+            await signOut({ redirect: false });
           }
         } catch (error) {
-          console.error("Error syncing user data:", error);
+          console.error("❌ Error syncing user data:", error);
+          // If there's an error fetching user, might be deleted or network issue
+          // Clear store but don't auto-signout to avoid infinite loops
+          if (
+            error &&
+            typeof error === "object" &&
+            "message" in error &&
+            typeof error.message === "string" &&
+            (error.message.includes("User not found") ||
+              error.message.includes("Not authenticated"))
+          ) {
+            console.log("🔴 User deleted from DB, signing out");
+            setUser(null);
+            lastFetchedUserId.current = null;
+            hasInitialized.current = false;
+            await signOut({ redirect: false });
+          }
         }
       } else if (status === "unauthenticated" && currentUserId) {
         // Wyczyść store gdy użytkownik się wyloguje
         console.log("🔴 User logged out, clearing store");
         setUser(null);
         lastFetchedUserId.current = null;
+        hasInitialized.current = false;
       }
     };
 
