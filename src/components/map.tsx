@@ -290,107 +290,120 @@ export function Map({ center, zoom = 13, className }: MapProps) {
   }
 
   return (
-    <MapContainer
-      center={mapCenter ?? undefined}
-      zoom={zoom}
-      className={className}
-      style={{ height: "100%", width: "100%", touchAction: "pan-y" }}
-      scrollWheelZoom={scrollWheelZoom}
-      dragging={true}
-      touchZoom={true}
-      doubleClickZoom={true}
-      zoomControl={true}
-      ref={(map) => {
-        if (map) {
-          mapRef.current = map;
-          if (!mapReady) {
-            setMapReady(true);
-          }
-        }
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        position: "relative",
+        pointerEvents: scrollWheelZoom ? "auto" : "none",
       }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
-        url={`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY || "Xo1X4DbPOorRiDOi8L4W"}`}
-        tileSize={512}
-        zoomOffset={-1}
-        minZoom={1}
-        maxZoom={19}
-        crossOrigin={true}
-      />
-      <ActiveJourneyNotifier />
-      {/* Show user location marker when no route is displayed */}
-      {!mappedRoute && (
-        <Marker position={mapCenter}>
-          <Popup>
-            Your current location
-            <br />
-            <small>
-              Lat: {Array.isArray(mapCenter) ? mapCenter[0] : mapCenter.lat}
+      <MapContainer
+        center={mapCenter ?? undefined}
+        zoom={zoom}
+        className={className}
+        style={{
+          height: "100%",
+          width: "100%",
+          touchAction: scrollWheelZoom ? "pan-y" : "none",
+        }}
+        scrollWheelZoom={scrollWheelZoom}
+        dragging={scrollWheelZoom}
+        touchZoom={scrollWheelZoom}
+        doubleClickZoom={true}
+        zoomControl={true}
+        ref={(map) => {
+          if (map) {
+            mapRef.current = map;
+            if (!mapReady) {
+              setMapReady(true);
+            }
+          }
+        }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+          url={`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY || "Xo1X4DbPOorRiDOi8L4W"}`}
+          tileSize={512}
+          zoomOffset={-1}
+          minZoom={1}
+          maxZoom={19}
+          crossOrigin={true}
+        />
+        <ActiveJourneyNotifier />
+        {/* Show user location marker when no route is displayed */}
+        {!mappedRoute && (
+          <Marker position={mapCenter}>
+            <Popup>
+              Your current location
               <br />
-              Lng: {Array.isArray(mapCenter) ? mapCenter[1] : mapCenter.lng}
-            </small>
-          </Popup>
-        </Marker>
-      )}
+              <small>
+                Lat: {Array.isArray(mapCenter) ? mapCenter[0] : mapCenter.lat}
+                <br />
+                Lng: {Array.isArray(mapCenter) ? mapCenter[1] : mapCenter.lng}
+              </small>
+            </Popup>
+          </Marker>
+        )}
 
-      {/* Render route segments as polylines */}
-      {mappedRoute?.segments.map((segment, idx) => (
-        <Polyline
-          key={`segment-${idx}`}
-          positions={generateSmoothPolyline(mappedRoute, segment)}
-          pathOptions={{
-            color: getLineColor(segment.transportType),
-            weight: 4,
-            opacity: 0.7,
-          }}
-        >
-          <Popup>
-            <div className="text-sm">
-              <strong>{segment.lineName}</strong> ({segment.transportType})
-              <br />
-              From: {segment.from.stopName}
-              <br />
-              To: {segment.to.stopName}
-              {segment.departureTime && (
-                <>
-                  <br />
-                  Departure: {segment.departureTime}
-                </>
-              )}
-              {segment.arrivalTime && (
-                <>
-                  <br />
-                  Arrival: {segment.arrivalTime}
-                </>
-              )}
-            </div>
-          </Popup>
-        </Polyline>
-      ))}
+        {/* Render route segments as polylines */}
+        {mappedRoute?.segments.map((segment, idx) => (
+          <Polyline
+            key={`segment-${idx}`}
+            positions={generateSmoothPolyline(mappedRoute, segment)}
+            pathOptions={{
+              color: getLineColor(segment.transportType),
+              weight: 4,
+              opacity: 0.7,
+            }}
+          >
+            <Popup>
+              <div className="text-sm">
+                <strong>{segment.lineName}</strong> ({segment.transportType})
+                <br />
+                From: {segment.from.stopName}
+                <br />
+                To: {segment.to.stopName}
+                {segment.departureTime && (
+                  <>
+                    <br />
+                    Departure: {segment.departureTime}
+                  </>
+                )}
+                {segment.arrivalTime && (
+                  <>
+                    <br />
+                    Arrival: {segment.arrivalTime}
+                  </>
+                )}
+              </div>
+            </Popup>
+          </Polyline>
+        ))}
 
-      {/* Render markers for each stop in the route */}
-      {mappedRoute?.allPoints.map((point, idx) => (
-        <Marker
-          key={`point-${idx}`}
-          position={[point.lat, point.lon]}
-          opacity={point.isTransfer ? 1 : 0.8}
-        >
-          <Popup>
-            <div className="text-sm">
-              <strong>{point.stopName}</strong>
-              {point.isTransfer && (
-                <>
-                  <br />
-                  <span className="text-orange-600 font-semibold">
-                    ⚠ Transfer Point
-                  </span>
-                </>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+        {/* Render markers for each stop in the route */}
+        {mappedRoute?.allPoints.map((point, idx) => (
+          <Marker
+            key={`point-${idx}`}
+            position={[point.lat, point.lon]}
+            opacity={point.isTransfer ? 1 : 0.8}
+          >
+            <Popup>
+              <div className="text-sm">
+                <strong>{point.stopName}</strong>
+                {point.isTransfer && (
+                  <>
+                    <br />
+                    <span className="text-orange-600 font-semibold">
+                      ⚠ Transfer Point
+                    </span>
+                  </>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 }
