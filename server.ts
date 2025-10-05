@@ -49,15 +49,16 @@ const yoga = createYoga({
     }
 
     console.log("📡 Context called for HTTP request");
-    // Get session from NextAuth JWT cookie
+
     const cookieHeader = request.headers.get("cookie");
     let session = null;
 
     if (cookieHeader) {
-      // Parse NextAuth session token from cookie
       const cookies = cookieHeader.split(";").reduce(
         (acc, cookie) => {
-          const [key, value] = cookie.trim().split("=");
+          if (!cookie.trim()) return acc;
+          const [key, ...rest] = cookie.trim().split("=");
+          const value = rest.join("=");
           acc[key] = value;
           return acc;
         },
@@ -66,20 +67,20 @@ const yoga = createYoga({
 
       console.log("🍪 Available cookies:", Object.keys(cookies));
 
-      // Try different cookie names for NextAuth v5
-      let sessionToken: string | undefined;
-      let cookieName: string | undefined;
-
       const cookieNames = [
-        "authjs.session-token",
         "__Secure-authjs.session-token",
+        "authjs.session-token",
+        "__Host-authjs.session-token",
         "next-auth.session-token",
         "__Secure-next-auth.session-token",
       ];
 
+      let sessionToken: string | undefined;
+      let cookieName: string | undefined;
+
       for (const name of cookieNames) {
         if (cookies[name]) {
-          sessionToken = cookies[name];
+          sessionToken = decodeURIComponent(cookies[name]);
           cookieName = name;
           break;
         }
@@ -88,62 +89,63 @@ const yoga = createYoga({
       console.log("🔑 Session token found:", sessionToken ? "YES" : "NO");
       console.log("🔑 Cookie name:", cookieName);
 
-      if (sessionToken) {
-        // Determine base name (without __Secure- prefix) for salt
-        // Cookie can be: authjs.session-token, __Secure-authjs.session-token, etc.
-        // Salt should match the base cookie name
-        const baseCookieName =
-          cookieName?.replace(/^__Secure-/, "") || "authjs.session-token";
-        const salt = baseCookieName;
-
-        // NextAuth v5 requires AUTH_SECRET (not NEXTAUTH_SECRET)
-        // In production, ensure AUTH_SECRET is set to the same value as NEXTAUTH_SECRET
-        console.log(
-          " process.env.NEXTAUTH_SECRET",
-          process.env.NEXTAUTH_SECRET,
-        );
-        console.log(" process.env.AUTH_SECRET", process.env.AUTH_SECRET);
-        const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!;
-
-        if (!secret) {
+      if (sessionToken && cookieName) {
+        const secretRaw =
+          process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+        if (!secretRaw) {
           console.error("❌ No AUTH_SECRET or NEXTAUTH_SECRET found!");
-          const db = await DB();
-          return { user: null, db };
-        }
+        } else {
+          const secretCandidates = [secretRaw];
 
-        try {
-          console.log("🔓 Attempting to decode token...");
-          console.log(
-            "🔐 NEXTAUTH_SECRET exists:",
-            !!process.env.NEXTAUTH_SECRET,
+          const saltCandidates = Array.from(
+            new Set(
+              [
+                cookieName,
+                cookieName.replace(/^__Secure-/i, ""),
+                cookieName.replace(/^__Host-/i, ""),
+                "authjs.session-token",
+                "next-auth.session-token",
+              ].filter(Boolean),
+            ),
           );
-          console.log("🔐 AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
-          console.log(
-            "🔐 AUTH_SECRET length:",
-            process.env.AUTH_SECRET?.length,
-          );
-          console.log(
-            "🔐 NEXTAUTH_SECRET length:",
-            process.env.NEXTAUTH_SECRET?.length,
-          );
-          console.log(
-            "🔐 Secrets match:",
-            process.env.AUTH_SECRET === process.env.NEXTAUTH_SECRET,
-          );
-          console.log("🔐 Cookie name:", cookieName);
-          console.log("🔐 Using salt:", salt);
-          console.log("🔐 Using secret length:", secret.length);
-          console.log(
-            "🔐 Token type:",
-            sessionToken.startsWith("ey") ? "JWE/JWT" : "Unknown",
-          );
-          console.log("🔐 Token starts with:", sessionToken.substring(0, 50));
 
-          const decoded = await decode({
-            token: sessionToken,
-            secret: secret,
-            salt: salt,
-          });
+          console.log("🔐 Trying salts:", saltCandidates);
+          console.log(
+            "🔐 Secret candidates:",
+            secretCandidates.map((candidate) => `string(${candidate.length})`),
+          );
+          console.log(
+            "🔐 Token prefix:",
+            sessionToken.substring(0, 40) +
+              (sessionToken.length > 40 ? "..." : ""),
+          );
+
+          let decoded = null;
+          for (const currentSalt of saltCandidates) {
+            for (const currentSecret of secretCandidates) {
+              try {
+                decoded = await decode({
+                  token: sessionToken,
+                  secret: currentSecret,
+                  salt: currentSalt,
+                });
+                if (decoded) {
+                  console.log("✅ Session token decoded", {
+                    salt: currentSalt,
+                    secretType: "string",
+                  });
+                  break;
+                }
+              } catch (error) {
+                console.warn("❌ Decode attempt failed", {
+                  salt: currentSalt,
+                  secretType: "string",
+                  error,
+                });
+              }
+            }
+            if (decoded) break;
+          }
 
           if (decoded) {
             session = {
@@ -151,75 +153,36 @@ const yoga = createYoga({
                 email: decoded.email as string,
                 name: decoded.name as string,
                 image: decoded.picture as string,
-                role: (decoded.role as string) || "USER", // Add role from token
+                role: (decoded.role as string) || "USER",
+                id: (decoded.id as string) || undefined,
               },
-              expires: new Date((decoded.exp as number) * 1000).toISOString(),
+              expires: decoded.exp
+                ? new Date((decoded.exp as number) * 1000).toISOString()
+                : undefined,
             };
-            console.log("✅ Session decoded successfully:", {
-              email: decoded.email,
-              name: decoded.name,
-              role: decoded.role,
-            });
           } else {
-            console.warn("⚠️ Token decoded but no user data found");
-          }
-        } catch (error) {
-          console.error("❌ Error decoding session token:", error);
-          console.error("   Cookie name:", cookieName);
-          console.error("   Salt used:", salt);
-          console.error(
-            "   Token preview:",
-            sessionToken?.substring(0, 20) + "...",
-          );
-
-          // Try alternative decoding
-          try {
-            const altSalt = cookieName?.includes("authjs")
-              ? "next-auth.session-token"
-              : "authjs.session-token";
-            console.log("🔄 Trying alternative salt:", altSalt);
-
-            const altDecoded = await decode({
-              token: sessionToken,
-              secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!,
-              salt: altSalt,
-            });
-
-            if (altDecoded) {
-              console.log("✅ Alternative decoding successful!");
-              session = {
-                user: {
-                  email: altDecoded.email as string,
-                  name: altDecoded.name as string,
-                  image: altDecoded.picture as string,
-                  role: (altDecoded.role as string) || "USER",
-                },
-                expires: new Date(
-                  (altDecoded.exp as number) * 1000,
-                ).toISOString(),
-              };
-            }
-          } catch (altError) {
-            console.error("❌ Alternative decoding also failed:", altError);
             console.warn(
-              "⚠️ Token cannot be decrypted. User may need to log in again.",
-            );
-            console.warn(
-              "💡 This usually happens when AUTH_SECRET was changed after token creation.",
+              "⚠️ All decode attempts failed – user considered unauthenticated",
             );
           }
         }
-      } else {
-        console.log("⚠️ No session token found in cookies");
       }
     }
 
-    // Get database connection
+    if (!session) {
+      console.warn("⚠️ No valid session resolved from cookies");
+    }
+
     const db = await DB();
 
-    // Fetch user with role from database if session exists
     let user = undefined;
-    if (session?.user?.email) {
+    if (session?.user?.id && session.user.role) {
+      user = {
+        id: session.user.id,
+        role: session.user.role,
+      };
+      console.log("👤 User context set from session payload:", user);
+    } else if (session?.user?.email) {
       const userDoc = await db.collection("users").findOne({
         email: session.user.email,
       });
@@ -228,7 +191,7 @@ const yoga = createYoga({
           id: userDoc._id.toString(),
           role: userDoc.role || "USER",
         };
-        console.log("👤 User context set:", { id: user.id, role: user.role });
+        console.log("👤 User context set from DB:", user);
       }
     }
 
