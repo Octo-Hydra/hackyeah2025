@@ -34,10 +34,10 @@ export default function PWADemoPage() {
       delayMinutes: 15,
       receivedAt: new Date().toISOString(),
     };
-    
+
     // Add to store (for immediate display)
     addNotification(testNotification);
-    
+
     // Save to database (for persistence)
     try {
       const persisted = await upsertJourneyNotificationOnServer({
@@ -45,12 +45,16 @@ export default function PWADemoPage() {
         title: testNotification.title,
         description: testNotification.description ?? undefined,
         kind: testNotification.kind ?? undefined,
-        status: testNotification.status as "DRAFT" | "PUBLISHED" | "RESOLVED" | undefined,
+        status: testNotification.status as
+          | "DRAFT"
+          | "PUBLISHED"
+          | "RESOLVED"
+          | undefined,
         lineId: testNotification.lineId ?? undefined,
         lineName: testNotification.lineName ?? undefined,
         delayMinutes: testNotification.delayMinutes ?? undefined,
       });
-      
+
       // Update with database ID
       addNotification({ ...persisted, id: persisted.id });
       toast.success("Dodano testowe powiadomienie i zapisano w bazie!");
@@ -62,35 +66,17 @@ export default function PWADemoPage() {
 
   return (
     <MobileLayout isMobile={isMobile}>
-      <div className="container mx-auto max-w-4xl space-y-8 py-6 px-4 md:py-10">
+      <div className="overflow-y-auto max-h-screen md:max-h-none container mx-auto max-w-4xl space-y-8 pb-42 pt-6 px-4 md:py-10">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="">
               <div className="flex items-center gap-3">
-              <Bell className="h-8 w-8 text-orange-500" />
+                <Bell className="h-8 w-8 text-orange-500" />
                 <h1 className="text-2xl font-bold">Powiadomienia</h1>
               </div>
-                <p className=" text-gray-600 dark:text-gray-400">
-                  Śledź zmiany i opóźnienia w Twoich trasach
-                </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDebug}
-                title="Debug - pokaż liczbę powiadomień w store"
-              >
-                <Bug className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddTest}
-                title="Dodaj testowe powiadomienie"
-              >
-                Test
-              </Button>
+              <p className=" text-gray-600 dark:text-gray-400">
+                Śledź zmiany i opóźnienia w Twoich trasach
+              </p>
             </div>
           </div>
         </div>
@@ -106,7 +92,8 @@ export default function PWADemoPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              System automatycznie śledzi Twoje zapisane trasy i powiadamia Cię o:
+              System automatycznie śledzi Twoje zapisane trasy i powiadamia Cię
+              o:
             </p>
             <ul className="list-inside list-disc space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li>🚨 Wypadkach i incydentach na trasie</li>
@@ -116,9 +103,9 @@ export default function PWADemoPage() {
               <li>📡 Problemach z siecią transportową</li>
             </ul>
             <p className="text-sm text-gray-600 dark:text-gray-400 pt-2 border-t border-orange-200">
-              💡 <strong>Wskazówka:</strong> Dodaj ulubione trasy, aby otrzymywać
-              spersonalizowane powiadomienia o zmianach na Twoich codziennych
-              przejazdach.
+              💡 <strong>Wskazówka:</strong> Dodaj ulubione trasy, aby
+              otrzymywać spersonalizowane powiadomienia o zmianach na Twoich
+              codziennych przejazdach.
             </p>
           </CardContent>
         </Card>

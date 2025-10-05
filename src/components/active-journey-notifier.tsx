@@ -40,8 +40,12 @@ export function ActiveJourneyNotifier() {
   const lastSegment = activeJourney.segments[activeJourney.segments.length - 1];
 
   // startTime and expectedEndTime are already in "HH:mm" format
-  const startTime = activeJourney.startTime;
-  const endTime = activeJourney.expectedEndTime;
+  const startTime = activeJourney.startTime
+    ? new Date(activeJourney.startTime).toISOString().substring(11, 16)
+    : "";
+  const endTime = activeJourney.expectedEndTime
+    ? new Date(activeJourney.expectedEndTime).toISOString().substring(11, 16)
+    : "";
 
   // Calculate total delay from all active notifications
   const totalDelay = notifications.reduce((sum, notification) => {

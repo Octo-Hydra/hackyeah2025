@@ -218,7 +218,7 @@ export function ModeratorQueueDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
           <p className="mt-4 text-sm text-gray-600">Wczytywanie kolejki...</p>
         </div>

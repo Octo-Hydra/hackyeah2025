@@ -55,7 +55,7 @@ export function AlertsFloatingSheet() {
 
   // Don't show if:
   // - No user
-  // - No unseen notifications  
+  // - No unseen notifications
   // - Hidden by user (X button)
   // - On notifications page
   if (!user || activeCount === 0 || !isVisible || isOnNotificationsPage) {
@@ -64,10 +64,10 @@ export function AlertsFloatingSheet() {
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     // Add to dismissed list
     addDismissedNotificationId(id);
-    
+
     // Call hook to update store and backend
     void dismiss(id);
 

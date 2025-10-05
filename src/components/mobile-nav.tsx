@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
     icon: Home,
   },
   {
-    name: "Powiadomienia",
+    name: "Alerty",
     href: "/pwa",
     icon: Bell,
     requireAuth: true,

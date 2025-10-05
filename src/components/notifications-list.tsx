@@ -71,7 +71,7 @@ export function NotificationsList() {
   const [notifications, setNotifications] = useState<JourneyNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Listen to store notifications for real-time updates
   const storeNotifications = useAppStore((state) => state.notifications);
 
@@ -100,15 +100,16 @@ export function NotificationsList() {
         // 1. Dismissed by backend (dismissedAt != null)
         // 2. Closed by user (in localStorage)
         const dismissedIds = new Set(getDismissedNotificationIds());
-        const filtered = (result.me.journeyNotifications as JourneyNotification[])
-          .filter((notif) => {
-            // Skip if dismissed in backend
-            if (notif.dismissedAt) return false;
-            // Skip if closed by user (localStorage)
-            if (dismissedIds.has(notif.id)) return false;
-            return true;
-          });
-        
+        const filtered = (
+          result.me.journeyNotifications as JourneyNotification[]
+        ).filter((notif) => {
+          // Skip if dismissed in backend
+          if (notif.dismissedAt) return false;
+          // Skip if closed by user (localStorage)
+          if (dismissedIds.has(notif.id)) return false;
+          return true;
+        });
+
         setNotifications(filtered);
       }
     } catch (err) {
@@ -127,15 +128,15 @@ export function NotificationsList() {
         // Both empty, nothing to do
         return prev;
       }
-      
+
       // Get dismissed IDs from localStorage
       const dismissedIds = new Set(getDismissedNotificationIds());
-      
+
       // Filter store notifications (remove dismissed ones)
       const filteredStore = storeNotifications.filter(
-        (n) => !dismissedIds.has(n.id)
+        (n) => !dismissedIds.has(n.id),
       );
-      
+
       // Merge store notifications with fetched ones, prioritizing store (real-time)
       const storeIds = new Set(filteredStore.map((n) => n.id));
       const fetchedOnly = prev.filter((n) => !storeIds.has(n.id));
@@ -145,7 +146,7 @@ export function NotificationsList() {
 
   useEffect(() => {
     fetchNotifications();
-    
+
     // Also check if store already has notifications on mount
     if (storeNotifications.length > 0) {
       setNotifications(storeNotifications);
@@ -158,10 +159,10 @@ export function NotificationsList() {
     try {
       // Save to localStorage first (immediate effect)
       addDismissedNotificationId(id);
-      
+
       // Remove from UI immediately
       setNotifications((prev) => prev.filter((n) => n.id !== id));
-      
+
       // Also dismiss on server
       await Mutation()({
         dismissJourneyNotification: [{ id }, true],
@@ -175,10 +176,10 @@ export function NotificationsList() {
     try {
       // Clear localStorage
       clearDismissedNotifications();
-      
+
       // Clear UI
       setNotifications([]);
-      
+
       // Clear on server
       await Mutation()({
         clearJourneyNotifications: true,
@@ -216,16 +217,8 @@ export function NotificationsList() {
   const activeNotifications = notifications;
 
   return (
-    <div className="space-y-6">
+    <div className="">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">
-            Powiadomienia ({activeNotifications.length})
-          </h2>
-          <p className="text-sm text-gray-500">
-            Otrzymuj alerty o zmianach w Twoich trasach
-          </p>
-        </div>
         {notifications.length > 0 && (
           <Button
             variant="outline"
@@ -256,12 +249,16 @@ export function NotificationsList() {
       {activeNotifications.length > 0 && (
         <div className="space-y-3">
           {activeNotifications.map((notification) => {
-            const Icon = INCIDENT_ICONS[notification.kind || "OTHER"] || AlertCircle;
+            const Icon =
+              INCIDENT_ICONS[notification.kind || "OTHER"] || AlertCircle;
             const colorClass = INCIDENT_COLORS[notification.kind || "OTHER"];
             const statusColor = STATUS_COLORS[notification.status || "PENDING"];
 
             return (
-              <Card key={notification.id} className="border-l-4 border-l-orange-500">
+              <Card
+                key={notification.id}
+                className="border-l-4 border-l-orange-500"
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg ${colorClass}`}>
@@ -270,7 +267,9 @@ export function NotificationsList() {
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-semibold">{notification.title}</h3>
+                          <h3 className="font-semibold">
+                            {notification.title}
+                          </h3>
                           {notification.description && (
                             <p className="text-sm text-gray-600 mt-1">
                               {notification.description}
@@ -295,8 +294,11 @@ export function NotificationsList() {
                         )}
                         {notification.status && (
                           <Badge variant="outline" className="gap-1">
-                            <span className={`h-2 w-2 rounded-full ${statusColor}`} />
-                            {STATUS_LABELS[notification.status] || notification.status}
+                            <span
+                              className={`h-2 w-2 rounded-full ${statusColor}`}
+                            />
+                            {STATUS_LABELS[notification.status] ||
+                              notification.status}
                           </Badge>
                         )}
                         {notification.delayMinutes && (
@@ -305,10 +307,13 @@ export function NotificationsList() {
                           </Badge>
                         )}
                         <span className="text-gray-400 text-xs">
-                          {formatDistanceToNow(new Date(notification.receivedAt), {
-                            addSuffix: true,
-                            locale: pl,
-                          })}
+                          {formatDistanceToNow(
+                            new Date(notification.receivedAt),
+                            {
+                              addSuffix: true,
+                              locale: pl,
+                            },
+                          )}
                         </span>
                       </div>
                     </div>
