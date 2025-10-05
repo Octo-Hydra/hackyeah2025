@@ -68,7 +68,7 @@ function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number,
+  lon2: number
 ): number {
   const R = 6371e3; // Earth radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
@@ -96,7 +96,7 @@ export async function findSimilarPendingReports(
     };
     lineIds?: (ObjectId | string | null)[];
   },
-  db: Db,
+  db: Db
 ): Promise<PendingIncidentReport[]> {
   const thirtyMinutesAgo = new Date(Date.now() - 1800000).toISOString();
 
@@ -116,7 +116,7 @@ export async function findSimilarPendingReports(
       incident.location.latitude,
       incident.location.longitude,
       report.location.latitude,
-      report.location.longitude,
+      report.location.longitude
     );
     return distance <= 500;
   });
@@ -125,10 +125,10 @@ export async function findSimilarPendingReports(
   if (incident.lineIds && incident.lineIds.length > 0) {
     const hasOverlap = (reportLineIds: (ObjectId | string | null)[]) => {
       const incidentLines = incident.lineIds!.map((id) =>
-        id ? id.toString() : null,
+        id ? id.toString() : null
       );
       const reportLines = reportLineIds.map((id) =>
-        id ? id.toString() : null,
+        id ? id.toString() : null
       );
       return incidentLines.some((line) => reportLines.includes(line));
     };
@@ -146,7 +146,7 @@ export async function createPendingReport(
   incident: IncidentModel,
   userId: ObjectId,
   userReputation: number,
-  db: Db,
+  db: Db
 ): Promise<AddReportResult> {
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + 86400000).toISOString(); // 24 hours
@@ -161,7 +161,7 @@ export async function createPendingReport(
   // For now, use placeholder
 
   const pendingReport: PendingIncidentReport = {
-    incidentId: incident._id as ObjectId,
+    _id: new ObjectId(),
     status: "PENDING",
     reporterIds: [userId],
     reporterReputations: [userReputation],
@@ -182,7 +182,7 @@ export async function createPendingReport(
     pendingReport.totalReports,
     pendingReport.aggregateReputation,
     pendingReport.reporterReputations,
-    DEFAULT_THRESHOLD_CONFIG,
+    DEFAULT_THRESHOLD_CONFIG
   );
 
   pendingReport.thresholdScore = threshold.currentScore;
@@ -218,11 +218,11 @@ export async function addReportToPending(
   userId: ObjectId,
   userReputation: number,
   db: Db,
-  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG,
+  config: ThresholdConfig = DEFAULT_THRESHOLD_CONFIG
 ): Promise<AddReportResult> {
   // Check if user already reported
   const alreadyReported = pendingReport.reporterIds.some((id) =>
-    id.equals(userId),
+    id.equals(userId)
   );
   if (alreadyReported) {
     return {
@@ -249,7 +249,7 @@ export async function addReportToPending(
     pendingReport.totalReports,
     pendingReport.aggregateReputation,
     pendingReport.reporterReputations,
-    config,
+    config
   );
 
   pendingReport.thresholdScore = threshold.currentScore;
@@ -271,10 +271,12 @@ export async function addReportToPending(
   // Add to moderator queue if near threshold (70-99%)
   if (threshold.currentScore >= 0.7 && threshold.currentScore < 1.0) {
     await addToModeratorQueue(
-      pendingReport._id!,
+      typeof pendingReport._id === "string"
+        ? new ObjectId(pendingReport._id)
+        : pendingReport._id!,
       "NEAR_THRESHOLD",
       "MEDIUM",
-      db,
+      db
     );
   }
 
@@ -291,11 +293,11 @@ export async function addReportToPending(
     totalReports: pendingReport.totalReports,
     reportsNeeded: Math.max(
       0,
-      config.baseReportCount - threshold.breakdown.validReporters,
+      config.baseReportCount - threshold.breakdown.validReporters
     ),
     reputationNeeded: Math.max(
       0,
-      config.baseReputationRequired - pendingReport.aggregateReputation,
+      config.baseReputationRequired - pendingReport.aggregateReputation
     ),
   };
 }
@@ -304,7 +306,7 @@ export async function addReportToPending(
  * Get human-readable threshold message
  */
 function getThresholdMessage(
-  threshold: ReturnType<typeof calculateThreshold>,
+  threshold: ReturnType<typeof calculateThreshold>
 ): string {
   const progress = Math.round(threshold.currentScore * 100);
 
@@ -330,7 +332,7 @@ export async function addToModeratorQueue(
   pendingReportId: ObjectId,
   reason: string,
   priority: QueuePriority,
-  db: Db,
+  db: Db
 ): Promise<void> {
   // Check if already in queue
   const existing = await db
@@ -345,7 +347,7 @@ export async function addToModeratorQueue(
   }
 
   const queueItem: ModeratorQueueItem = {
-    pendingReportId,
+    pendingIncidentId: pendingReportId,
     priority,
     reason,
     createdAt: new Date().toISOString(),
@@ -383,7 +385,7 @@ export async function getModeratorQueue(db: Db): Promise<ModeratorQueueItem[]> {
  */
 export async function removeFromModeratorQueue(
   queueItemId: ObjectId | string,
-  db: Db,
+  db: Db
 ): Promise<void> {
   const itemIdObj =
     typeof queueItemId === "string" ? new ObjectId(queueItemId) : queueItemId;
@@ -394,7 +396,7 @@ export async function removeFromModeratorQueue(
       $set: {
         reviewedAt: new Date().toISOString(),
       },
-    },
+    }
   );
 }
 
@@ -403,7 +405,7 @@ export async function removeFromModeratorQueue(
  */
 export async function getPendingReport(
   pendingReportId: ObjectId | string,
-  db: Db,
+  db: Db
 ): Promise<PendingIncidentReport | null> {
   const reportIdObj =
     typeof pendingReportId === "string"
@@ -420,7 +422,7 @@ export async function getPendingReport(
  */
 export async function getAllPendingReports(
   db: Db,
-  status?: PendingReportStatus,
+  status?: PendingReportStatus
 ): Promise<PendingIncidentReport[]> {
   const filter = status ? { status } : {};
 
@@ -448,7 +450,7 @@ export async function expirePendingReports(db: Db): Promise<number> {
         $set: {
           status: "EXPIRED",
         },
-      },
+      }
     );
 
   return result.modifiedCount;
