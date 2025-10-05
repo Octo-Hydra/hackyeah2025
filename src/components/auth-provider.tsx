@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider, useSession } from "next-auth/react";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/app-store";
 import { Query } from "@/lib/graphql_request";
 
@@ -9,14 +9,17 @@ function SessionSync() {
   const { data: session, status } = useSession();
   const setUser = useAppStore((state) => state.setUser);
   const setMapCenter = useAppStore((state) => state.setMapCenter);
-  const currentUser = useAppStore((state) => state.user);
+  const currentUserId = useAppStore((state) => state.user?.id ?? null);
+  const lastFetchedUserId = useRef<string | null>(null);
+  const sessionUserId = session?.user?.id ?? null;
 
   useEffect(() => {
     const syncUser = async () => {
-      if (status === "authenticated" && session?.user) {
-        // Pobierz dane tylko jeśli nie ma użytkownika w store lub user ma inne ID
-        if (currentUser && currentUser.id === session.user.id) {
-          console.log("✅ User already synced:", currentUser.id);
+      if (status === "authenticated" && sessionUserId) {
+        if (
+          currentUserId === sessionUserId &&
+          lastFetchedUserId.current === sessionUserId
+        ) {
           return;
         }
 
@@ -108,6 +111,8 @@ function SessionSync() {
               activeJourney: activeJourneyData,
             });
 
+            lastFetchedUserId.current = sessionUserId;
+
             console.log("✅ User synced to store with active journey");
 
             // Ustaw mapCenter na początek aktywnej podróży
@@ -125,15 +130,16 @@ function SessionSync() {
         } catch (error) {
           console.error("Error syncing user data:", error);
         }
-      } else if (status === "unauthenticated" && currentUser) {
+      } else if (status === "unauthenticated" && currentUserId) {
         // Wyczyść store gdy użytkownik się wyloguje
         console.log("🔴 User logged out, clearing store");
         setUser(null);
+        lastFetchedUserId.current = null;
       }
     };
 
     syncUser();
-  }, [status, session, currentUser, setUser, setMapCenter]);
+  }, [status, sessionUserId, currentUserId, setUser, setMapCenter]);
 
   return null;
 }
