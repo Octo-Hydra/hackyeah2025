@@ -56,11 +56,7 @@ interface IncidentFilterInput {
 /**
  * Check if user has admin/moderator privileges
  */
-<<<<<<< HEAD
-function requireAdminOrModerator(context: Context): void {
-=======
 async function requireAdminOrModerator(context: Context): Promise<void> {
->>>>>>> 6c77b0188366e029f931ebcfdd3ac237dca2f9e2
   if (!context.user) {
     throw new Error("Authentication required");
   }
@@ -174,7 +170,7 @@ function buildIncidentFilter(filter?: IncidentFilterInput): any {
 async function paginateUsers(
   db: Db,
   filter: any,
-  pagination?: PaginationInput
+  pagination?: PaginationInput,
 ) {
   const limit = pagination?.first || pagination?.last || 20;
   const collection = db.collection<UserModel>("Users");
@@ -210,7 +206,7 @@ async function paginateUsers(
 async function paginateIncidents(
   db: Db,
   filter: any,
-  pagination?: PaginationInput
+  pagination?: PaginationInput,
 ) {
   const limit = pagination?.first || pagination?.last || 20;
   const collection = db.collection<IncidentModel>("Incidents");
@@ -255,7 +251,7 @@ export const AdminQueryResolvers = {
     users: async (
       _: any,
       args: { filter?: UserFilterInput; pagination?: PaginationInput },
-      context: Context
+      context: Context,
     ) => {
       const filter = buildUserFilter(args.filter);
       return paginateUsers(context.db, filter, args.pagination);
@@ -278,7 +274,7 @@ export const AdminQueryResolvers = {
     incidents: async (
       _: any,
       args: { filter?: IncidentFilterInput; pagination?: PaginationInput },
-      context: Context
+      context: Context,
     ) => {
       const filter = buildIncidentFilter(args.filter);
       return paginateIncidents(context.db, filter, args.pagination);
@@ -301,7 +297,7 @@ export const AdminQueryResolvers = {
     archivedIncidents: async (
       _: any,
       args: { filter?: IncidentFilterInput; pagination?: PaginationInput },
-      context: Context
+      context: Context,
     ) => {
       const filter = buildIncidentFilter(args.filter);
       filter.status = "RESOLVED"; // Force RESOLVED status
