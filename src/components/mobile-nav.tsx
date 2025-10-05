@@ -38,12 +38,6 @@ const navItems: NavItem[] = [
     requireAuth: true,
   },
   {
-    name: "Panel",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    requireAuth: true,
-  },
-  {
     name: "Profil",
     href: "/user",
     icon: User,

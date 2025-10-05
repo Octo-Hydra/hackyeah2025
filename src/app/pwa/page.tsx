@@ -62,36 +62,19 @@ export default function PWADemoPage() {
 
   return (
     <MobileLayout isMobile={isMobile}>
-      <div className="container mx-auto max-w-4xl space-y-8 py-6 px-4 md:py-10">
+      <div className="mx-auto max-w-4xl space-y-8 py-6 px-4 md:py-10">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4 py-2">
               <Bell className="h-8 w-8 text-orange-500" />
-                <h1 className="text-2xl font-bold">Powiadomienia</h1>
+                <h1 className="text-2xl font-bold">Powiadomienia ({notifications.length})</h1>
               </div>
-                <p className=" text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Śledź zmiany i opóźnienia w Twoich trasach
                 </p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDebug}
-                title="Debug - pokaż liczbę powiadomień w store"
-              >
-                <Bug className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddTest}
-                title="Dodaj testowe powiadomienie"
-              >
-                Test
-              </Button>
-            </div>
+            
           </div>
         </div>
 

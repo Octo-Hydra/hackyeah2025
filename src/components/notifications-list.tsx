@@ -216,16 +216,8 @@ export function NotificationsList() {
   const activeNotifications = notifications;
 
   return (
-    <div className="space-y-6">
+    <div className="">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">
-            Powiadomienia ({activeNotifications.length})
-          </h2>
-          <p className="text-sm text-gray-500">
-            Otrzymuj alerty o zmianach w Twoich trasach
-          </p>
-        </div>
         {notifications.length > 0 && (
           <Button
             variant="outline"
