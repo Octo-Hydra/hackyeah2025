@@ -337,7 +337,7 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       />
       <ActiveJourneyNotifier />
       {/* Show user location marker when no route is displayed */}
-      {!mappedRoute && (
+      {!mappedRoute && mapCenter && (
         <Marker position={mapCenter}>
           <Popup>
             Your current location
