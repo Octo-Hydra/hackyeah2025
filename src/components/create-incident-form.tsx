@@ -22,18 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Bus, Train, X, Send } from "lucide-react";
 import { toast } from "sonner";
-import { Thunder, IncidentKind, ReportStatus } from "@/zeus";
-
-// GraphQL client
-const thunder = Thunder(async (query) => {
-  const response = await fetch("/api/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-  });
-  if (!response.ok) throw new Error("GraphQL request failed");
-  return response.json();
-});
+import { Query, Mutation } from "@/lib/graphql_request";
+import { IncidentKind, ReportStatus } from "@/zeus";
 
 interface Line {
   id: string;
@@ -84,7 +74,10 @@ export function CreateIncidentForm() {
   const fetchLines = async () => {
     try {
       setLoading(true);
-      const result = await thunder("query")({
+      console.log("📍 Fetching lines...");
+
+      const query = Query();
+      const result = await query({
         lines: [
           {},
           {
@@ -95,17 +88,30 @@ export function CreateIncidentForm() {
         ],
       });
 
+      console.log("📍 GraphQL result:", result);
       console.log("📍 Fetched lines:", result.lines);
-
       if (result.lines) {
-        setLines(result.lines as Line[]);
-        console.log("📍 Lines state set:", result.lines.length, "lines");
+        const typedLines = result.lines as Line[];
+        setLines(typedLines);
+        console.log("📍 Lines state set:", typedLines.length, "lines");
+        console.log("📍 Sample line:", typedLines[0]);
+
+        if (typedLines.length === 0) {
+          toast.info("Brak linii w bazie danych", {
+            description: "Uruchom import GTFS aby dodać linie transportu",
+          });
+        }
+      } else {
+        console.warn("📍 No lines in result");
       }
     } catch (error) {
-      console.error("Error fetching lines:", error);
-      toast.error("Nie udało się pobrać listy linii");
+      console.error("❌ Error fetching lines:", error);
+      toast.error("Nie udało się pobrać listy linii", {
+        description: error instanceof Error ? error.message : "Nieznany błąd",
+      });
     } finally {
       setLoading(false);
+      console.log("📍 Loading complete");
     }
   };
 
@@ -150,7 +156,8 @@ export function CreateIncidentForm() {
         delayMinutes: delayMinutes ? parseInt(delayMinutes) : undefined,
       };
 
-      const result = await thunder("mutation")({
+      const mutation = Mutation();
+      const result = await mutation({
         admin: {
           createIncident: [
             { input },
@@ -199,18 +206,9 @@ export function CreateIncidentForm() {
     return line.transportType === transportFilter;
   });
 
-  console.log("🔍 Filter state:", {
-    transportFilter,
-    totalLines: lines.length,
-    filteredLines: filteredLines.length,
-    selectedLines: selectedLines.length,
-  });
-
   const availableLines = filteredLines.filter(
     (line) => !selectedLines.find((l) => l.id === line.id),
   );
-
-  console.log("📋 Available lines to show:", availableLines.length);
 
   return (
     <Card className="w-full">

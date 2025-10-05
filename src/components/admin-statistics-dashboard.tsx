@@ -30,17 +30,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Thunder, StatsPeriod } from "@/zeus";
-
-const thunder = Thunder(async (query) => {
-  const response = await fetch("/api/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-  });
-  if (!response.ok) throw new Error("GraphQL request failed");
-  return response.json();
-});
+import { Query } from "@/lib/graphql_request";
+import { StatsPeriod } from "@/zeus";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdminStats {
   totalUsers: number;
@@ -126,7 +118,8 @@ export function AdminStatisticsDashboard() {
       setLoading(true);
       console.log("📊 Fetching admin statistics with period:", period);
 
-      const result = await thunder("query")({
+      const query = Query();
+      const result = await query({
         admin: {
           stats: {
             totalUsers: true,
@@ -194,16 +187,82 @@ export function AdminStatisticsDashboard() {
     }
   };
 
-  if (loading || !stats) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">
-            Ładowanie statystyk...
-          </p>
+      <div className="space-y-6">
+        {/* Period Selector Skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-10 w-80" />
+        </div>
+
+        {/* Stats Tiles Skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Tables Skeleton */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-40 mb-2" />
+                <Skeleton className="h-4 w-56" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((j) => (
+                    <Skeleton key={j} className="h-12 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Card className="w-full">
+        <CardContent className="flex flex-col items-center justify-center p-12">
+          <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">
+            Brak danych statystycznych
+          </h3>
+          <p className="text-sm text-muted-foreground text-center">
+            Nie udało się załadować statystyk. Sprawdź uprawnienia
+            administratora lub spróbuj ponownie później.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
