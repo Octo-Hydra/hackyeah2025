@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import type { LatLngExpression, Map as LeafletMap } from "leaflet";
@@ -193,6 +193,23 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       setMappedRoute(null);
     }
   }, [activeJourney]);
+
+  // Handle window resize to update map size
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+
+    const handleResize = () => {
+      // Use setTimeout to ensure the container has been resized before invalidating
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [mapReady]);
 
   // Fit map bounds to route when route changes
   useEffect(() => {
