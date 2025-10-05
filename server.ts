@@ -89,6 +89,15 @@ const yoga = createYoga({
       console.log("🔑 Cookie name:", cookieName);
 
       if (sessionToken) {
+        // Determine salt based on cookie name
+        // Cookie can be: authjs.session-token, __Secure-authjs.session-token, etc.
+        const salt = cookieName?.includes("authjs")
+          ? "authjs.session-token"
+          : "next-auth.session-token";
+
+        // Try both secrets (NextAuth v5 might use AUTH_SECRET)
+        const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!;
+
         try {
           console.log("🔓 Attempting to decode token...");
           console.log(
@@ -96,17 +105,26 @@ const yoga = createYoga({
             !!process.env.NEXTAUTH_SECRET,
           );
           console.log("🔐 AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
-
-          // Try both secrets (NextAuth v5 might use AUTH_SECRET)
-          const secret =
-            process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET!;
-
-          // Determine salt based on cookie name
-          const salt = cookieName?.startsWith("authjs")
-            ? "authjs.session-token"
-            : "next-auth.session-token";
-
+          console.log(
+            "🔐 AUTH_SECRET length:",
+            process.env.AUTH_SECRET?.length,
+          );
+          console.log(
+            "🔐 NEXTAUTH_SECRET length:",
+            process.env.NEXTAUTH_SECRET?.length,
+          );
+          console.log(
+            "🔐 Secrets match:",
+            process.env.AUTH_SECRET === process.env.NEXTAUTH_SECRET,
+          );
+          console.log("🔐 Cookie name:", cookieName);
           console.log("🔐 Using salt:", salt);
+          console.log("🔐 Using secret length:", secret.length);
+          console.log(
+            "🔐 Token type:",
+            sessionToken.startsWith("ey") ? "JWE/JWT" : "Unknown",
+          );
+          console.log("🔐 Token starts with:", sessionToken.substring(0, 50));
 
           const decoded = await decode({
             token: sessionToken,
@@ -135,12 +153,7 @@ const yoga = createYoga({
         } catch (error) {
           console.error("❌ Error decoding session token:", error);
           console.error("   Cookie name:", cookieName);
-          console.error(
-            "   Salt used:",
-            cookieName?.startsWith("authjs")
-              ? "authjs.session-token"
-              : "next-auth.session-token",
-          );
+          console.error("   Salt used:", salt);
           console.error(
             "   Token preview:",
             sessionToken?.substring(0, 20) + "...",
@@ -148,10 +161,10 @@ const yoga = createYoga({
 
           // Try alternative decoding
           try {
-            console.log("🔄 Trying alternative salt...");
-            const altSalt = cookieName?.startsWith("authjs")
+            const altSalt = cookieName?.includes("authjs")
               ? "next-auth.session-token"
               : "authjs.session-token";
+            console.log("🔄 Trying alternative salt:", altSalt);
 
             const altDecoded = await decode({
               token: sessionToken,
