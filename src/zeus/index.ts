@@ -2231,27 +2231,27 @@ export type ModelTypes = {
     }
 
 export type GraphQLTypes = {
-    // Generic result type for operations;
-	// Incidents by line (moved from nested UserQuery);
-	// Transit queries;
-	// Search stops by name;
-	// Optimal path finding with A* and incident awareness;
-	// Admin queries (ADMIN/MODERATOR only);
-	// User management;
-	// Incident management;
-	// Archived incidents (RESOLVED status);
-	// Statistics;
-	// Reports and analytics;
-	// Auth mutations;
-	// Incident mutations;
-	// User journey mutations;
-	// Admin mutations (ADMIN/MODERATOR only);
-	// User CRUD (ADMIN only);
-	// Incident management (ADMIN/MODERATOR);
-	// Geographic coordinates;
-	// A* Pathfinding with incident awareness;
-	// Smart notifications with deduplication and trust-based filtering;
-	// Admin-only analytics types;
+    // Generic result type for operations;
+	// Incidents by line (moved from nested UserQuery);
+	// Transit queries;
+	// Search stops by name;
+	// Optimal path finding with A* and incident awareness;
+	// Admin queries (ADMIN/MODERATOR only);
+	// User management;
+	// Incident management;
+	// Archived incidents (RESOLVED status);
+	// Statistics;
+	// Reports and analytics;
+	// Auth mutations;
+	// Incident mutations;
+	// User journey mutations;
+	// Admin mutations (ADMIN/MODERATOR only);
+	// User CRUD (ADMIN only);
+	// Incident management (ADMIN/MODERATOR);
+	// Geographic coordinates;
+	// A* Pathfinding with incident awareness;
+	// Smart notifications with deduplication and trust-based filtering;
+	// Admin-only analytics types;
 	["UserRole"]: UserRole;
 	["User"]: {
 	__typename: "User",
