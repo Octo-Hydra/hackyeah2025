@@ -21,6 +21,9 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Explicitly disable PKCE checks due to incompatibility with current adapter storage.
+      // We rely on state + nonce for CSRF protection, which Google fully supports.
+      checks: ["state", "nonce"],
     }),
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID!,

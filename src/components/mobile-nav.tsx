@@ -99,7 +99,7 @@ export function MobileNav() {
       if (typeof window !== "undefined") {
         localStorage.removeItem("activeJourneyLineIds");
       }
-      
+
       // Don't await - let Next.js handle the redirect
       signOut({ callbackUrl: "/", redirect: true });
     } catch (error) {
@@ -175,7 +175,12 @@ export function MobileNav() {
                   isActive && "scale-110",
                 )}
               />
-              <span className={cn(isActive && "font-semibold")}>
+              <span
+                className={cn(
+                  "block max-w-[80px] truncate text-center",
+                  isActive && "font-semibold",
+                )}
+              >
                 {item.name}
               </span>
               {isActive && (
