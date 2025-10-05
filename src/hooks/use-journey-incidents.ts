@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "graphql-ws";
 
 interface IncidentUpdate {
-  _id: string;
-  lineIds: string[];
-  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  id: string;
   title: string;
-  description: string;
-  status: "PENDING" | "OFFICIAL" | "RESOLVED";
-  location?: {
-    latitude: number;
-    longitude: number;
-  };
+  description?: string;
+  kind: string;
+  status: "DRAFT" | "PUBLISHED" | "RESOLVED";
+  lines?: Array<{ id: string; name: string }>;
+  delayMinutes?: number;
 }
 
 interface JourneySegment {
@@ -33,13 +30,19 @@ export function useJourneyIncidents(segments: JourneySegment[]) {
   );
   const [isConnected, setIsConnected] = useState(false);
 
+  // Create stable line IDs string to avoid infinite loop
+  const lineIdsString =
+    segments
+      ?.map((seg) => seg.lineId)
+      .filter((id) => id)
+      .sort()
+      .join(",") || "";
+
   useEffect(() => {
-    if (!segments || segments.length === 0) return;
+    if (!lineIdsString) return;
 
     // Extract unique line IDs
-    const uniqueLineIds = Array.from(
-      new Set(segments.map((seg) => seg.lineId)),
-    );
+    const uniqueLineIds = Array.from(new Set(lineIdsString.split(",")));
 
     console.log("🔌 Subscribing to incidents for lines:", uniqueLineIds);
 
@@ -100,23 +103,23 @@ export function useJourneyIncidents(segments: JourneySegment[]) {
           query: `
             subscription LineIncidents($lineId: ID!) {
               lineIncidentUpdates(lineId: $lineId) {
-                _id
-                lineIds
-                severity
+                id
                 title
                 description
+                kind
                 status
-                location {
-                  latitude
-                  longitude
+                lines {
+                  id
+                  name
                 }
+                delayMinutes
               }
             }
           `,
           variables: { lineId },
         },
         {
-          next: (data: any) => {
+          next: (data: { data?: { lineIncidentUpdates?: IncidentUpdate } }) => {
             const incident = data.data?.lineIncidentUpdates;
             if (incident) {
               console.log(`🚨 Incident update for line ${lineId}:`, incident);
@@ -127,7 +130,7 @@ export function useJourneyIncidents(segments: JourneySegment[]) {
 
                 // Update or add incident
                 const existingIndex = lineIncidents.findIndex(
-                  (i) => i._id === incident._id,
+                  (i) => i.id === incident.id,
                 );
 
                 if (existingIndex >= 0) {
@@ -138,7 +141,7 @@ export function useJourneyIncidents(segments: JourneySegment[]) {
                   lineIncidents.push(incident);
                 }
 
-                // Remove resolved incidents after 30s
+                // Remove resolved incidents
                 const activeIncidents = lineIncidents.filter(
                   (i) => i.status !== "RESOLVED",
                 );
@@ -168,7 +171,7 @@ export function useJourneyIncidents(segments: JourneySegment[]) {
       client.dispose();
       setIsConnected(false);
     };
-  }, [segments]);
+  }, [lineIdsString]);
 
   // Get all incidents across all lines
   const allIncidents = Array.from(incidents.values()).flat();

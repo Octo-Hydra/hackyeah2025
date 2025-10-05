@@ -104,7 +104,6 @@ function SessionSync() {
               id: result.me.id,
               name: result.me.name,
               email: result.me.email,
-              image: result.me.image as string | null | undefined,
               reputation: result.me.reputation ?? undefined,
               activeJourney: activeJourneyData,
             });

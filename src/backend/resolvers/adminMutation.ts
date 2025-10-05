@@ -115,7 +115,7 @@ export const AdminMutationResolvers = {
     createUser: async (
       _: any,
       args: { input: CreateUserInput },
-      context: Context
+      context: Context,
     ) => {
       requireAdmin(context); // Only ADMIN can create users
 
@@ -159,7 +159,7 @@ export const AdminMutationResolvers = {
     updateUser: async (
       _: any,
       args: { id: string; input: UpdateUserInput },
-      context: Context
+      context: Context,
     ) => {
       requireAdmin(context);
 
@@ -181,7 +181,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: updateData },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -210,7 +210,7 @@ export const AdminMutationResolvers = {
     updateUserRole: async (
       _: any,
       args: { id: string; role: "USER" | "MODERATOR" | "ADMIN" },
-      context: Context
+      context: Context,
     ) => {
       requireAdmin(context);
 
@@ -219,7 +219,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { role: args.role } },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -235,7 +235,7 @@ export const AdminMutationResolvers = {
     updateUserReputation: async (
       _: any,
       args: { id: string; reputation: number },
-      context: Context
+      context: Context,
     ) => {
       requireAdmin(context);
 
@@ -244,7 +244,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { reputation: args.reputation } },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -260,7 +260,7 @@ export const AdminMutationResolvers = {
     createIncident: async (
       _: any,
       args: { input: CreateAdminIncidentInput },
-      context: Context
+      context: Context,
     ) => {
       requireAdminOrModerator(context);
 
@@ -308,6 +308,19 @@ export const AdminMutationResolvers = {
       // Publish to subscriptions
       pubsub.publish(CHANNELS.INCIDENT_CREATED, createdIncident);
 
+      // Publish per-line updates for WebSocket monitoring
+      if (lineIds && lineIds.length > 0) {
+        for (const lineId of lineIds) {
+          pubsub.publish(
+            `${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
+            createdIncident,
+          );
+          console.log(
+            `📡 Published incident to line channel: ${CHANNELS.LINE_INCIDENT_UPDATES}:${lineId}`,
+          );
+        }
+      }
+
       return createdIncident;
     },
 
@@ -317,7 +330,7 @@ export const AdminMutationResolvers = {
     updateIncident: async (
       _: any,
       args: { id: string; input: UpdateAdminIncidentInput },
-      context: Context
+      context: Context,
     ) => {
       requireAdminOrModerator(context);
 
@@ -352,7 +365,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: updateData },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -389,7 +402,7 @@ export const AdminMutationResolvers = {
     markIncidentAsFake: async (
       _: any,
       args: { id: string },
-      context: Context
+      context: Context,
     ) => {
       requireAdminOrModerator(context);
 
@@ -398,7 +411,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { isFake: true, status: "RESOLVED" } },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -410,7 +423,7 @@ export const AdminMutationResolvers = {
         .collection<IncidentLocationModel>("IncidentLocations")
         .updateMany(
           { incidentId: new ObjectId(args.id) },
-          { $set: { active: false, resolvedAt: new Date().toISOString() } }
+          { $set: { active: false, resolvedAt: new Date().toISOString() } },
         );
 
       return result;
@@ -427,7 +440,7 @@ export const AdminMutationResolvers = {
         .findOneAndUpdate(
           { _id: new ObjectId(args.id) },
           { $set: { isFake: false, status: "PUBLISHED" } },
-          { returnDocument: "after" }
+          { returnDocument: "after" },
         );
 
       if (!result) {
@@ -439,7 +452,7 @@ export const AdminMutationResolvers = {
         .collection<IncidentLocationModel>("IncidentLocations")
         .updateMany(
           { incidentId: new ObjectId(args.id) },
-          { $set: { active: true }, $unset: { resolvedAt: "" } }
+          { $set: { active: true }, $unset: { resolvedAt: "" } },
         );
 
       return result;
@@ -451,7 +464,7 @@ export const AdminMutationResolvers = {
     bulkResolveIncidents: async (
       _: any,
       args: { ids: string[] },
-      context: Context
+      context: Context,
     ) => {
       requireAdminOrModerator(context);
 
@@ -461,7 +474,7 @@ export const AdminMutationResolvers = {
         .collection<IncidentModel>("Incidents")
         .updateMany(
           { _id: { $in: objectIds } },
-          { $set: { status: "RESOLVED" } }
+          { $set: { status: "RESOLVED" } },
         );
 
       // Deactivate incident locations
@@ -469,7 +482,7 @@ export const AdminMutationResolvers = {
         .collection<IncidentLocationModel>("IncidentLocations")
         .updateMany(
           { incidentId: { $in: objectIds } },
-          { $set: { active: false, resolvedAt: new Date().toISOString() } }
+          { $set: { active: false, resolvedAt: new Date().toISOString() } },
         );
 
       // Fetch updated incidents
@@ -487,7 +500,7 @@ export const AdminMutationResolvers = {
     bulkDeleteIncidents: async (
       _: any,
       args: { ids: string[] },
-      context: Context
+      context: Context,
     ) => {
       requireAdminOrModerator(context);
 

@@ -34,20 +34,22 @@ const yoga = createYoga({
   graphiql: {
     subscriptionsProtocol: "WS",
   },
-  schema: createSchema<{
-    db: Db;
-    session: {
-      user: { email: string; name: string; image: string; role: string };
-      expires: string;
-    } | null;
-    request: Request;
-  }>({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  schema: createSchema<any>({
     typeDefs: /* GraphQL */ `
       ${typeDefs}
     `,
     resolvers,
   }),
   context: async ({ request }) => {
+    // WebSocket subscriptions don't have request object
+    if (!request) {
+      console.log("🔌 Context called for WebSocket (no request)");
+      const db = await DB();
+      return { db, user: null };
+    }
+
+    console.log("📡 Context called for HTTP request");
     // Get session from NextAuth JWT cookie
     const cookieHeader = request.headers.get("cookie");
     let session = null;
@@ -173,6 +175,10 @@ const yoga = createYoga({
         subscribe: (args) =>
           (args.rootValue as { subscribe: YogaSubscribe }).subscribe(args),
         onSubscribe: async (ctx, _id, params) => {
+          console.log("🔌 WebSocket onSubscribe called");
+          console.log("🔌 Connection params:", ctx.connectionParams);
+          console.log("🔌 Extra request:", ctx.extra.request);
+
           const {
             schema,
             execute,
