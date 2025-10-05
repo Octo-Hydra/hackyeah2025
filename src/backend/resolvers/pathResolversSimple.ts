@@ -33,7 +33,7 @@ function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
 async function findNearestStop(
   db: Db,
   coordinates: Coordinates,
-  maxDistance: number = 50000
+  maxDistance: number = 50000,
 ): Promise<StopModel | null> {
   const stops = await db.collection<StopModel>("Stops").find({}).toArray();
 
@@ -66,7 +66,7 @@ function getCurrentTime(): string {
  */
 async function getRouteIncidents(
   db: Db,
-  segments: PathSegment[]
+  segments: PathSegment[],
 ): Promise<string[]> {
   const warnings: string[] = [];
 
@@ -199,7 +199,7 @@ async function getRouteIncidents(
 export const pathResolvers = {
   async findPath(
     _: unknown,
-    { input }: { input: FindPathInput }
+    { input }: { input: FindPathInput },
   ): Promise<JourneyPath> {
     const db = await DB();
     const { from, to, departureTime = getCurrentTime() } = input;
@@ -286,7 +286,7 @@ export const pathResolvers = {
 
           const segmentDistance = calculateDistance(
             currentStop.coordinates,
-            nextStop.coordinates
+            nextStop.coordinates,
           );
 
           segments.push({
@@ -336,7 +336,7 @@ export const pathResolvers = {
       segments,
       totalDuration: segments.reduce(
         (sum, seg) => sum + (seg.duration || 0),
-        0
+        0,
       ),
       totalTransfers: 0,
       departureTime,

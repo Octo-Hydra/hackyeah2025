@@ -26,8 +26,14 @@ export const AllTypesProps: Record<string,any> = {
 		stops:{
 			transportType:"TransportType"
 		},
+		searchStops:{
+
+		},
 		findPath:{
 			input:"FindPathInput"
+		},
+		findOptimalJourney:{
+			input:"FindOptimalJourneyInput"
 		}
 	},
 	AdminQuery:{
@@ -188,6 +194,10 @@ export const AllTypesProps: Record<string,any> = {
 		from:"CoordinatesInput",
 		to:"CoordinatesInput"
 	},
+	FindOptimalJourneyInput:{
+		preferredTransportTypes:"TransportType"
+	},
+	IncidentSeverity: "enum" as const,
 	Subscription:{
 		incidentCreated:{
 			transportType:"TransportType"
@@ -251,7 +261,9 @@ export const ReturnTypes: Record<string,any> = {
 		incidentsByLine:"Incident",
 		lines:"Line",
 		stops:"Stop",
+		searchStops:"Stop",
 		findPath:"JourneyPath",
+		findOptimalJourney:"OptimalJourneyResult",
 		admin:"AdminQuery"
 	},
 	AdminQuery:{
@@ -399,6 +411,33 @@ export const ReturnTypes: Record<string,any> = {
 		arrivalTime:"String",
 		warnings:"String",
 		hasIncidents:"Boolean"
+	},
+	OptimalJourneyResult:{
+		journeys:"Journey",
+		hasAlternatives:"Boolean"
+	},
+	Journey:{
+		segments:"JourneySegment",
+		totalDuration:"Int",
+		totalDistance:"Float",
+		transferCount:"Int",
+		hasIncidents:"Boolean",
+		departureTime:"String",
+		arrivalTime:"String",
+		alternativeAvailable:"Boolean"
+	},
+	JourneySegment:{
+		from:"SegmentLocation",
+		to:"SegmentLocation",
+		lineId:"ID",
+		lineName:"String",
+		transportType:"TransportType",
+		departureTime:"String",
+		arrivalTime:"String",
+		duration:"Int",
+		hasIncident:"Boolean",
+		incidentDelay:"Int",
+		incidentSeverity:"IncidentSeverity"
 	},
 	Subscription:{
 		incidentCreated:"Incident",
