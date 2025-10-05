@@ -1,6 +1,21 @@
-import { ArrowRight, AlertTriangle } from "lucide-react";
+import {
+  ArrowRight,
+  AlertTriangle,
+  Train,
+  Bus,
+  Clock,
+  MapPin,
+  Navigation,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { PathSegment, useAppStore } from "@/store/app-store";
 
 interface RouteNotificationProps {
   startCity: string;
@@ -9,6 +24,7 @@ interface RouteNotificationProps {
   duration?: string;
   delayMinutes?: number;
   className?: string;
+  segments?: PathSegment[];
 }
 
 export function RouteNotification({
@@ -18,7 +34,16 @@ export function RouteNotification({
   duration,
   delayMinutes,
   className,
+  segments = [],
 }: RouteNotificationProps) {
+  const setScrollWheelZoom = useAppStore((state) => state.setScrollWheelZoom);
+
+  const handleAccordionChange = (value: string) => {
+    // If accordion is open (value is truthy), disable map scroll
+    // If accordion is closed (value is empty), enable map scroll
+    setScrollWheelZoom(value === "");
+  };
+
   return (
     <div
       className={cn(
@@ -109,6 +134,173 @@ export function RouteNotification({
             <p className="text-sm font-semibold text-red-700 dark:text-red-300">
               Opóźnienie: +{delayMinutes} min
             </p>
+          </div>
+        )}
+        {/* Accordion for journey segments */}
+        {segments.length > 0 && (
+          <div className="mt-4">
+            <Accordion
+              type="single"
+              collapsible
+              className="w-full"
+              onValueChange={handleAccordionChange}
+            >
+              <AccordionItem value="segments">
+                <AccordionTrigger className="justify-between">
+                  <div className="flex items-center gap-2 w-full justify-between">
+                    <span className="font-semibold text-primary">
+                      Szczegóły trasy
+                    </span>
+                    {/* Chevron is included by default in AccordionTrigger */}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div
+                    className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto overflow-x-hidden scroll-container focus:outline-none"
+                    tabIndex={0}
+                    role="region"
+                    aria-label="Szczegóły segmentów trasy"
+                    onWheel={(e) => {
+                      // Always prevent wheel events from reaching the map
+                      e.stopPropagation();
+                      e.preventDefault();
+
+                      // Manually handle the scroll
+                      const target = e.currentTarget;
+                      const scrollAmount = e.deltaY;
+                      target.scrollTop += scrollAmount;
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchMove={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onMouseMove={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onPointerMove={(e) => {
+                      e.stopPropagation();
+                    }}
+                    style={{ touchAction: "pan-y" }}
+                  >
+                    {segments.map((seg, idx) => {
+                      // Get icon based on transport type
+                      const getSegmentIcon = () => {
+                        if (seg.transportType === "BUS") {
+                          return <Bus className="w-5 h-5 text-green-500" />;
+                        } else if (seg.transportType === "RAIL") {
+                          return <Train className="w-5 h-5 text-purple-500" />;
+                        }
+                        return <Navigation className="w-5 h-5 text-gray-500" />;
+                      };
+
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(
+                            "rounded-xl border-2 p-4 bg-gradient-to-br shadow-sm transition-all hover:shadow-md",
+                            "from-white to-accent/20 border-accent/30",
+                            seg.hasIncident && "border-red-300 bg-red-50/30",
+                          )}
+                        >
+                          {/* Header with icon and type */}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="flex-shrink-0 p-2 rounded-lg bg-white/80 shadow-sm">
+                              {getSegmentIcon()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-bold text-primary/90">
+                                  {seg.lineName || "Transport"}
+                                </span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary/70 font-medium">
+                                  {seg.transportType}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                Linia: {seg.lineId}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center gap-1 text-xs text-primary/70">
+                                <Clock className="w-3 h-3" />
+                                <span className="font-semibold">
+                                  {seg.duration} min
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* From -> To */}
+                          <div className="space-y-2 pl-1">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-muted-foreground mb-0.5">
+                                  Początek
+                                </p>
+                                <p className="text-sm font-semibold text-primary truncate">
+                                  {seg.from.stopName || "Nieznana lokalizacja"}
+                                </p>
+                                <p className="text-xs text-primary/60">
+                                  Odjazd: {seg.departureTime}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Connecting line */}
+                            <div className="flex items-center gap-2 pl-2">
+                              <div className="w-px h-6 bg-gradient-to-b from-accent/60 to-accent/20" />
+                              <ArrowRight className="w-3 h-3 text-accent/50" />
+                            </div>
+
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-muted-foreground mb-0.5">
+                                  Koniec
+                                </p>
+                                <p className="text-sm font-semibold text-primary truncate">
+                                  {seg.to.stopName || "Nieznana lokalizacja"}
+                                </p>
+                                <p className="text-xs text-primary/60">
+                                  Przyjazd: {seg.arrivalTime}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Incident Warning */}
+                          {seg.hasIncident && (
+                            <div className="mt-3 pt-3 border-t border-red-200/50">
+                              <div className="flex items-start gap-2 text-xs">
+                                <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="font-semibold text-red-700 mb-0.5">
+                                    Uwaga: Incydent na tej trasie
+                                  </p>
+                                  <p className="text-red-600/90">
+                                    Na tym odcinku zgłoszono incydent. Sprawdź
+                                    aktualny status.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
       </div>

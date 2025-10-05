@@ -51,7 +51,7 @@ export default async function AdminPage() {
 
   return (
     <MobileLayout isMobile={isMobile}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 pb-10 dark:bg-gray-900">
         {/* Desktop Header */}
         <header className="hidden border-b z-50 bg-white right-0 left-0 dark:bg-gray-950 md:block fixed">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">

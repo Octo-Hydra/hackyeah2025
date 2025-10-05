@@ -95,6 +95,8 @@ interface AppState {
   setMapCenter: (center: [number, number]) => void;
   mapZoom: number;
   setMapZoom: (zoom: number) => void;
+  scrollWheelZoom: boolean;
+  setScrollWheelZoom: (enabled: boolean) => void;
 
   // Store management
   clearStore: () => void;
@@ -230,6 +232,8 @@ export const useAppStore = create<AppState>()(
         setMapCenter: (center) => set({ mapCenter: center }),
         mapZoom: 13,
         setMapZoom: (zoom) => set({ mapZoom: zoom }),
+        scrollWheelZoom: true,
+        setScrollWheelZoom: (enabled) => set({ scrollWheelZoom: enabled }),
 
         // Store management
         clearStore: () =>
@@ -240,6 +244,7 @@ export const useAppStore = create<AppState>()(
               dismissedNotificationIds: [],
               mapCenter: null,
               mapZoom: 13,
+              scrollWheelZoom: true,
             },
             false,
             "clearStore",

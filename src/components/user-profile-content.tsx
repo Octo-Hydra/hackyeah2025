@@ -55,7 +55,7 @@ export function UserProfileContent({ session }: UserProfileContentProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pb-10 bg-gray-50 dark:bg-gray-900">
       {/* Desktop Header */}
       <header className="hidden border-b bg-white dark:bg-gray-950 md:block">
         <div className="container mx-auto flex h-16 items-center px-4">

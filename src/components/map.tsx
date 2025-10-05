@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import type { LatLngExpression, Map as LeafletMap } from "leaflet";
@@ -153,15 +153,16 @@ interface MapProps {
 }
 
 export function Map({ center, zoom = 13, className }: MapProps) {
+  // Subscribe to store state (must be at the top before other hooks)
+  const activeJourney = useAppStore((state) => state.user?.activeJourney);
+  const scrollWheelZoom = useAppStore((state) => state.scrollWheelZoom);
+
   const [position, setPosition] = useState<LatLngExpression | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [mappedRoute, setMappedRoute] = useState<MappedRoute | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<LeafletMap | null>(null);
   const lastFittedRouteKey = useRef<string | null>(null);
-
-  // Subscribe to active journey changes from store
-  const activeJourney = useAppStore((state) => state.user?.activeJourney);
 
   useEffect(() => {
     setIsClient(true);
@@ -248,6 +249,30 @@ export function Map({ center, zoom = 13, className }: MapProps) {
       });
     }
   }, [isClient]);
+  const mapCenter = center || position;
+
+  // Helper function to get color based on transport type
+  const getLineColor = (transportType: string) => {
+    switch (transportType.toUpperCase()) {
+      case "BUS":
+        return "#3b82f6"; // Blue
+      case "RAIL":
+        return "#ef4444"; // Red
+      default:
+        return "#6b7280"; // Gray
+    }
+  };
+
+  // Dynamically enable/disable scroll wheel zoom
+  useEffect(() => {
+    if (mapRef.current) {
+      if (scrollWheelZoom) {
+        mapRef.current.scrollWheelZoom.enable();
+      } else {
+        mapRef.current.scrollWheelZoom.disable();
+      }
+    }
+  }, [scrollWheelZoom]);
 
   if (!isClient || !position) {
     return (
@@ -264,27 +289,13 @@ export function Map({ center, zoom = 13, className }: MapProps) {
     );
   }
 
-  const mapCenter = center || position;
-
-  // Helper function to get color based on transport type
-  const getLineColor = (transportType: string) => {
-    switch (transportType.toUpperCase()) {
-      case "BUS":
-        return "#3b82f6"; // Blue
-      case "RAIL":
-        return "#ef4444"; // Red
-      default:
-        return "#6b7280"; // Gray
-    }
-  };
-
   return (
     <MapContainer
-      center={mapCenter}
+      center={mapCenter ?? undefined}
       zoom={zoom}
       className={className}
       style={{ height: "100%", width: "100%", touchAction: "pan-y" }}
-      scrollWheelZoom={true}
+      scrollWheelZoom={scrollWheelZoom}
       dragging={true}
       touchZoom={true}
       doubleClickZoom={true}

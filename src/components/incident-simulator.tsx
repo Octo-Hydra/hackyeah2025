@@ -384,7 +384,7 @@ export function IncidentSimulator() {
             <Label>Dotknięte linie *</Label>
 
             {/* Transport Type Filter */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant={transportFilter === "ALL" ? "default" : "outline"}
